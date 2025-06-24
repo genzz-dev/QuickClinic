@@ -17,7 +17,12 @@ export const authenticate = async (req, res, next) => {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    req.user = user;
+    // Attach both the user document and the userId separately
+    req.user = {
+      ...user.toObject(), // Convert mongoose document to plain object
+      userId: user._id    // Explicitly add userId
+    };
+    
     next();
   } catch (error) {
     res.status(403).json({ message: 'Invalid or expired token' });

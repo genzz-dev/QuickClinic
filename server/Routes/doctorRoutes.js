@@ -6,13 +6,15 @@ import {
   getDoctorProfile,
   getDoctorsByClinic
 } from '../Controllers/doctorController.js';
+import upload from '../Middleware/upload.js';
+
 const router = express.Router();
 
 router.use(authenticate);
 router.use(authorize('doctor'));
 
-router.post('/profile', createDoctorProfile);
-router.put('/profile', updateDoctorProfile);
+router.post('/profile', upload.single('profilePicture'),createDoctorProfile);
+router.put('/profile', upload.single('profilePicture'),updateDoctorProfile);
 router.get('/profile', getDoctorProfile);
 router.get('/clinic/:clinicId', getDoctorsByClinic);
 

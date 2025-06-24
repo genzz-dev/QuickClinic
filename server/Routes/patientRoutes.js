@@ -6,15 +6,16 @@ import {
   getPatientProfile,
   uploadHealthRecord
 } from '../Controllers/patientController.js';
+import upload from '../Middleware/upload.js';
 
 const router = express.Router();
 
 router.use(authenticate);
 router.use(authorize('patient'));
 
-router.post('/profile', createPatientProfile);
-router.put('/profile', updatePatientProfile);
+router.post('/profile', upload.single('profilePicture'), createPatientProfile);
+router.put('/profile', upload.single('profilePicture'), updatePatientProfile);
 router.get('/profile', getPatientProfile);
-router.post('/health-records', uploadHealthRecord);
+router.post('/health-records', upload.single('file'), uploadHealthRecord);
 
 export default router;
