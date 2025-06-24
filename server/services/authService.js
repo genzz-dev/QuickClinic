@@ -33,11 +33,12 @@ export const loginUser = async (email, password) => {
   const accessToken = generateAccessToken(user._id, user.role);
   const refreshToken = generateRefreshToken(user._id);
 
+  // Save refresh token to database
   user.refreshToken = refreshToken;
   await user.save();
 
   return { 
-    user: { id: user._id, role: user.role },
+    user: { _id: user._id, role: user.role }, // Fixed: use _id consistently
     tokens: { accessToken, refreshToken }
   };
 };
@@ -47,16 +48,27 @@ export const refreshTokens = async (refreshToken) => {
     throw new Error('No refresh token provided');
   }
 
-  const decoded = verifyRefreshToken(refreshToken);
-  const user = await User.findById(decoded.userId);
+  let decoded;
+  try {
+    decoded = verifyRefreshToken(refreshToken);
+  } catch (error) {
+    throw new Error('Invalid or expired refresh token');
+  }
 
-  if (!user || user.refreshToken !== refreshToken) {
+  const user = await User.findById(decoded.userId);
+  if (!user) {
+    throw new Error('User not found');
+  }
+
+  // Check if the refresh token matches the one stored in database
+  if (user.refreshToken !== refreshToken) {
     throw new Error('Invalid refresh token');
   }
 
   const newAccessToken = generateAccessToken(user._id, user.role);
   const newRefreshToken = generateRefreshToken(user._id);
 
+  // Update the refresh token in database
   user.refreshToken = newRefreshToken;
   await user.save();
 
@@ -67,5 +79,8 @@ export const refreshTokens = async (refreshToken) => {
 };
 
 export const logoutUser = async (userId) => {
-  await User.findByIdAndUpdate(userId, { refreshToken: null });
+  const user = await User.findByIdAndUpdate(userId, { refreshToken: null });
+  if (!user) {
+    throw new Error('User not found');
+  }
 };
