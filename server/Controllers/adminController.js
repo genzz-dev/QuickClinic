@@ -4,7 +4,14 @@ import Doctor from '../models/Users/Doctor.js';
 import { uploadToCloudinary } from '../services/uploadService.js';
 import {sendDoctorAddedToClinicEmail} from '../services/emailService.js';
 import mongoose from 'mongoose';
-
+import { 
+  extractPlaceIdFromUrl, 
+  fetchPlaceDetails, 
+  fetchPlacePhotos, 
+  parseAddressComponents,
+  withRateLimit,
+  cleanFormattedAddress
+} from '../services/googleMapsService.js';
 // Create admin profile
 export const createAdminProfile = async (req, res) => {
   try {
@@ -58,25 +65,52 @@ export const addClinic = async (req, res) => {
   try {
     const { userId } = req.user;
     const clinicData = req.body;
+
     // Validate required clinic fields
-    if (!clinicData.name || !clinicData.address) {
+    if (!clinicData.name) {
       return res.status(400).json({ 
-        message: 'Required fields missing',
-        errors: {
-          name: !clinicData.name ? 'Clinic name is required' : undefined,
-          address: !clinicData.address ? 'Address is required' : undefined
-        }
+        message: 'Clinic name is required',
+        errors: { name: 'Clinic name is required' }
       });
     }
 
     // Check if admin exists
     const admin = await Admin.findOne({ userId });
-    console.log(admin);
     if (!admin) {
       return res.status(404).json({ message: 'Admin profile not found' });
     }
 
-    // Handle logo upload
+    // If Google Maps link is provided, fetch details
+if (clinicData.googleMapsLink) {
+  try {
+    const placeId = await extractPlaceIdFromUrl(clinicData.googleMapsLink);
+    const placeDetails = await withRateLimit(() => fetchPlaceDetails(placeId));
+    
+    // Store the complete formatted address
+    clinicData.address = {
+      formattedAddress: cleanFormattedAddress(placeDetails.adr_address) || '',
+      ...parseAddressComponents(placeDetails.address_components)
+    };
+    
+    // Set coordinates if available
+    if (placeDetails.geometry?.location) {
+      clinicData.address.coordinates = {
+        lat: placeDetails.geometry.location.lat,
+        lng: placeDetails.geometry.location.lng
+      };
+    }
+    
+    // Fetch photos (max 3)
+    const googlePhotos = await withRateLimit(() => fetchPlacePhotos(placeId));
+    if (googlePhotos.length > 0) {
+      clinicData.photos = googlePhotos;
+    }
+  } catch (googleError) {
+    console.error('Google Maps integration error:', googleError);
+  }
+}
+
+    // Handle manual logo upload (takes precedence over Google photos)
     if (req.files?.logo) {
       try {
         const result = await uploadToCloudinary(req.files.logo[0].path);
@@ -87,10 +121,10 @@ export const addClinic = async (req, res) => {
       }
     }
 
-    // Handle clinic photos upload
+    // Handle manual photos upload (will be added alongside Google photos)
     if (req.files?.photos) {
       try {
-        clinicData.photos = await Promise.all(
+        const newPhotos = await Promise.all(
           req.files.photos.map(async (file) => {
             const result = await uploadToCloudinary(file.path);
             return {
@@ -100,12 +134,12 @@ export const addClinic = async (req, res) => {
             };
           })
         );
+        updates.$push = { photos: { $each: newPhotos } };
       } catch (uploadError) {
         console.error('Photos upload error:', uploadError);
-        return res.status(500).json({ message: 'Failed to upload clinic photos' });
+        return res.status(500).json({ message: 'Failed to upload new photos' });
       }
     }
-
     // Create new clinic
     const clinic = new Clinic(clinicData);
     await clinic.save();
@@ -140,29 +174,99 @@ export const addClinic = async (req, res) => {
 export const updateClinic = async (req, res) => {
   try {
     const { clinicId } = req.params;
+    const { userId } = req.user;
     const updates = req.body;
 
-    // Validate clinic ID
     if (!mongoose.Types.ObjectId.isValid(clinicId)) {
       return res.status(400).json({ message: 'Invalid clinic ID format' });
     }
 
-    if (!updates || Object.keys(updates).length === 0 && !req.files?.logo && !req.files?.photos) {
+    if (!updates || (Object.keys(updates).length === 0 && !req.files?.logo && !req.files?.photos)) {
       return res.status(400).json({ message: 'No updates provided' });
     }
 
-    // Handle logo update
+    const admin = await Admin.findOne({ userId });
+    if (!admin) {
+      return res.status(404).json({ message: 'Admin profile not found' });
+    }
+
+    const existingClinic = await Clinic.findById(clinicId);
+    if (!existingClinic) {
+      return res.status(404).json({ message: 'Clinic not found' });
+    }
+
+    // Prepare update object using $set with dot notation
+    const updateObj = { $set: {} };
+    
+    // Handle basic field updates
+    if (updates.name !== undefined) updateObj.$set.name = updates.name;
+    if (updates.description !== undefined) updateObj.$set.description = updates.description;
+
+    // Handle Google Maps link update
+    if (updates.googleMapsLink !== undefined) {
+      updateObj.$set.googleMapsLink = updates.googleMapsLink;
+      
+      if (updates.googleMapsLink) {
+        try {
+          const placeId = await extractPlaceIdFromUrl(updates.googleMapsLink);
+          const placeDetails = await withRateLimit(() => fetchPlaceDetails(placeId));
+
+          // Update address fields individually using dot notation
+          updateObj.$set['address.formattedAddress'] = cleanFormattedAddress(placeDetails.adr_address) || '';
+          
+          const addressComponents = parseAddressComponents(placeDetails.address_components);
+          if (addressComponents.country) updateObj.$set['address.country'] = addressComponents.country;
+          if (addressComponents.zipCode) updateObj.$set['address.zipCode'] = addressComponents.zipCode;
+          if (addressComponents.state) updateObj.$set['address.state'] = addressComponents.state;
+          if (addressComponents.city) updateObj.$set['address.city'] = addressComponents.city;
+
+          if (placeDetails.geometry?.location) {
+            updateObj.$set['address.coordinates'] = {
+              lat: placeDetails.geometry.location.lat,
+              lng: placeDetails.geometry.location.lng,
+            };
+          }
+
+          const googlePhotos = await withRateLimit(() => fetchPlacePhotos(placeId));
+          if (googlePhotos.length > 0) {
+            updateObj.$set.photos = googlePhotos;
+          }
+        } catch (googleError) {
+          console.error('Google Maps integration error:', googleError);
+        }
+      }
+    }
+
+    // Handle manual address update (only when Google Maps isn't being updated)
+    if (!updates.googleMapsLink && updates.address) {
+      Object.keys(updates.address).forEach(key => {
+        if (updates.address[key] !== undefined) {
+          updateObj.$set[`address.${key}`] = updates.address[key];
+        }
+      });
+    }
+
+    // Handle manual contact update
+    if (updates.contact) {
+      Object.keys(updates.contact).forEach(key => {
+        if (updates.contact[key] !== undefined) {
+          updateObj.$set[`contact.${key}`] = updates.contact[key];
+        }
+      });
+    }
+
+    // Handle manual logo upload
     if (req.files?.logo) {
       try {
         const result = await uploadToCloudinary(req.files.logo[0].path);
-        updates.logo = result.url;
+        updateObj.$set.logo = result.url;
       } catch (uploadError) {
         console.error('Logo upload error:', uploadError);
         return res.status(500).json({ message: 'Failed to upload new logo' });
       }
     }
 
-    // Handle additional photos
+    // Handle manual photos upload
     if (req.files?.photos) {
       try {
         const newPhotos = await Promise.all(
@@ -171,21 +275,48 @@ export const updateClinic = async (req, res) => {
             return {
               url: result.url,
               uploadedAt: new Date(),
-              originalName: file.originalname
+              originalName: file.originalname,
             };
           })
         );
-        updates.$push = { photos: { $each: newPhotos } };
+        
+        // Use $push for photos to add to array without replacing
+        updateObj.$push = { photos: { $each: newPhotos } };
       } catch (uploadError) {
         console.error('Photos upload error:', uploadError);
         return res.status(500).json({ message: 'Failed to upload new photos' });
       }
     }
 
+    // Custom validation for the fields being updated
+    const validationErrors = [];
+    
+    if (updateObj.$set.name !== undefined && updateObj.$set.name?.trim() === '') {
+      validationErrors.push('Clinic name cannot be empty');
+    }
+
+    // Validate email if being updated
+    if (updateObj.$set['contact.email'] && !isValidEmail(updateObj.$set['contact.email'])) {
+      validationErrors.push('Invalid email format');
+    }
+
+    // Validate phone if being updated
+    if (updateObj.$set['contact.phone'] && !isValidPhone(updateObj.$set['contact.phone'])) {
+      validationErrors.push('Invalid phone format');
+    }
+
+    if (validationErrors.length > 0) {
+      return res.status(400).json({ message: 'Validation error', errors: validationErrors });
+    }
+
+    // Update clinic with only the fields that need to be updated
     const clinic = await Clinic.findByIdAndUpdate(
-      clinicId,
-      updates,
-      { new: true, runValidators: true }
+      clinicId, 
+      updateObj, 
+      {
+        new: true,
+        runValidators: false // We're handling validation manually
+      }
     ).select('-__v');
 
     if (!clinic) {
@@ -198,15 +329,15 @@ export const updateClinic = async (req, res) => {
     });
   } catch (error) {
     console.error('Error updating clinic:', error);
-    
+
     if (error.name === 'ValidationError') {
-      const errors = Object.values(error.errors).map(err => err.message);
+      const errors = Object.values(error.errors).map((err) => err.message);
       return res.status(400).json({ message: 'Validation error', errors });
     }
-    
-    res.status(500).json({ 
+
+    res.status(500).json({
       message: 'Failed to update clinic',
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
     });
   }
 };

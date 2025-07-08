@@ -3,8 +3,9 @@ import mongoose from "mongoose";
 const clinicSchema = new mongoose.Schema({
   name: { type: String, required: true },
   description: { type: String },
+  googleMapsLink: { type: String },
   address: {
-    street: { type: String, required: true },
+    formattedAddress: { type: String ,required: true },
     city: { type: String, required: true },
     state: { type: String, required: true },
     zipCode: { type: String, required: true },
