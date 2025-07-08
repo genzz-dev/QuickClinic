@@ -9,7 +9,8 @@ import connectDB from './config/db.js';
 import authRoutes from './Routes/authRoutes.js';
 import { config } from  './config/token.js'
 import cookieParser from 'cookie-parser';
-
+import appointmentRoutes from './Routes/appointmentRoutes.js';
+import prescriptionRoutes from './Routes/prescriptionRoutes.js';
 const app = express();
 
 const PORT = process.env.PORT ;
@@ -25,7 +26,8 @@ app.use('/api/auth', authRoutes);
 app.use('/api/doctors', doctorRoutes);
 app.use('/api/patients', patientRoutes);
 app.use('/api/admin', adminRoutes);
-
+app.use('/api/appointments', appointmentRoutes);
+app.use('/api/prescriptions', prescriptionRoutes);
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
