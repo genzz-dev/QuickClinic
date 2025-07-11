@@ -5,8 +5,7 @@ import mongoose from 'mongoose';
 // Book a new appointment
 export const bookAppointment = async (req, res) => {
   try {
-    const { profileId } = req.user;
-    const patientId=profileId;
+    const { profileId } = req.user; // Patient's profile ID
     const { doctorId, clinicId, date, startTime, endTime, reason, isTeleconsultation } = req.body;
 
     if (!doctorId || !clinicId || !date || !startTime || !endTime) {
@@ -24,7 +23,7 @@ export const bookAppointment = async (req, res) => {
 
     if (!mongoose.Types.ObjectId.isValid(doctorId) || 
         !mongoose.Types.ObjectId.isValid(clinicId) ||
-        !mongoose.Types.ObjectId.isValid(patientId)) {
+        !mongoose.Types.ObjectId.isValid(profileId)) {
       return res.status(400).json({ message: 'Invalid ID format' });
     }
 
@@ -36,9 +35,8 @@ export const bookAppointment = async (req, res) => {
     const appointmentDate = new Date(date);
     
     const dayOfWeek = appointmentDate.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
-    console.log(dayOfWeek);
     const workingDay = doctorSchedule.workingDays.find(day => day.day === dayOfWeek);
-    console.log(doctorSchedule);
+    
     if (!workingDay || !workingDay.isWorking) {
       return res.status(400).json({ message: 'Doctor is not available on the selected day' });
     }
@@ -96,7 +94,7 @@ export const bookAppointment = async (req, res) => {
     }
 
     const appointment = new Appointment({
-      patientId,
+      patientId: profileId,
       doctorId,
       clinicId,
       date: appointmentDate,
@@ -132,9 +130,9 @@ export const bookAppointment = async (req, res) => {
 // Get appointments for patient
 export const getPatientAppointments = async (req, res) => {
   try {
-    const { userId } = req.user;
+    const { profileId } = req.user;
 
-    const appointments = await Appointment.find({ patientId: userId })
+    const appointments = await Appointment.find({ patientId: profileId })
       .populate('doctorId', 'name specialization profilePicture')
       .populate('clinicId', 'name address')
       .sort({ date: 1, startTime: 1 })
@@ -156,10 +154,10 @@ export const getPatientAppointments = async (req, res) => {
 // Get appointments for doctor
 export const getDoctorAppointments = async (req, res) => {
   try {
-    const { userId } = req.user;
+    const { profileId } = req.user;
     const { status, date } = req.query;
 
-    const query = { doctorId: userId };
+    const query = { doctorId: profileId };
     
     if (status) {
       query.status = status;

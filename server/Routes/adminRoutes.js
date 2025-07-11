@@ -5,17 +5,19 @@ import {
   addClinic,
   updateClinic,
   addDoctorToClinic,
+  getClinicDoctors,
+  removeDoctorFromClinic,
   setDoctorSchedule,
   getDoctorSchedule
-
 } from '../Controllers/adminController.js';
 import upload from '../Middleware/upload.js';
+
 const router = express.Router();
 
 router.use(authenticate);
 router.use(authorize('admin'));
 
-router.post('/profile', upload.single('profilePicture'),createAdminProfile);
+router.post('/profile', upload.single('profilePicture'), createAdminProfile);
 router.post(
   '/clinics',
   upload.fields([
@@ -24,8 +26,10 @@ router.post(
   ]),
   addClinic
 );
-router.put('/clinics/:clinicId', upload.single('profilePicture'),updateClinic);
-router.post('/clinics/:clinicId/doctors', upload.single('profilePicture'),addDoctorToClinic);
+router.put('/clinics', upload.single('profilePicture'), updateClinic);
+router.post('/clinics/doctors', upload.single('profilePicture'), addDoctorToClinic);
+router.get('/clinics/doctors', getClinicDoctors); 
+router.delete('/clinics/doctors/:doctorId', removeDoctorFromClinic); 
 router.post('/doctors/:doctorId/schedule', setDoctorSchedule);
 router.get('/doctors/:doctorId/schedule', getDoctorSchedule);
 

@@ -71,7 +71,7 @@ export const createDoctorProfile = async (req, res) => {
 // Update a doctor profile
 export const updateDoctorProfile = async (req, res) => {
   try {
-    const { userId } = req.user;
+    const { profileId } = req.user;
     const updates = req.body;
 
     if (!updates || Object.keys(updates).length === 0 && !req.file) {
@@ -89,8 +89,8 @@ export const updateDoctorProfile = async (req, res) => {
       }
     }
 
-    const doctor = await Doctor.findOneAndUpdate(
-      { userId },
+    const doctor = await Doctor.findByIdAndUpdate(
+      profileId,
       updates,
       { 
         new: true,
@@ -124,16 +124,16 @@ export const updateDoctorProfile = async (req, res) => {
 // Get doctor profile
 export const getDoctorProfile = async (req, res) => {
   try {
-    const { userId } = req.user;
+    const { profileId } = req.user;
     
     // First check if doctor exists without populating
-    const doctorExists = await Doctor.exists({ userId });
+    const doctorExists = await Doctor.exists({ _id: profileId });
     if (!doctorExists) {
       return res.status(404).json({ message: 'Doctor profile not found' });
     }
 
     // Only populate fields that have data
-    const doctor = await Doctor.findOne({ userId }).lean();
+    const doctor = await Doctor.findById(profileId).lean();
     
     const populateOptions = [];
     
@@ -154,7 +154,7 @@ export const getDoctorProfile = async (req, res) => {
     
     let populatedDoctor = doctor;
     if (populateOptions.length > 0) {
-      populatedDoctor = await Doctor.findOne({ userId })
+      populatedDoctor = await Doctor.findById(profileId)
         .populate(populateOptions)
         .lean();
     }

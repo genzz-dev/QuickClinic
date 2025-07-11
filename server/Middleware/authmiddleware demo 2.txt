@@ -3,6 +3,7 @@ import User from '../models/Users/User.js';
 import Patient from '../models/Users/Patient.js';
 import Admin from '../models/Users/Admin.js';
 import Doctor from '../models/Users/Doctor.js';
+
 export const authenticate = async (req, res, next) => {
   try {
     const authHeader = req.headers['authorization'];
@@ -37,16 +38,15 @@ export const authenticate = async (req, res, next) => {
       ...user.toObject(),
       userId: user._id,
       profileId: profile ? profile._id : null,
-      role: user.role,
-      clinicId: profile?.clinicId || null // Add clinicId to req.user
+      role: user.role
     };
     
     next();
   } catch (error) {
-    console.log(error);
     res.status(403).json({ message: 'Invalid or expired token' });
   }
 };
+
 export const authorize = (...roles) => {
   return (req, res, next) => {
     if (!roles.includes(req.user.role)) {
