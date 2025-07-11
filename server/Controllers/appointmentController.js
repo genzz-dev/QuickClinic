@@ -5,7 +5,8 @@ import mongoose from 'mongoose';
 // Book a new appointment
 export const bookAppointment = async (req, res) => {
   try {
-    const { patientId } = req.user;
+    const { profileId } = req.user;
+    const patientId=profileId;
     const { doctorId, clinicId, date, startTime, endTime, reason, isTeleconsultation } = req.body;
 
     if (!doctorId || !clinicId || !date || !startTime || !endTime) {
@@ -33,9 +34,11 @@ export const bookAppointment = async (req, res) => {
     }
 
     const appointmentDate = new Date(date);
+    
     const dayOfWeek = appointmentDate.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
-
+    console.log(dayOfWeek);
     const workingDay = doctorSchedule.workingDays.find(day => day.day === dayOfWeek);
+    console.log(doctorSchedule);
     if (!workingDay || !workingDay.isWorking) {
       return res.status(400).json({ message: 'Doctor is not available on the selected day' });
     }

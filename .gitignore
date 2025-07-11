@@ -20,4 +20,4 @@ npm-debug.log*
 dist/
 build/
 #uploads
-./sever/uploads
+/server/uploads/
