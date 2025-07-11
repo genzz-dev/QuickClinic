@@ -19,3 +19,5 @@ npm-debug.log*
 # Build output (if any)
 dist/
 build/
+#uploads
+./sever/uploads

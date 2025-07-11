@@ -1,6 +1,7 @@
 import Admin from '../models/Users/Admin.js';
 import Clinic from '../models/Clinic/Clinic.js';
 import Doctor from '../models/Users/Doctor.js';
+import Schedule from '../models/Clinic/Schedule.js';
 import { uploadToCloudinary } from '../services/uploadService.js';
 import {sendDoctorAddedToClinicEmail} from '../services/emailService.js';
 import mongoose from 'mongoose';
@@ -345,7 +346,7 @@ export const updateClinic = async (req, res) => {
 // Add doctor to clinic
 export const addDoctorToClinic = async (req, res) => {
   try {
-    const { clinicId, doctorId } = req.params;
+    const { clinicId, doctorId } = req.body;
 
     // Validate IDs
     if (!mongoose.Types.ObjectId.isValid(clinicId) || !mongoose.Types.ObjectId.isValid(doctorId)) {
@@ -363,7 +364,7 @@ export const addDoctorToClinic = async (req, res) => {
     if (!clinicExists) {
       return res.status(404).json({ message: 'Clinic not found' });
     }
-
+    console.log("doctor id",doctorId);
     // Check if doctor exists
     const doctorExists = await Doctor.exists({ _id: doctorId });
     if (!doctorExists) {
@@ -414,6 +415,7 @@ export const addDoctorToClinic = async (req, res) => {
 export const setDoctorSchedule = async (req, res) => {
   try {
     const { doctorId } = req.params;
+    console.log(doctorId);
     const { workingDays, breaks, vacations, appointmentDuration } = req.body;
 
     // Validate doctor ID
