@@ -627,4 +627,64 @@ export const removeDoctorFromClinic = async (req, res) => {
     });
   }
 };
+// Get clinic information (for admin's own clinic)
+export const getClinicInfo = async (req, res) => {
+  try {
+    const { clinicId } = req.user;
 
+    if (!clinicId) {
+      return res.status(400).json({ message: 'Admin is not associated with any clinic' });
+    }
+
+    const clinic = await Clinic.findById(clinicId)
+      .populate({
+        path: 'doctors',
+        select: 'firstName lastName specialization profilePicture',
+        options: { lean: true }
+      })
+      .populate({
+        path: 'admins',
+        select: 'firstName lastName',
+        options: { lean: true }
+      })
+      .lean();
+
+    if (!clinic) {
+      return res.status(404).json({ message: 'Clinic not found' });
+    }
+
+    // Format the response
+    const formattedClinic = {
+      _id: clinic._id,
+      name: clinic.name,
+      description: clinic.description,
+      logo: clinic.logo,
+      photos: clinic.photos,
+      address: clinic.address,
+      contact: clinic.contact,
+      facilities: clinic.facilities,
+      openingHours: clinic.openingHours,
+      doctors: clinic.doctors.map(doctor => ({
+        ...doctor,
+        fullName: `${doctor.firstName} ${doctor.lastName}`
+      })),
+      admins: clinic.admins.map(admin => ({
+        ...admin,
+        fullName: `${admin.firstName} ${admin.lastName}`
+      })),
+      createdAt: clinic.createdAt,
+      updatedAt: clinic.updatedAt
+    };
+
+    res.json({
+      message: 'Clinic information retrieved successfully',
+      clinic: formattedClinic
+    });
+  } catch (error) {
+    console.error('Error fetching clinic information:', error);
+    res.status(500).json({ 
+      message: 'Failed to fetch clinic information',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};

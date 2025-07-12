@@ -8,9 +8,11 @@ import {
   getClinicDoctors,
   removeDoctorFromClinic,
   setDoctorSchedule,
-  getDoctorSchedule
+  getDoctorSchedule,
+  getClinicInfo
 } from '../Controllers/adminController.js';
 import upload from '../Middleware/upload.js';
+import { get } from 'mongoose';
 
 const router = express.Router();
 
@@ -32,5 +34,5 @@ router.get('/clinics/doctors', getClinicDoctors);
 router.delete('/clinics/doctors/:doctorId', removeDoctorFromClinic); 
 router.post('/doctors/:doctorId/schedule', setDoctorSchedule);
 router.get('/doctors/:doctorId/schedule', getDoctorSchedule);
-
+router.get('/clinics',getClinicDoctors);
 export default router;

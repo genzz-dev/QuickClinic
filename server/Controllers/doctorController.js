@@ -1,7 +1,7 @@
 import Doctor from '../models/Users/Doctor.js';
 import { uploadToCloudinary } from '../services/uploadService.js';
 import mongoose from 'mongoose';
-
+import Clinic from '../models/Clinic/Clinic.js';
 // Create a doctor profile
 export const createDoctorProfile = async (req, res) => {
   try {
@@ -202,6 +202,53 @@ export const getDoctorsByClinic = async (req, res) => {
     console.error('Error fetching doctors by clinic:', error);
     res.status(500).json({ 
       message: 'Failed to fetch doctors',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};
+// Remove doctor from their current clinic (self-initiated)
+export const leaveCurrentClinic = async (req, res) => {
+  try {
+    const { profileId } = req.user; // Doctor's profile ID from auth middleware
+
+    // Find the doctor with their current clinic
+    const doctor = await Doctor.findById(profileId).populate('clinicId', 'name');
+    
+    if (!doctor) {
+      return res.status(404).json({ message: 'Doctor profile not found' });
+    }
+
+    // Check if doctor is associated with any clinic
+    if (!doctor.clinicId) {
+      return res.status(400).json({ 
+        message: 'Doctor is not currently associated with any clinic'
+      });
+    }
+
+    const clinicId = doctor.clinicId._id;
+
+    // Remove doctor from clinic's doctors array
+    await Clinic.findByIdAndUpdate(
+      clinicId,
+      { $pull: { doctors: profileId } },
+      { new: true }
+    );
+
+    // Remove clinic reference from doctor
+    const updatedDoctor = await Doctor.findByIdAndUpdate(
+      profileId,
+      { $unset: { clinicId: 1 } },
+      { new: true }
+    ).select('-__v -appointments -ratings');
+
+    res.json({
+      message: `Successfully left ${doctor.clinicId.name} clinic`,
+      doctor: updatedDoctor
+    });
+  } catch (error) {
+    console.error('Error leaving clinic:', error);
+    res.status(500).json({ 
+      message: 'Failed to leave clinic',
       error: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
