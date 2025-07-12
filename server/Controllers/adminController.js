@@ -182,7 +182,6 @@ export const updateClinic = async (req, res) => {
   try {
     const { clinicId } = req.user;
     const updates = req.body;
-
     if (!clinicId) {
       return res.status(400).json({ message: 'Admin is not associated with any clinic' });
     }
@@ -201,6 +200,16 @@ export const updateClinic = async (req, res) => {
     // Handle basic field updates
     if (updates.name !== undefined) updateObj.$set.name = updates.name;
     if (updates.description !== undefined) updateObj.$set.description = updates.description;
+if (updates.openingHours) {
+      Object.keys(updates.openingHours).forEach(day => {
+        if (updates.openingHours[day]?.open !== undefined) {
+          updateObj.$set[`openingHours.${day}.open`] = updates.openingHours[day].open;
+        }
+        if (updates.openingHours[day]?.close !== undefined) {
+          updateObj.$set[`openingHours.${day}.close`] = updates.openingHours[day].close;
+        }
+      });
+    }
 
     // Handle Google Maps link update
     if (updates.googleMapsLink !== undefined) {

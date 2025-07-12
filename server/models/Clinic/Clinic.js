@@ -5,7 +5,7 @@ const clinicSchema = new mongoose.Schema({
   description: { type: String },
   googleMapsLink: { type: String },
   address: {
-    formattedAddress: { type: String ,required: true },
+    formattedAddress: { type: String, required: true },
     city: { type: String, required: true },
     state: { type: String, required: true },
     zipCode: { type: String, required: true },
@@ -24,13 +24,13 @@ const clinicSchema = new mongoose.Schema({
   admins: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Admin' }],
   facilities: [String],
   openingHours: {
-    monday: { open: String, close: String },
-    tuesday: { open: String, close: String },
-    wednesday: { open: String, close: String },
-    thursday: { open: String, close: String },
-    friday: { open: String, close: String },
-    saturday: { open: String, close: String },
-    sunday: { open: String, close: String }
+    monday: { open: { type: String, required: true }, close: { type: String, required: true } },
+    tuesday: { open: { type: String, required: true }, close: { type: String, required: true } },
+    wednesday: { open: { type: String, required: true }, close: { type: String, required: true } },
+    thursday: { open: { type: String, required: true }, close: { type: String, required: true } },
+    friday: { open: { type: String, required: true }, close: { type: String, required: true } },
+    saturday: { open: { type: String, required: true }, close: { type: String, required: true } },
+    sunday: { open: { type: String, required: true }, close: { type: String, required: true } }
   },
   logo: { type: String },
   photos: [String],

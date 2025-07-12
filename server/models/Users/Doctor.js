@@ -14,7 +14,7 @@ const doctorSchema = new mongoose.Schema({
   clinicId: { type: mongoose.Schema.Types.ObjectId, ref: 'Clinic' },
   schedule: { type: mongoose.Schema.Types.ObjectId, ref: 'Schedule' },
   appointments: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Appointment' }],
-  consultationFee: { type: Number },
+  consultationFee: { type: Number ,required:true},
   availableForTeleconsultation: { type: Boolean, default: false },
   ratings: [{
     patientId: { type: mongoose.Schema.Types.ObjectId, ref: 'Patient' },

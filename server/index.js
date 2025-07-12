@@ -11,6 +11,7 @@ import { config } from  './config/token.js'
 import cookieParser from 'cookie-parser';
 import appointmentRoutes from './Routes/appointmentRoutes.js';
 import prescriptionRoutes from './Routes/prescriptionRoutes.js';
+import publicRoutes from './Routes/publicRoutes.js';
 const app = express();
 
 const PORT = process.env.PORT ;
@@ -28,6 +29,7 @@ app.use('/api/patients', patientRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/appointments', appointmentRoutes);
 app.use('/api/prescriptions', prescriptionRoutes);
+app.use('/api/public',publicRoutes);
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });

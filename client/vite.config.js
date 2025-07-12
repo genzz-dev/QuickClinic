@@ -1,7 +1,12 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import { resolve } from 'path'
+import tailwindcss from '@tailwindcss/vite'
 
-// https://vite.dev/config/
 export default defineConfig({
-  plugins: [react()],
+  root: resolve(__dirname), // makes Vite treat the `client/` folder as root
+  plugins: [react(),tailwindcss()],
+  build: {
+    outDir: resolve(__dirname, 'dist'),
+  },
 })
