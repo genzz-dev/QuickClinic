@@ -23,15 +23,44 @@ const clinicSchema = new mongoose.Schema({
   doctors: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Doctor' }],
   admins: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Admin' }],
   facilities: [String],
-  openingHours: {
-    monday: { open: { type: String, required: true }, close: { type: String, required: true } },
-    tuesday: { open: { type: String, required: true }, close: { type: String, required: true } },
-    wednesday: { open: { type: String, required: true }, close: { type: String, required: true } },
-    thursday: { open: { type: String, required: true }, close: { type: String, required: true } },
-    friday: { open: { type: String, required: true }, close: { type: String, required: true } },
-    saturday: { open: { type: String, required: true }, close: { type: String, required: true } },
-    sunday: { open: { type: String, required: true }, close: { type: String, required: true } }
+openingHours: {
+  monday: {
+    isClosed: { type: Boolean, default: false },
+    open: { type: String },
+    close: { type: String }
   },
+  tuesday: {
+    isClosed: { type: Boolean, default: false },
+    open: { type: String },
+    close: { type: String }
+  },
+  wednesday: {
+    isClosed: { type: Boolean, default: false },
+    open: { type: String },
+    close: { type: String }
+  },
+  thursday: {
+    isClosed: { type: Boolean, default: false },
+    open: { type: String },
+    close: { type: String }
+  },
+  friday: {
+    isClosed: { type: Boolean, default: false },
+    open: { type: String },
+    close: { type: String }
+  },
+  saturday: {
+    isClosed: { type: Boolean, default: false },
+    open: { type: String },
+    close: { type: String }
+  },
+  sunday: {
+    isClosed: { type: Boolean, default: false },
+    open: { type: String },
+    close: { type: String }
+  }
+}
+,
   logo: { type: String },
   photos: [String],
   createdAt: { type: Date, default: Date.now },

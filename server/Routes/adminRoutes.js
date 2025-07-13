@@ -28,7 +28,21 @@ router.post(
   ]),
   addClinic
 );
-router.put('/clinics', upload.single('profilePicture'), updateClinic);
+
+const conditionalUpload = (req, res, next) => {
+  const contentType = req.headers['content-type'] || '';
+
+  if (contentType.includes('multipart/form-data')) {
+    upload.fields([
+      { name: 'logo', maxCount: 1 },
+      { name: 'photos', maxCount: 10 },
+    ])(req, res, next);
+  } else {
+    next(); // Skip multer if not multipart
+  }
+};
+
+router.put('/clinics', conditionalUpload, updateClinic);
 router.post('/clinics/doctors', upload.single('profilePicture'), addDoctorToClinic);
 router.get('/clinics/doctors', getClinicDoctors); 
 router.delete('/clinics/doctors/:doctorId', removeDoctorFromClinic); 

@@ -72,7 +72,7 @@ export const searchDoctors = async (req, res) => {
         .sort(sortOption)
         .skip(skip)
         .limit(parseInt(limit))
-        .populate('clinicId', 'name address.city address.state'),
+        .populate('clinicId', 'name address.city address.state address.formattedAddress'),
       Doctor.countDocuments(query)
     ]);
 

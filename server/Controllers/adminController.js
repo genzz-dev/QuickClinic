@@ -77,7 +77,7 @@ export const addClinic = async (req, res) => {
     }
 
     const clinicData = req.body;
-
+    console.log(req.body);
     if (!clinicData.name) {
       return res.status(400).json({ 
         message: 'Clinic name is required',
@@ -201,15 +201,18 @@ export const updateClinic = async (req, res) => {
     if (updates.name !== undefined) updateObj.$set.name = updates.name;
     if (updates.description !== undefined) updateObj.$set.description = updates.description;
 if (updates.openingHours) {
-      Object.keys(updates.openingHours).forEach(day => {
-        if (updates.openingHours[day]?.open !== undefined) {
-          updateObj.$set[`openingHours.${day}.open`] = updates.openingHours[day].open;
-        }
-        if (updates.openingHours[day]?.close !== undefined) {
-          updateObj.$set[`openingHours.${day}.close`] = updates.openingHours[day].close;
-        }
-      });
+  Object.keys(updates.openingHours).forEach(day => {
+    if (updates.openingHours[day]?.open !== undefined) {
+      updateObj.$set[`openingHours.${day}.open`] = updates.openingHours[day].open;
     }
+    if (updates.openingHours[day]?.close !== undefined) {
+      updateObj.$set[`openingHours.${day}.close`] = updates.openingHours[day].close;
+    }
+    if (updates.openingHours[day]?.isClosed !== undefined) {
+      updateObj.$set[`openingHours.${day}.isClosed`] = updates.openingHours[day].isClosed;
+    }
+  });
+}
 
     // Handle Google Maps link update
     if (updates.googleMapsLink !== undefined) {

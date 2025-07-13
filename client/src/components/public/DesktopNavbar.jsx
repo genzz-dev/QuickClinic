@@ -1,7 +1,7 @@
 import React from "react";
 import { FiSearch, FiMapPin, FiUser, FiLogIn } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
-
+import MedicalSearch from "../SearchBar";
 const Navbar = () => {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = React.useState("");
@@ -23,7 +23,7 @@ const Navbar = () => {
           </div>
 
           {/* Search Form */}
-          <form onSubmit={handleSearch} className="flex-1 mx-6 max-w-xl">
+          {/* <form onSubmit={handleSearch} className="flex-1 mx-6 max-w-xl">
             <div className="flex items-center bg-gray-50 rounded-full px-4 py-2 border border-gray-200">
               <FiSearch className="text-gray-500 mr-2" />
               <input
@@ -34,8 +34,8 @@ const Navbar = () => {
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
-          </form>
-
+          </form> */}
+          <MedicalSearch/>
           {/* Navigation */}
           <div className="flex items-center space-x-6">
             <button 
