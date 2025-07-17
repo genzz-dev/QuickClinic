@@ -1,5 +1,5 @@
 import React from 'react';
-import { Building, MapPin, Phone, Mail, ChevronRight } from 'lucide-react';
+import { Building, MapPin, Phone, Mail, ChevronRight, CheckCircle, XCircle } from 'lucide-react';
 
 const ClinicInfoSection = ({ clinic, handleClinicClick }) => (
   clinic && (
@@ -15,9 +15,26 @@ const ClinicInfoSection = ({ clinic, handleClinicClick }) => (
       >
         <div className="flex items-start justify-between">
           <div className="flex-1">
-            <h3 className="font-semibold text-gray-900 group-hover:text-blue-700 mb-2">
-              {clinic.name}
-            </h3>
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="font-semibold text-gray-900 group-hover:text-blue-700">
+                {clinic.name}
+              </h3>
+              {console.log(clinic)}
+              {/* Verification Badge */}
+              <div className={`flex items-center gap-1 text-sm px-2 py-1 rounded-full ${clinic.isVerified ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>
+                {clinic.isVerified ? (
+                  <>
+                    <CheckCircle className="w-4 h-4" />
+                    <span>Verified</span>
+                  </>
+                ) : (
+                  <>
+                    <XCircle className="w-4 h-4" />
+                    <span>Not Verified</span>
+                  </>
+                )}
+              </div>
+            </div>
             
             {clinic.address && (
               <div className="flex items-start gap-2 mb-3">

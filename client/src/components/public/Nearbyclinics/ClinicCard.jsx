@@ -1,10 +1,12 @@
 import React from 'react';
-import { MapPin, ChevronRight, User ,Clock} from 'lucide-react';
+import { MapPin, ChevronRight, User, Clock, CheckCircle, XCircle } from 'lucide-react';
 import ClinicImage from './ClinicImage';
 import ClinicContactInfo from './ClinicContactInfo';
 import ClinicFacilities from './ClinicFacilities';
 import ClinicDoctorsPopup from './ClinicDoctorsPopup';
-const today = new Date().toLocaleDateString("en-US", { weekday: "long" }).toLowerCase(); // e.g., 'monday'
+
+const today = new Date().toLocaleDateString("en-US", { weekday: "long" }).toLowerCase();
+
 const ClinicCard = ({ 
   clinic, 
   hoveredClinic, 
@@ -22,12 +24,30 @@ const ClinicCard = ({
       onMouseLeave={() => handleClinicHover(null)}
       onClick={() => handleClinicClick(clinic._id)}
     >
+      {/* Verification Ribbon - positioned absolutely in top-right corner */}
+      {clinic.isVerified && (
+        <div className="absolute top-0 right-0 bg-green-500 text-white text-xs font-medium px-2 py-1 rounded-tr-lg rounded-bl-lg flex items-center gap-1">
+          <CheckCircle className="h-3 w-3" />
+          <span>Verified</span>
+        </div>
+      )}
+
       <ClinicImage clinic={clinic} />
       
       <div className="p-6">
-        <h3 className="text-xl font-semibold text-gray-900 mb-2">
-          {clinic.name}
-        </h3>
+        <div className="flex justify-between items-start mb-2">
+          <h3 className="text-xl font-semibold text-gray-900">
+            {clinic.name}
+          </h3>
+          
+          {/* Alternative verification badge option (if you prefer it next to the name) */}
+          {!clinic.isVerified && (
+            <div className="flex items-center gap-1 text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
+              <XCircle className="h-3 w-3" />
+              <span>Not Verified</span>
+            </div>
+          )}
+        </div>
         
         {clinic.description && (
           <p className="text-gray-600 text-sm mb-4 line-clamp-2">
@@ -44,18 +64,15 @@ const ClinicCard = ({
         </div>
 
         <ClinicContactInfo clinic={clinic} />
-        
 
-
-      {hours && (
-        <div className="flex items-center space-x-2 mb-4">
-          <Clock className="h-4 w-4 text-gray-500" />
-          <span className="text-sm text-gray-600">
-            {hours.isClosed ? "Today: Closed" : `Today: ${hours.open} - ${hours.close}`}
-          </span>
-        </div>
-      )}
-
+        {hours && (
+          <div className="flex items-center space-x-2 mb-4">
+            <Clock className="h-4 w-4 text-gray-500" />
+            <span className="text-sm text-gray-600">
+              {hours.isClosed ? "Today: Closed" : `Today: ${hours.open} - ${hours.close}`}
+            </span>
+          </div>
+        )}
 
         <ClinicFacilities facilities={clinic.facilities} />
 

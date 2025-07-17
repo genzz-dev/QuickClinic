@@ -5,6 +5,7 @@ import Nearbyclinics from './pages/public/Nearbyclinics';
 import ClinicDetailPage from './pages/public/ClinicDetailPage';
 import DoctorDetailsPage from './pages/public/DoctorDetailsPage';
 import Doctors from './pages/public/Doctors';
+import SearchResultsPage from './components/public/SearchResultsPage';
 
 function App() {
   return (
@@ -22,8 +23,10 @@ function App() {
           <Route path="/Clinic/:clinicId" element={<ClinicDetailPage />} />
           <Route path="/doctor/:doctorId" element={<DoctorDetailsPage />} />
           <Route path="/doctors" element={<Doctors />} />
+          <Route path="/search" element={<SearchResultsPage />} />
+
         </Routes>
-      </div>
+      </div> 
     </Router>
   );
 }

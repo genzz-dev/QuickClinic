@@ -126,7 +126,7 @@ export const searchClinics = async (req, res) => {
 export const getDoctorById = async (req, res) => {
   try {
     const doctor = await Doctor.findById(req.params.id)
-      .populate('clinicId', 'name address contact openingHours')
+      .populate('clinicId', 'name address contact openingHours isVerified')
       .populate('schedule');
 
     if (!doctor) return res.status(404).json({ success: false, error: 'Doctor not found' });
