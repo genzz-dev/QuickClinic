@@ -294,24 +294,7 @@ const ClinicCard = ({ clinic }) => (
           <div className="flex items-center space-x-1 mb-3 text-sm text-gray-600">
             <span>📞 {clinic.contact.phone}</span>
           </div>
-        )}
-
-        {/* GST Information */}
-        {(clinic.gstNumber || clinic.gstName || clinic.isVerified !== null) && (
-          <div className="mb-3 text-sm text-gray-600 space-y-1">
-            {clinic.gstNumber && <div>GST Number: {clinic.gstNumber}</div>}
-            {clinic.gstName && <div>GST Name: {clinic.gstName}</div>}
-            {clinic.isVerified !== null && (
-              <div>
-                Status:{" "}
-                <span className={clinic.isVerified ? "text-green-600 font-medium" : "text-red-500 font-medium"}>
-                  {clinic.isVerified ? "Verified" : "Not Verified"}
-                </span>
-              </div>
-            )}
-          </div>
-        )}
-        
+        )}        
         {clinic.facilities && clinic.facilities.length > 0 && (
           <div className="flex flex-wrap gap-2">
             {clinic.facilities.slice(0, 3).map((facility, index) => (
