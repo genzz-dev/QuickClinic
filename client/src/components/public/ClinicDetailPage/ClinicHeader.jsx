@@ -1,8 +1,9 @@
-import { Building, MapPin, Phone, Mail, Globe } from 'lucide-react';
+import { Building, MapPin, Phone, Mail, Globe, CheckCircle } from 'lucide-react';
 
 const ClinicHeader = ({ clinic }) => {
   return (
     <div className="flex flex-col lg:flex-row gap-8">
+      
       {/* Logo and Basic Info */}
       <div className="flex-shrink-0">
         {clinic.logo ? (
@@ -36,7 +37,7 @@ const ClinicHeader = ({ clinic }) => {
               <p className="text-gray-600">{clinic.address.country}</p>
             </div>
           </div>
-
+          
           {/* Contact */}
           <div className="space-y-2">
             <div className="flex items-center gap-3">
@@ -62,6 +63,43 @@ const ClinicHeader = ({ clinic }) => {
             )}
           </div>
         </div>
+      </div>
+
+      {/* GST and Verification Info */}
+      <div className="bg-white rounded-lg shadow-sm p-6 lg:w-64 flex-shrink-0">
+        <h2 className="text-xl font-semibold text-gray-900 mb-4">Business Information</h2>
+        
+        {/* Verification Status */}
+        <div className="mb-4">
+          <h3 className="text-sm font-medium text-gray-500 mb-1">Verification Status</h3>
+          <div className="flex items-center gap-2">
+            {clinic.isVerified ? (
+              <>
+                <CheckCircle className="w-4 h-4 text-green-500" />
+                <span className="text-gray-700">Verified Clinic</span>
+              </>
+            ) : (
+              <span className="text-gray-700">Not Verified</span>
+            )}
+          </div>
+        </div>
+
+        {/* GST Information - only show if available */}
+        {(clinic.gstNumber || clinic.gstName) && (
+          <div>
+            <h3 className="text-sm font-medium text-gray-500 mb-1">GST Information</h3>
+            {clinic.gstName && (
+              <p className="text-gray-700 mb-1">
+                <span className="font-medium">Name:</span> {clinic.gstName}
+              </p>
+            )}
+            {clinic.gstNumber && (
+              <p className="text-gray-700">
+                <span className="font-medium">Number:</span> {clinic.gstNumber}
+              </p>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

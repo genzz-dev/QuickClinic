@@ -33,7 +33,7 @@ const MobileNavigation = () => {
           <span className="text-xs mt-1">Doctors</span>
         </button>
          <button 
-          onClick={() => navigate("/search-mobile")}
+          onClick={() => navigate("/search")}
           className="flex flex-col items-center text-gray-600 p-2"
         >
           <FiSearch size={20} />

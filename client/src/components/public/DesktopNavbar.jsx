@@ -1,63 +1,52 @@
 import React from "react";
-import { FiSearch, FiMapPin, FiUser, FiLogIn } from "react-icons/fi";
+import { FiMapPin, FiUser, FiLogIn } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
-import MedicalSearch from "../SearchBar";
+import SearchBar from "./SearchBar";
+
 const Navbar = () => {
   const navigate = useNavigate();
-  const [searchQuery, setSearchQuery] = React.useState("");
-
-  const handleSearch = (e) => {
-    e.preventDefault();
-    navigate(`/search?q=${encodeURIComponent(searchQuery)}`);
-  };
 
   return (
     <nav className="bg-white shadow-md sticky top-0 z-50 hidden md:block">
-      <div className="container mx-auto px-4 py-3">
-        <div className="flex items-center justify-between">
+      <div className="container mx-auto px-6">
+        <div className="flex items-center justify-between h-16 relative">
           {/* Logo */}
-          <div className="flex items-center cursor-pointer" onClick={() => navigate("/")}>
-            <h1 className="text-2xl font-bold text-blue-600 whitespace-nowrap">
-              <span className="text-blue-800">Quick</span>Clinic
+          <div 
+            className="flex items-center cursor-pointer z-50" 
+            onClick={() => navigate("/")}
+          >
+            <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent whitespace-nowrap">
+              QuickClinic
             </h1>
           </div>
 
-          {/* Search Form */}
-          {/* <form onSubmit={handleSearch} className="flex-1 mx-6 max-w-xl">
-            <div className="flex items-center bg-gray-50 rounded-full px-4 py-2 border border-gray-200">
-              <FiSearch className="text-gray-500 mr-2" />
-              <input
-                type="text"
-                placeholder="Search clinics, doctors..."
-                className="bg-transparent border-none outline-none w-full"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-            </div>
-          </form> */}
-          <MedicalSearch/>
+          {/* Search Bar - Wrapped in relative container */}
+          <div className="flex-1 mx-8 max-w-2xl relative z-40">
+            <SearchBar />
+          </div>
+
           {/* Navigation */}
-          <div className="flex items-center space-x-6">
+          <div className="flex items-center space-x-6 z-50">
             <button 
               onClick={() => navigate("/nearby")}
-              className="flex items-center text-gray-700 hover:text-blue-600"
+              className="flex items-center text-gray-600 hover:text-blue-600 transition-colors"
             >
               <FiMapPin className="mr-2" />
-              Nearby Clinics
+              <span className="whitespace-nowrap">Nearby Clinics</span>
             </button>
             <button 
               onClick={() => navigate("/doctors")}
-              className="flex items-center text-gray-700 hover:text-blue-600"
+              className="flex items-center text-gray-600 hover:text-blue-600 transition-colors"
             >
               <FiUser className="mr-2" />
-              Doctors
+              <span className="whitespace-nowrap">Doctors</span>
             </button>
             <button 
               onClick={() => navigate("/login")}
-              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center"
+              className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-4 py-2 rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all flex items-center shadow-sm"
             >
               <FiLogIn className="mr-2" />
-              Register
+              <span className="whitespace-nowrap">Register</span>
             </button>
           </div>
         </div>
