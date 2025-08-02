@@ -181,3 +181,37 @@ export  const cleanFormattedAddress=(formattedAddress)=> {
   
   return cleanAddress;
 }
+export const fetchPlacePhone = async (placeId) => {
+  try {
+    if (!process.env.GOOGLE_API_KEY) {
+      throw new Error('Google API key not configured');
+    }
+
+    console.log('Fetching phone for place ID:', placeId);
+    
+    const response = await axios.get(
+      'https://maps.googleapis.com/maps/api/place/details/json',
+      {
+        params: {
+          place_id: placeId,
+          fields: 'formatted_phone_number,international_phone_number',
+          key: process.env.GOOGLE_API_KEY
+        },
+        timeout: 5000
+      }
+    );
+    
+    if (response.data.status !== 'OK') {
+      throw new Error(response.data.error_message || `API status: ${response.data.status}`);
+    }
+    
+    const result = response.data.result;
+    return {
+      formattedPhone: result.formatted_phone_number || null,
+      internationalPhone: result.international_phone_number || null
+    };
+  } catch (error) {
+    console.error('Error fetching place phone:', error);
+    return { formattedPhone: null, internationalPhone: null };
+  }
+};

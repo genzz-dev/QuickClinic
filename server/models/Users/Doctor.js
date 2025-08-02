@@ -14,7 +14,7 @@ const doctorSchema = new mongoose.Schema({
   clinicId: { type: mongoose.Schema.Types.ObjectId, ref: 'Clinic' },
   schedule: { type: mongoose.Schema.Types.ObjectId, ref: 'Schedule' },
   appointments: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Appointment' }],
-  consultationFee: { type: Number ,required:true},
+  consultationFee: { type: Number, required: true },
   availableForTeleconsultation: { type: Boolean, default: false },
   ratings: [{
     patientId: { type: mongoose.Schema.Types.ObjectId, ref: 'Patient' },
@@ -22,7 +22,16 @@ const doctorSchema = new mongoose.Schema({
     review: String,
     date: { type: Date, default: Date.now }
   }],
-  averageRating: { type: Number, default: 0 }
+  averageRating: { type: Number, default: 0 },
+  // New verification fields
+  isVerified: { type: Boolean, default: false },
+  verificationData: {
+    registrationNumber: { type: String },
+    registrationYear: { type: String },
+    stateCouncil: { type: String },
+    verifiedName: { type: String },
+    verificationDate: { type: Date }
+  }
 });
 
 export default mongoose.model('Doctor', doctorSchema);

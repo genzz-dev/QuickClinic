@@ -4,6 +4,8 @@ import Doctor from '../models/Users/Doctor.js';
 import Schedule from '../models/Clinic/Schedule.js';
 import { uploadToCloudinary } from '../services/uploadService.js';
 import {sendDoctorAddedToClinicEmail} from '../services/emailService.js';
+import { fetchPlacePhone } from '../services/googleMapsService.js';
+import { sendOTP, verifyOTP } from '../services/otpService.js';
 import mongoose from 'mongoose';
 import { 
   extractPlaceIdFromUrl, 
@@ -696,6 +698,147 @@ export const getClinicInfo = async (req, res) => {
     console.error('Error fetching clinic information:', error);
     res.status(500).json({ 
       message: 'Failed to fetch clinic information',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};
+// Send verification OTP
+export const sendVerificationOTP = async (req, res) => {
+  try {
+    const { clinicId } = req.user;
+
+    if (!clinicId) {
+      return res.status(400).json({ message: 'Admin is not associated with any clinic' });
+    }
+
+    const clinic = await Clinic.findById(clinicId);
+    if (!clinic) {
+      return res.status(404).json({ message: 'Clinic not found' });
+    }
+
+    if (clinic.isVerified) {
+      return res.status(400).json({ message: 'Clinic is already verified' });
+    }
+
+    // Check verification attempts (max 3 per day)
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    if (clinic.lastVerificationAttempt && 
+        clinic.lastVerificationAttempt >= today && 
+        clinic.verificationAttempts >= 3) {
+      return res.status(429).json({ 
+        message: 'Maximum verification attempts reached for today' 
+      });
+    }
+
+    // Get phone from Google Maps if not already fetched
+    let phoneNumber = clinic.googleMapsPhone;
+    
+    if (!phoneNumber && clinic.googleMapsLink) {
+      try {
+        const placeId = await extractPlaceIdFromUrl(clinic.googleMapsLink);
+        const phoneData = await withRateLimit(() => fetchPlacePhone(placeId));
+        
+        phoneNumber = phoneData.internationalPhone || phoneData.formattedPhone;
+        
+        if (phoneNumber) {
+          await Clinic.findByIdAndUpdate(clinicId, { 
+            googleMapsPhone: phoneNumber 
+          });
+        }
+      } catch (error) {
+        console.error('Error fetching phone from Google Maps:', error);
+      }
+    }
+
+    if (!phoneNumber) {
+      return res.status(400).json({ 
+        message: 'No phone number found for this clinic. Please add a Google Maps link with phone number.' 
+      });
+    }
+
+    // Send OTP
+    const otpResult = await sendOTP(phoneNumber);
+    
+    if (!otpResult.success) {
+      return res.status(500).json({ message: otpResult.message });
+    }
+
+    // Update attempt counter
+    const newAttempts = (clinic.lastVerificationAttempt >= today) 
+      ? clinic.verificationAttempts + 1 
+      : 1;
+
+    await Clinic.findByIdAndUpdate(clinicId, {
+      verificationAttempts: newAttempts,
+      lastVerificationAttempt: new Date()
+    });
+
+    res.json({
+      message: 'OTP sent successfully',
+      phone: phoneNumber.replace(/(\d{3})\d{4}(\d{4})/, '$1****$2'), // Mask middle digits
+      attemptsLeft: 3 - newAttempts
+    });
+
+  } catch (error) {
+    console.error('Error sending verification OTP:', error);
+    res.status(500).json({ 
+      message: 'Failed to send verification OTP',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};
+
+// Verify OTP and mark clinic as verified
+export const verifyClinicOTP = async (req, res) => {
+  try {
+    const { clinicId } = req.user;
+    const { code } = req.body;
+
+    if (!clinicId) {
+      return res.status(400).json({ message: 'Admin is not associated with any clinic' });
+    }
+
+    if (!code) {
+      return res.status(400).json({ message: 'OTP code is required' });
+    }
+
+    const clinic = await Clinic.findById(clinicId);
+    if (!clinic) {
+      return res.status(404).json({ message: 'Clinic not found' });
+    }
+
+    if (clinic.isVerified) {
+      return res.status(400).json({ message: 'Clinic is already verified' });
+    }
+
+    if (!clinic.googleMapsPhone) {
+      return res.status(400).json({ message: 'No phone number found for verification' });
+    }
+
+    // Verify OTP
+    const verificationResult = await verifyOTP(clinic.googleMapsPhone, code);
+    
+    if (!verificationResult.success) {
+      return res.status(400).json({ message: verificationResult.message });
+    }
+
+    // Mark clinic as verified
+    await Clinic.findByIdAndUpdate(clinicId, {
+      isVerified: true,
+      verificationAttempts: 0
+    });
+
+    res.json({
+      message: 'Clinic verified successfully',
+      verified: true
+    });
+
+  } catch (error) {
+    console.error('Error verifying clinic OTP:', error);
+    res.status(500).json({ 
+      message: 'Failed to verify OTP',
       error: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }

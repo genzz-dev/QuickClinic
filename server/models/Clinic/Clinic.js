@@ -15,6 +15,10 @@ const clinicSchema = new mongoose.Schema({
       lng: { type: Number }
     }
   },
+  googleMapsPhone: { type: String }, // Phone from Google Maps
+  isVerified: { type: Boolean, default: false },
+  verificationAttempts: { type: Number, default: 0 },
+  lastVerificationAttempt: { type: Date },
   contact: {
     phone: { type: String, required: true },
     email: { type: String, required: true },

@@ -9,7 +9,9 @@ import {
   removeDoctorFromClinic,
   setDoctorSchedule,
   getDoctorSchedule,
-  getClinicInfo
+  getClinicInfo,
+  sendVerificationOTP,
+  verifyClinicOTP
 } from '../Controllers/adminController.js';
 import upload from '../Middleware/upload.js';
 import { get } from 'mongoose';
@@ -49,4 +51,7 @@ router.delete('/clinics/doctors/:doctorId', removeDoctorFromClinic);
 router.post('/doctors/:doctorId/schedule', setDoctorSchedule);
 router.get('/doctors/:doctorId/schedule', getDoctorSchedule);
 router.get('/clinics',getClinicDoctors);
+router.post('/clinics/verify/send-otp', sendVerificationOTP);
+router.post('/clinics/verify/confirm-otp', verifyClinicOTP);
+
 export default router;
