@@ -6,6 +6,9 @@ import ClinicDetailPage from './pages/public/ClinicDetailPage';
 import DoctorDetailsPage from './pages/public/DoctorDetailsPage';
 import Doctors from './pages/public/Doctors';
 import SearchResultsPage from './components/public/SearchResultsPage';
+import LoginPage from './pages/public/LoginPage';
+import { AuthProvider } from './context/authContext';
+import RegisterPage from './pages/public/RegisterPage';
 
 function App() {
   return (
@@ -16,7 +19,7 @@ function App() {
 
         {/* Bottom navigation for mobile */}
         <MobileBottomBar />
-
+        <AuthProvider>
         {/* Page content */}
         <Routes>
           <Route path="/nearby" element={<Nearbyclinics />} />
@@ -24,8 +27,10 @@ function App() {
           <Route path="/doctor/:doctorId" element={<DoctorDetailsPage />} />
           <Route path="/doctors" element={<Doctors />} />
           <Route path="/search" element={<SearchResultsPage />} />
-
+          <Route path="/login" element={<LoginPage/>}/>
+          <Route path="/register" element={<RegisterPage/>}/>
         </Routes>
+        </AuthProvider>
       </div> 
     </Router>
   );
