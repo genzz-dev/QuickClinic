@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import authService from '../service/apiservice'
+import authService from '../service/authservice'
 
 const AuthContext = createContext();
 
@@ -55,11 +55,12 @@ export const AuthProvider = ({ children }) => {
       if (result.success) {
         setUser(result.user);
         setIsAuthenticated(true);
-        return { success: true };
+        return result;
       } else {
         return { success: false, error: result.error };
       }
     } catch (error) {
+      console.log(error);
       return { success: false, error: 'Login failed' };
     } finally {
       setIsLoading(false);
@@ -74,7 +75,7 @@ export const AuthProvider = ({ children }) => {
       if (result.success) {
         setUser(result.user);
         setIsAuthenticated(true);
-        return { success: true };
+        return result;
       } else {
         return { success: false, error: result.error };
       }

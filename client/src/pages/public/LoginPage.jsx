@@ -15,13 +15,6 @@ const LoginPage = () => {
   const { login, isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
 
-
-
-  // Redirect simulation
-  useEffect(() => {
-    // This would normally handle redirection after login
-  }, []);
-
   const handleInputChange = (e) => {
     setFormData({
       ...formData,
@@ -30,21 +23,27 @@ const LoginPage = () => {
     if (error) setError('');
   };
 
-  const handleSubmit = async (e) => {
+   const handleSubmit = async (e) => {
     e.preventDefault();
-    setIsLoading(true);
     setError('');
 
-    const result = await mockLogin(formData);
-    
+    const result = await login(formData);
+    console.log(result);
     if (!result.success) {
-      setError(result.error);
+      setError(result.error || 'Login failed');
     } else {
-      // In real app: navigate based on user role
-      alert(`Login successful! Redirecting to ${result.user.role} dashboard...`);
+      // Redirect based on user role
+      switch (result.user.role) {
+        case 'doctor':
+          navigate('/doctor-dashboard');
+          break;
+        case 'admin':
+          navigate('/admin-dashboard');
+          break;
+        default:
+          navigate('/patient-dashboard');
+      }
     }
-    
-    setIsLoading(false);
   };
 
   const FloatingIcon = ({ Icon, className }) => (
