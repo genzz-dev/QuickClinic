@@ -6,9 +6,9 @@ import ClinicDetailPage from './pages/public/ClinicDetailPage';
 import DoctorDetailsPage from './pages/public/DoctorDetailsPage';
 import Doctors from './pages/public/Doctors';
 import SearchResultsPage from './components/public/SearchResultsPage';
-import LoginPage from './pages/public/LoginPage';
+import LoginPage from './pages/auth/LoginPage';
 import { AuthProvider } from './context/authContext';
-import RegisterPage from './pages/public/RegisterPage';
+import RegisterPage from './pages/auth/RegisterPage';
 
 function App() {
   return (
