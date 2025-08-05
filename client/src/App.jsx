@@ -9,6 +9,7 @@ import SearchResultsPage from './components/public/SearchResultsPage';
 import LoginPage from './pages/auth/LoginPage';
 import { AuthProvider } from './context/authContext';
 import RegisterPage from './pages/auth/RegisterPage';
+import QuickClinicHomepage from './pages/public/DashBoard';
 
 function App() {
   return (
@@ -22,6 +23,7 @@ function App() {
         <AuthProvider>
         {/* Page content */}
         <Routes>
+          <Route path='/' element={<QuickClinicHomepage/>}/>
           <Route path="/nearby" element={<Nearbyclinics />} />
           <Route path="/Clinic/:clinicId" element={<ClinicDetailPage />} />
           <Route path="/doctor/:doctorId" element={<DoctorDetailsPage />} />
