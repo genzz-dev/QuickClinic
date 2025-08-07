@@ -30,7 +30,7 @@ const RegisterPage = () => {
           navigate('/doctor-dashboard');
           break;
         case 'admin':
-          navigate('/admin-dashboard');
+          navigate('/admin/complete-profile');
           break;
         default:
           navigate('/patient-dashboard');

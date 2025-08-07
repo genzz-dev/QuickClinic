@@ -22,7 +22,7 @@ import { useAuth } from './context/authContext';
 import ProtectedRoute from './routes/protectedRoutes';
 import AnonymousRoute from './routes/AnonymousRoute';
 import getDashboardPath from './utility/getDashboardPath';
-
+import AdminProfileComplete from './pages/admin/AdminProfileComplete';
 // --- Layouts ---
 const MainLayout = ({ children }) => (
   <>
@@ -155,6 +155,7 @@ function AppInner() {
           </MainLayout>
         }
       />
+      <Route path="/admin/complete-profile" element={<ProtectedRoute allowedRoles={['admin']}><AdminProfileComplete /></ProtectedRoute>} />
 
       {/* CATCH-ALL/404 */}
       <Route path="*" element={<Navigate to="/" replace />} />

@@ -44,7 +44,7 @@ const LoginPage = () => {
           navigate('/doctor-dashboard');
           break;
         case 'admin':
-          navigate('/admin-dashboard');
+          navigate('/admin/dashboard');
           break;
         default:
           navigate('/patient-dashboard');
