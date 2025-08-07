@@ -11,7 +11,9 @@ import {
   getDoctorSchedule,
   getClinicInfo,
   sendVerificationOTP,
-  verifyClinicOTP
+  verifyClinicOTP,
+  checkAdminProfileExists,
+  checkClinicExists
 } from '../Controllers/adminController.js';
 import upload from '../Middleware/upload.js';
 import { get } from 'mongoose';
@@ -45,7 +47,7 @@ const conditionalUpload = (req, res, next) => {
 };
 
 router.put('/clinics', conditionalUpload, updateClinic);
-router.post('/clinics/doctors', upload.single('profilePicture'), addDoctorToClinic);
+router.post('/clinics/doctors', addDoctorToClinic);
 router.get('/clinics/doctors', getClinicDoctors); 
 router.delete('/clinics/doctors/:doctorId', removeDoctorFromClinic); 
 router.post('/doctors/:doctorId/schedule', setDoctorSchedule);
@@ -53,5 +55,6 @@ router.get('/doctors/:doctorId/schedule', getDoctorSchedule);
 router.get('/clinics',getClinicDoctors);
 router.post('/clinics/verify/send-otp', sendVerificationOTP);
 router.post('/clinics/verify/confirm-otp', verifyClinicOTP);
-
+router.get('/profile/status', checkAdminProfileExists);
+router.get('/clinic/status', checkClinicExists);
 export default router;

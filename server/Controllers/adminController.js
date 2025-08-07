@@ -19,6 +19,55 @@ import {
 // Helper validation functions
 const isValidEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 const isValidPhone = (phone) => /^\+?[\d\s-()]{7,}$/.test(phone);
+// check if admin profile is created or not 
+export const checkAdminProfileExists = async (req, res) => {
+  try {
+    const { userId } = req.user;
+
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({ message: 'Invalid user ID format' });
+    }
+
+    const existingAdmin = await Admin.findOne({ userId });
+
+    if (existingAdmin) {
+      return res.status(200).json({ 
+        exists: true,
+        message: 'Admin profile already exists for this user' 
+      });
+    } else {
+      return res.status(200).json({ 
+        exists: false,
+        message: 'Admin profile does not exist' 
+      });
+    }
+  } catch (error) {
+    return res.status(500).json({ message: 'Internal server error', error: error.message });
+  }
+};
+
+// check if admin has added a clinic or not
+export const checkClinicExists = async (req, res) => {
+  try {
+    const { userId, clinicId } = req.user;
+
+    if (clinicId) {
+      return res.status(200).json({ 
+        exists: true,
+        message: 'Admin has a clinic',
+        clinicId: clinicId
+      });
+    } else {
+      return res.status(200).json({ 
+        exists: false,
+        message: 'Admin does not have a clinic' 
+      });
+    }
+  } catch (error) {
+    return res.status(500).json({ message: 'Internal server error', error: error.message });
+  }
+};
+
 
 // Create admin profile
 export const createAdminProfile = async (req, res) => {
