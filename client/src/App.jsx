@@ -1,4 +1,5 @@
-import { BrowserRouter as Router, Routes, Route, Outlet } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, useLocation, useNavigate, Navigate } from 'react-router-dom';
 
 import Navbar from './components/public/DesktopNavbar';
 import MobileBottomBar from './components/public/MobileBottomBar';
@@ -12,85 +13,159 @@ import LoginPage from './pages/public/LoginPage';
 import RegisterPage from './pages/public/RegisterPage';
 import QuickClinicHomepage from './pages/public/HomePage';
 
-// import PatientDashboard from './pages/patient/PatientDashboard';
-// import DoctorDashboard from './pages/doctor/DoctorDashboard';
-// import AdminDashboard from './pages/admin/AdminDashboard';
+// Dashboards
+import PatientDashboard from './pages/patient/PatientDashboard';
+import DoctorDashboard from './pages/doctor/DoctorDashboard';
+import AdminDashboard from './pages/admin/AdminDashboard';
 
-import { AuthProvider } from './context/authContext'
+import { useAuth } from './context/authContext';
 import ProtectedRoute from './routes/protectedRoutes';
+import AnonymousRoute from './routes/AnonymousRoute';
+import getDashboardPath from './utility/getDashboardPath';
 
 // --- Layouts ---
-const MainLayout = () => (
+const MainLayout = ({ children }) => (
   <>
     <Navbar />
-    <Outlet />
+    {children}
     <MobileBottomBar />
   </>
 );
 
-const AuthLayout = () => (
-  <>
-    {/* No Navbar or BottomBar */}
-    <Outlet />
-  </>
-);
+const AuthLayout = ({ children }) => <>{children}</>;
 
-// --- App ---
+// --- App inner for hooks ---
+function AppInner() {
+  const { user, isAuthenticated, isLoading } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  // Redirect from "/" to the role-based dashboard (after auth is loaded)
+  useEffect(() => {
+    if (!isLoading && isAuthenticated && user) {
+      if (location.pathname === "/") {
+        // Redirect to dashboard (role based)
+        navigate(getDashboardPath(user.role), { replace: true });
+      }
+    }
+  }, [isAuthenticated, isLoading, user, location.pathname, navigate]);
+
+  return (
+    <Routes>
+      {/* AUTH ROUTES - NO NAVBAR */}
+      <Route
+        path="/login"
+        element={
+          <AuthLayout>
+            <AnonymousRoute>
+              <LoginPage />
+            </AnonymousRoute>
+          </AuthLayout>
+        }
+      />
+      <Route
+        path="/register"
+        element={
+          <AuthLayout>
+            <AnonymousRoute>
+              <RegisterPage />
+            </AnonymousRoute>
+          </AuthLayout>
+        }
+      />
+
+      {/* PUBLIC ROUTES - NAVBAR */}
+      <Route
+        path="/"
+        element={
+          <MainLayout>
+            <QuickClinicHomepage />
+          </MainLayout>
+        }
+      />
+      <Route
+        path="/nearby"
+        element={
+          <MainLayout>
+            <Nearbyclinics />
+          </MainLayout>
+        }
+      />
+      <Route
+        path="/clinic/:id"
+        element={
+          <MainLayout>
+            <ClinicDetailPage />
+          </MainLayout>
+        }
+      />
+      <Route
+        path="/doctors"
+        element={
+          <MainLayout>
+            <Doctors />
+          </MainLayout>
+        }
+      />
+      <Route
+        path="/doctor/:id"
+        element={
+          <MainLayout>
+            <DoctorDetailsPage />
+          </MainLayout>
+        }
+      />
+      <Route
+        path="/search"
+        element={
+          <MainLayout>
+            <SearchResultsPage />
+          </MainLayout>
+        }
+      />
+
+      {/* DASHBOARD ROUTES - PROTECTED */}
+      <Route
+        path="/patient/dashboard"
+        element={
+          <MainLayout>
+            <ProtectedRoute allowedRoles={['patient']}>
+              <PatientDashboard />
+            </ProtectedRoute>
+          </MainLayout>
+        }
+      />
+      <Route
+        path="/doctor/dashboard"
+        element={
+          <MainLayout>
+            <ProtectedRoute allowedRoles={['doctor']}>
+              <DoctorDashboard />
+            </ProtectedRoute>
+          </MainLayout>
+        }
+      />
+      <Route
+        path="/admin/dashboard"
+        element={
+          <MainLayout>
+            <ProtectedRoute allowedRoles={['admin']}>
+              <AdminDashboard />
+            </ProtectedRoute>
+          </MainLayout>
+        }
+      />
+
+      {/* CATCH-ALL/404 */}
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
+  );
+}
+
+// --- App with Router (if not already in main.jsx) ---
 function App() {
   return (
-    <AuthProvider>
-      <Router>
-        <Routes>
-          {/* AUTH ROUTES - No Navbars */}
-          <Route element={<AuthLayout />}>
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/register" element={<RegisterPage />} />
-          </Route>
-
-          {/* MAIN APP ROUTES - Navbars visible */}
-          <Route element={<MainLayout />}>
-            {/* Public routes */}
-            <Route path="/" element={<QuickClinicHomepage />} />
-            <Route path="/clinics" element={<Nearbyclinics />} />
-            <Route path="/clinic/:id" element={<ClinicDetailPage />} />
-            <Route path="/doctors" element={<Doctors />} />
-            <Route path="/doctor/:id" element={<DoctorDetailsPage />} />
-            <Route path="/search" element={<SearchResultsPage />} />
-
-            {/* Patient Dashboard - Protected */}
-            <Route
-              path="/patient-dashboard"
-              element={
-                <ProtectedRoute allowedRoles={['patient']}>
-                  {/* <PatientDashboard /> */}
-                </ProtectedRoute>
-              }
-            />
-            {/* Doctor Dashboard - Protected */}
-            <Route
-              path="/doctor-dashboard"
-              element={
-                <ProtectedRoute allowedRoles={['doctor']}>
-                  {/* <DoctorDashboard /> */}
-                </ProtectedRoute>
-              }
-            />
-            {/* Admin Dashboard - Protected */}
-            <Route
-              path="/admin-dashboard"
-              element={
-                <ProtectedRoute allowedRoles={['admin']}>
-                  {/* <AdminDashboard /> */}
-                </ProtectedRoute>
-              }
-            />
-          </Route>
-
-          {/* Fallback route: 404 or redirect can go here */}
-          {/* <Route path="*" element={<NotFoundPage />} /> */}
-        </Routes>
-      </Router>
-    </AuthProvider>
+    <AppInner />
   );
 }
 
