@@ -22,14 +22,32 @@ export const createAdminProfile = async (profileData, file) => {
  */
 export const addClinic = async (clinicData, logo, files = []) => {
   const formData = new FormData();
+  
   Object.entries(clinicData).forEach(([key, value]) => {
-  if (typeof value === 'object' && value !== null) {
-    formData.append(key, JSON.stringify(value));
-  } else {
-    formData.append(key, value);
-  }
-});
-  console.log(clinicData);
+    if (key === 'address' && typeof value === 'object' && value !== null) {
+      // Append address fields individually
+      Object.entries(value).forEach(([addressKey, addressValue]) => {
+        if (addressKey !== 'coordinates') {
+          formData.append(`address.${addressKey}`, addressValue);
+        } else if (addressValue) {
+          formData.append(`address.coordinates.lat`, addressValue.lat);
+          formData.append(`address.coordinates.lng`, addressValue.lng);
+        }
+      });
+    } else if (key === 'contact' && typeof value === 'object' && value !== null) {
+      // Append contact fields individually
+      Object.entries(value).forEach(([contactKey, contactValue]) => {
+        formData.append(`contact.${contactKey}`, contactValue);
+      });
+    } else if (typeof value === 'object' && value !== null) {
+      formData.append(key, JSON.stringify(value));
+    } else {
+      formData.append(key, value);
+    }
+  });
+
+  console.log('Form data entries:', [...formData.entries()]);
+
   if (logo) {
     formData.append("logo", logo);
   }
@@ -38,8 +56,12 @@ export const addClinic = async (clinicData, logo, files = []) => {
       formData.append("photos", file);
     });
   }
-  return await apiService.post('/admin/clinics', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
+  
+  return await apiService.post('/admin/clinics', formData, { 
+    headers: { 'Content-Type': 'multipart/form-data' } 
+  });
 };
+
 
 /**
  * Update Clinic 
