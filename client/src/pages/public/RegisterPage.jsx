@@ -19,7 +19,6 @@ const RegisterPage = () => {
   const [fieldErrors, setFieldErrors] = useState({});
 
   useEffect(() => {
-<<<<<<< Updated upstream
     if (isAuthenticated && user) {
       switch (user.role) {
         case 'doctor':
@@ -31,10 +30,6 @@ const RegisterPage = () => {
         default:
           navigate('/patient-dashboard');
       }
-=======
-    if (isAuthenticated) {
-      navigate('/patient-dashboard'); // Or role-based redirect
->>>>>>> Stashed changes
     }
   }, [isAuthenticated, navigate]);
 

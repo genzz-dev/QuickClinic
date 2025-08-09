@@ -44,7 +44,6 @@ const LoginPage = () => {
     if (!result.success) {
       setError(result.error || 'Login failed. Please check your credentials.');
       setIsLoading(false);
-<<<<<<< Updated upstream
     } else {
       // Redirect based on user role
       switch (result.user.role) {
@@ -57,8 +56,6 @@ const LoginPage = () => {
         default:
           navigate('/patient-dashboard');
       }
-=======
->>>>>>> Stashed changes
     }
     // Successful login is handled by the useEffect hook
   };
