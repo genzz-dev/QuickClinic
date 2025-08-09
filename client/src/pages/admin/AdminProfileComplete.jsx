@@ -1,52 +1,55 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { createAdminProfile, checkAdminProfileExists } from '../../service/adminApiService'
+import { createAdminProfile, checkAdminProfileExists } from '../../service/adminApiService';
 
 export default function AdminProfileComplete() {
   const navigate = useNavigate();
 
-  // Form state
   const [fields, setFields] = useState({
     firstName: '',
     lastName: '',
     phone: '',
     profilePicture: null
   });
+  const [profilePreview, setProfilePreview] = useState(null);
   const [loading, setLoading] = useState(false);
   const [checkingProfile, setCheckingProfile] = useState(true);
   const [error, setError] = useState('');
 
-  // Check if admin profile exists (redirect if yes)
-useEffect(() => {
-  let mounted = true;
-  const checkProfile = async () => {
-    setCheckingProfile(true);
-    try {
-      const res = await checkAdminProfileExists();
-      console.log(res);
-      if (mounted && res.exists) {
-        navigate('/', { replace: true });
-      } else {
-        setCheckingProfile(false);
+  useEffect(() => {
+    let mounted = true;
+    const checkProfile = async () => {
+      setCheckingProfile(true);
+      try {
+        const res = await checkAdminProfileExists();
+        if (mounted && res.exists) {
+          navigate('/', { replace: true });
+        } else {
+          setCheckingProfile(false);
+        }
+      } catch {
+        if (mounted) setCheckingProfile(false);
       }
-    } catch (error) {
-      if (mounted) setCheckingProfile(false);
-    }
-  };
-
-  checkProfile();
-
-  return () => { mounted = false };
-  // eslint-disable-next-line
-}, []);
-
+    };
+    checkProfile();
+    return () => { mounted = false };
+    // eslint-disable-next-line
+  }, []);
 
   const handleChange = e => {
     const { name, value, files } = e.target;
-    setFields(f => ({
-      ...f,
-      [name]: files ? files[0] : value
-    }));
+    if (name === "profilePicture" && files && files[0]) {
+      setFields(f => ({
+        ...f,
+        profilePicture: files[0],
+      }));
+      setProfilePreview(URL.createObjectURL(files[0]));
+    } else {
+      setFields(f => ({
+        ...f,
+        [name]: value,
+      }));
+    }
   };
 
   const handleSubmit = async e => {
@@ -54,14 +57,12 @@ useEffect(() => {
     setError('');
     setLoading(true);
     try {
-      // Prepare data
       const { firstName, lastName, phone, profilePicture } = fields;
       if (!firstName || !lastName || !phone) {
         setError('Please fill out all fields');
         setLoading(false);
         return;
       }
-      // Prepare payload (excluding file)
       const profileData = { firstName, lastName, phone };
       await createAdminProfile(profileData, profilePicture);
       navigate('/', { replace: true });
@@ -75,48 +76,57 @@ useEffect(() => {
   if (checkingProfile) {
     return (
       <div className="flex h-screen items-center justify-center bg-gray-50">
-        <span className="text-lg font-medium text-gray-500">Checking profile...</span>
+        <div className="flex items-center gap-2 text-lg font-medium text-gray-500">
+          <span className="animate-spin rounded-full border-2 border-gray-200 border-b-indigo-400 h-6 w-6 inline-block" />
+          Checking your profile...
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-tr from-blue-100/60 via-white to-indigo-100/70 px-2">
-      <div className="w-full max-w-lg rounded-xl bg-white px-8 py-10 shadow-lg md:px-16">
-        <h1 className="mb-6 text-3xl font-bold text-indigo-700">Complete Your Admin Profile</h1>
-        <form className="space-y-6" onSubmit={handleSubmit} autoComplete="off">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2" htmlFor="firstName">
-              First Name
-            </label>
-            <input
-              id="firstName"
-              name="firstName"
-              type="text"
-              value={fields.firstName}
-              onChange={handleChange}
-              required
-              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-800 shadow-sm focus:border-indigo-400 focus:outline-none"
-              placeholder="Jane"
-            />
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-tr from-sky-100/70 via-white to-indigo-100/80 px-4">
+      <div className="w-full max-w-xl rounded-2xl bg-white px-10 py-10 shadow-2xl border border-gray-100">
+        <h1 className="mb-1 text-3xl font-bold text-indigo-700 text-center">Admin Profile Setup</h1>
+        <p className="mb-8 text-gray-600 text-center text-sm">
+          Please complete your profile to proceed. It helps us secure your account.
+        </p>
+        <form className="space-y-5" onSubmit={handleSubmit} autoComplete="off">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="firstName">
+                First Name
+              </label>
+              <input
+                id="firstName"
+                name="firstName"
+                type="text"
+                value={fields.firstName}
+                onChange={handleChange}
+                required
+                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-800 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 outline-none"
+                placeholder="Enter your first name"
+                autoFocus
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="lastName">
+                Last Name
+              </label>
+              <input
+                id="lastName"
+                name="lastName"
+                type="text"
+                value={fields.lastName}
+                onChange={handleChange}
+                required
+                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-800 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 outline-none"
+                placeholder="Enter your last name"
+              />
+            </div>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2" htmlFor="lastName">
-              Last Name
-            </label>
-            <input
-              id="lastName"
-              name="lastName"
-              type="text"
-              value={fields.lastName}
-              onChange={handleChange}
-              required
-              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-800 shadow-sm focus:border-indigo-400 focus:outline-none"
-              placeholder="Doe"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2" htmlFor="phone">
+            <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="phone">
               Mobile Number
             </label>
             <input
@@ -126,12 +136,13 @@ useEffect(() => {
               value={fields.phone}
               onChange={handleChange}
               required
-              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-800 shadow-sm focus:border-indigo-400 focus:outline-none"
-              placeholder="+91-XXXXXXXXXX"
+              maxLength={15}
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-800 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 outline-none"
+              placeholder="e.g. +91 9876543210"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2" htmlFor="profilePicture">
+            <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="profilePicture">
               Profile Picture <span className="text-gray-400">(optional)</span>
             </label>
             <input
@@ -142,18 +153,42 @@ useEffect(() => {
               onChange={handleChange}
               className="text-gray-700"
             />
+            {profilePreview && (
+              <div className="mt-2 flex items-center">
+                <img
+                  src={profilePreview}
+                  alt="Profile preview"
+                  className="w-16 h-16 rounded-full object-cover border"
+                />
+                <button
+                  type="button"
+                  onClick={() => { setFields(f => ({ ...f, profilePicture: null })); setProfilePreview(null); }}
+                  className="ml-4 text-xs text-red-500 hover:underline transition"
+                >
+                  Remove
+                </button>
+              </div>
+            )}
           </div>
           {error && (
-            <div className="rounded bg-red-50 px-4 py-2 text-red-700 border border-red-200 mb-2 text-sm">
+            <div className="rounded bg-red-50 px-4 py-2 text-red-700 border border-red-200 mb-2 text-sm text-center">
               {error}
             </div>
           )}
           <button
             type="submit"
             disabled={loading}
-            className="w-full rounded-md bg-indigo-600 px-4 py-2 text-white font-semibold shadow hover:bg-indigo-700 transition disabled:bg-gray-300"
+            className={`w-full rounded-lg bg-gradient-to-r from-indigo-600 to-violet-500 px-4 py-2 text-white font-semibold shadow hover:from-indigo-700 hover:to-violet-600 transition ${
+              loading ? "opacity-70 pointer-events-none" : ""
+            }`}
           >
-            {loading ? 'Submitting...' : 'Save & Continue'}
+            {loading
+              ? (
+                <span className="flex items-center justify-center gap-2">
+                  <span className="animate-spin rounded-full border-2 border-gray-200 border-b-white h-5 w-5 inline-block"/> Submitting...
+                </span>
+              )
+              : 'Save & Continue'}
           </button>
         </form>
       </div>
