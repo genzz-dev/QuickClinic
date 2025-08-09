@@ -1,29 +1,41 @@
 import React from 'react';
 import { Loader2 } from 'lucide-react';
 
-export const AuthButton = ({ 
-  isLoading, 
-  text, 
-  loadingText, 
-  colorFrom, 
-  colorTo,
-  hoverFrom,
-  hoverTo
+export const AuthButton = ({
+  children,
+  isLoading = false,
+  disabled = false,
+  type = 'submit',
+  onClick,
+  className = '',
+  variant = 'primary',
 }) => {
+  const baseClasses = "w-full flex justify-center items-center gap-2 px-8 py-4 border border-transparent rounded-xl text-lg font-semibold transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-[1.02] active:scale-[0.98]";
+
+  const variantClasses = {
+    primary: "text-white bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 focus:ring-blue-500 shadow-lg hover:shadow-xl",
+    secondary: "text-blue-700 bg-blue-50 border-blue-200 hover:bg-blue-100 focus:ring-blue-500",
+  };
+
+  const isDisabled = disabled || isLoading;
+
   return (
     <button
-      type="submit"
-      disabled={isLoading}
-      className={`w-full bg-gradient-to-r from-${colorFrom}-500 to-${colorTo}-500 hover:from-${hoverFrom || colorFrom}-600 hover:to-${hoverTo || colorTo}-600 text-white font-semibold py-3 px-4 rounded-xl transition-all duration-200 transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed shadow-lg`}
+      type={type}
+      onClick={onClick}
+      disabled={isDisabled}
+      className={`${baseClasses} ${variantClasses[variant]} ${className}`}
     >
       {isLoading ? (
-        <div className="flex items-center justify-center">
-          <Loader2 className="w-5 h-5 animate-spin mr-2" />
-          {loadingText}
-        </div>
+        <>
+          <Loader2 className="w-5 h-5 animate-spin" />
+          <span>Processing...</span>
+        </>
       ) : (
-        text
+        children
       )}
     </button>
   );
-};  
+};
+
+export default AuthButton;
