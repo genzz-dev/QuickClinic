@@ -118,7 +118,6 @@ export const createAdminProfile = async (req, res) => {
 export const addClinic = async (req, res) => {
   try {
     const { userId, clinicId } = req.user;
-
     // Check if admin already has a clinic
     if (clinicId) {
       return res.status(400).json({ 
@@ -126,8 +125,11 @@ export const addClinic = async (req, res) => {
         clinicId: clinicId
       });
     }
-
+    if (req.body.contact && typeof req.body.contact === 'string') {
+    req.body.contact = JSON.parse(req.body.contact);
+  }
     const clinicData = req.body;
+    console.log(clinicData);
     console.log(req.body);
     if (!clinicData.name) {
       return res.status(400).json({ 
@@ -212,6 +214,9 @@ export const addClinic = async (req, res) => {
     res.status(201).json({
       message: 'Clinic added successfully',
       clinic: clinic.toObject({ getters: true, versionKey: false })
+    });
+        res.status(201).json({
+      message: 'Clinic added successfully',
     });
   } catch (error) {
     console.error('Error adding clinic:', error);

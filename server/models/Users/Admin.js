@@ -9,7 +9,8 @@ const adminSchema = new mongoose.Schema({
   clinicId: { 
     type: mongoose.Schema.Types.ObjectId, 
     ref: 'Clinic',
-    unique: true // Ensures an admin can only be associated with one clinic
+    unique: true,
+     sparse: true 
   },
   permissions: {
     manageDoctors: { type: Boolean, default: true },

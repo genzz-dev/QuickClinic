@@ -23,6 +23,7 @@ import ProtectedRoute from './routes/protectedRoutes';
 import AnonymousRoute from './routes/AnonymousRoute';
 import getDashboardPath from './utility/getDashboardPath';
 import AdminProfileComplete from './pages/admin/AdminProfileComplete';
+import AdminClinicAdd from './pages/admin/AdminClinicAdd';
 // --- Layouts ---
 const MainLayout = ({ children }) => (
   <>
@@ -156,7 +157,7 @@ function AppInner() {
         }
       />
       <Route path="/admin/complete-profile" element={<ProtectedRoute allowedRoles={['admin']}><AdminProfileComplete /></ProtectedRoute>} />
-
+      <Route path="/admin/add-clinic" element={<ProtectedRoute allowedRoles={['admin']}><AdminClinicAdd /></ProtectedRoute>} />
       {/* CATCH-ALL/404 */}
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

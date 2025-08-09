@@ -22,7 +22,14 @@ export const createAdminProfile = async (profileData, file) => {
  */
 export const addClinic = async (clinicData, logo, files = []) => {
   const formData = new FormData();
-  Object.entries(clinicData).forEach(([key, value]) => { formData.append(key, value) });
+  Object.entries(clinicData).forEach(([key, value]) => {
+  if (typeof value === 'object' && value !== null) {
+    formData.append(key, JSON.stringify(value));
+  } else {
+    formData.append(key, value);
+  }
+});
+  console.log(clinicData);
   if (logo) {
     formData.append("logo", logo);
   }

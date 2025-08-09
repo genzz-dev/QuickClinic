@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const API_BASE_URL = 'https://mock-sms-backend.onrender.com/api';
-const API_KEY = '938153aceff2bbe2edbc8087beede1763bf319ad968e7836464b3eaaeb152906';
+const API_KEY = 'b50badf9759ba4be395f282a518bae7901f1f482ed05f1a2144a4a561f05385f';
 
 const headers = {
   'x-api-key': API_KEY,
