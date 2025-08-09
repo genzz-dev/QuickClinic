@@ -45,7 +45,7 @@ const conditionalUpload = (req, res, next) => {
     next(); // Skip multer if not multipart
   }
 };
-
+router.get('/getClinic',getClinicInfo);
 router.put('/clinics', conditionalUpload, updateClinic);
 router.post('/clinics/doctors', addDoctorToClinic);
 router.get('/clinics/doctors', getClinicDoctors); 

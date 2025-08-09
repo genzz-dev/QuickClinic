@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
-import { Shield, AlertCircle } from 'lucide-react';
-import { sendVerificationOTP, verifyOtp } from '../../../../service/adminApiService.js';
+import React, { useState, useEffect } from 'react';
+import { Shield, AlertCircle, ExternalLink } from 'lucide-react';
+import { sendVerificationOTP, verifyOtp, updateClinic, getClinicInfo } from '../../../../service/adminApiService.js';
 
 const OTPVerification = ({ onSuccess, onFailed, onManualReview }) => {
   const [submitting, setSubmitting] = useState(false);
@@ -8,8 +8,77 @@ const OTPVerification = ({ onSuccess, onFailed, onManualReview }) => {
   const [otpCode, setOtpCode] = useState('');
   const [errors, setErrors] = useState({});
   const [otpAttempts, setOtpAttempts] = useState(0);
+  
+  // Google Maps link state
+  const [hasGoogleLink, setHasGoogleLink] = useState(false);
+  const [googleMapsLink, setGoogleMapsLink] = useState('');
+  const [showGoogleLinkForm, setShowGoogleLinkForm] = useState(false);
+  const [updatingLink, setUpdatingLink] = useState(false);
+  const [checkingClinic, setCheckingClinic] = useState(true);
+
+  // Check clinic info on component mount
+  useEffect(() => {
+    checkClinicGoogleLink();
+  }, []);
+
+  const checkClinicGoogleLink = async () => {
+    try {
+      setCheckingClinic(true);
+      const response = await getClinicInfo();
+      const clinic = response.data?.clinic || response.clinic;
+      
+      if (clinic?.googleMapsLink) {
+        setHasGoogleLink(true);
+        setGoogleMapsLink(clinic.googleMapsLink);
+      } else {
+        setHasGoogleLink(false);
+        setShowGoogleLinkForm(true);
+      }
+    } catch (error) {
+      console.error('Error checking clinic info:', error);
+      setErrors({ general: 'Failed to load clinic information' });
+    } finally {
+      setCheckingClinic(false);
+    }
+  };
+
+  const handleUpdateGoogleLink = async () => {
+    if (!googleMapsLink.trim()) {
+      setErrors({ googleLink: 'Please enter a valid Google Maps link' });
+      return;
+    }
+
+    // Basic validation for Google Maps link
+    if (!googleMapsLink.includes('maps.google.com') && !googleMapsLink.includes('goo.gl')) {
+      setErrors({ googleLink: 'Please enter a valid Google Maps link' });
+      return;
+    }
+
+    try {
+      setUpdatingLink(true);
+      setErrors({});
+      
+      await updateClinic({ googleMapsLink });
+      
+      setHasGoogleLink(true);
+      setShowGoogleLinkForm(false);
+      setErrors({});
+    } catch (error) {
+      console.error('Error updating Google Maps link:', error);
+      setErrors({ 
+        googleLink: error.response?.data?.message || 'Failed to update Google Maps link' 
+      });
+    } finally {
+      setUpdatingLink(false);
+    }
+  };
 
   const handleSendOTP = async () => {
+    if (!hasGoogleLink) {
+      setErrors({ otp: 'Please add Google Maps link first' });
+      return;
+    }
+
     try {
       setSubmitting(true);
       await sendVerificationOTP();
@@ -17,7 +86,9 @@ const OTPVerification = ({ onSuccess, onFailed, onManualReview }) => {
       setErrors({ otp: '' });
     } catch (error) {
       // Check if it's a 500 error or OTP sending failure
-      if (error.response?.status === 500 ||error.response?.status === 400 || error.response?.data?.message?.includes('OTP')) {
+      if (error.response?.status === 500 || 
+          error.response?.status === 400 || 
+          error.response?.data?.message?.includes('OTP')) {
         // Trigger manual review flow
         onManualReview();
         return;
@@ -41,7 +112,6 @@ const OTPVerification = ({ onSuccess, onFailed, onManualReview }) => {
     } catch (error) {
       setOtpAttempts(prev => prev + 1);
       setErrors({ otp: error.response?.data?.message || 'Invalid OTP code' });
-      
       if (otpAttempts >= 2) {
         onFailed();
       }
@@ -54,110 +124,166 @@ const OTPVerification = ({ onSuccess, onFailed, onManualReview }) => {
     onManualReview();
   };
 
+  if (checkingClinic) {
+    return (
+      <div className="max-w-2xl mx-auto bg-white rounded-lg shadow-lg p-8">
+        <div className="flex items-center justify-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+          <span className="ml-2">Checking clinic information...</span>
+        </div>
+      </div>
+    );
+  }
+
   if (otpAttempts >= 3) {
     return (
-      <div className="text-center py-8">
-        <div className="mx-auto w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-4">
-          <AlertCircle className="w-8 h-8 text-red-600" />
+      <div className="max-w-2xl mx-auto bg-white rounded-lg shadow-lg p-8">
+        <div className="text-center">
+          <AlertCircle className="h-16 w-16 text-red-500 mx-auto mb-4" />
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">
+            Maximum Attempts Reached
+          </h2>
+          <p className="text-gray-600 mb-6">
+            Maximum attempts reached for today. Please try again tomorrow.
+          </p>
+          <button
+            onClick={handleSkipVerification}
+            className="w-full bg-gray-600 text-white py-3 px-4 rounded-md hover:bg-gray-700 transition duration-200"
+          >
+            Continue to Dashboard
+          </button>
         </div>
-        <h3 className="text-lg font-semibold text-gray-900 mb-2">
-          Maximum Attempts Reached
-        </h3>
-        <p className="text-gray-600 mb-6">
-          Maximum attempts reached for today. Please try again tomorrow.
-        </p>
-        <button
-          onClick={handleSkipVerification}
-          className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-        >
-          Continue with Manual Review
-        </button>
       </div>
     );
   }
 
   return (
-    <div className="bg-white p-6 rounded-lg shadow-sm border">
-      <div className="text-center mb-6">
-        <div className="mx-auto w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-4">
-          <Shield className="w-8 h-8 text-blue-600" />
-        </div>
-        <h3 className="text-lg font-semibold text-gray-900 mb-2">
-          Verify Your Phone Number
-        </h3>
+    <div className="max-w-2xl mx-auto bg-white rounded-lg shadow-lg p-8">
+      <div className="text-center mb-8">
+        <Shield className="h-16 w-16 text-blue-600 mx-auto mb-4" />
+        <h2 className="text-2xl font-bold text-gray-900 mb-2">
+          Verify Your Clinic
+        </h2>
         <p className="text-gray-600">
-          Click below to send an OTP to your clinic's registered phone number
+          We'll send an OTP to your clinic's phone number listed on Google Maps
         </p>
       </div>
 
-      {!otpSent ? (
-        <div className="space-y-4">
-          <button
-            onClick={handleSendOTP}
-            disabled={submitting}
-            className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-          >
-            {submitting ? 'Sending OTP...' : 'Send OTP'}
-          </button>
+      {/* Google Maps Link Section */}
+      {showGoogleLinkForm && (
+        <div className="mb-8 p-6 bg-yellow-50 rounded-lg border border-yellow-200">
+          <div className="flex items-center mb-4">
+            <ExternalLink className="h-5 w-5 text-yellow-600 mr-2" />
+            <h3 className="font-semibold text-yellow-800">
+              Google Maps Link Required
+            </h3>
+          </div>
+          <p className="text-yellow-700 mb-4">
+            To verify your clinic via OTP, we need your Google Maps business listing link.
+          </p>
           
-          <div className="text-center">
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-yellow-800 mb-2">
+                Google Maps Link
+              </label>
+              <input
+                type="url"
+                value={googleMapsLink}
+                onChange={(e) => setGoogleMapsLink(e.target.value)}
+                placeholder="https://maps.google.com/..."
+                className="w-full px-3 py-2 border border-yellow-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                disabled={updatingLink}
+              />
+              {errors.googleLink && (
+                <p className="text-red-600 text-sm mt-1">{errors.googleLink}</p>
+              )}
+            </div>
+            
             <button
-              onClick={handleSkipVerification}
-              className="text-gray-500 hover:text-gray-700 text-sm underline"
+              onClick={handleUpdateGoogleLink}
+              disabled={updatingLink || !googleMapsLink.trim()}
+              className="w-full bg-yellow-600 text-white py-2 px-4 rounded-md hover:bg-yellow-700 disabled:opacity-50 disabled:cursor-not-allowed transition duration-200"
             >
-              Skip Verification
+              {updatingLink ? 'Saving...' : 'Save Google Maps Link'}
             </button>
-            <p className="text-xs text-gray-400 mt-1">
-              You can skip verification now and complete it later
-            </p>
-          </div>
-        </div>
-      ) : (
-        <div className="space-y-4">
-          <div className="bg-green-50 border border-green-200 rounded-lg p-3 mb-4">
-            <p className="text-green-800 text-sm">
-              ✓ OTP sent successfully! Check your registered phone number.
-            </p>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Enter OTP Code
-            </label>
-            <input
-              type="text"
-              value={otpCode}
-              onChange={(e) => setOtpCode(e.target.value)}
-              placeholder="Enter 6-digit OTP"
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              maxLength={6}
-            />
-            {errors.otp && (
-              <p className="text-red-600 text-sm mt-1">{errors.otp}</p>
-            )}
-          </div>
-
-          <button
-            onClick={handleVerifyOTP}
-            disabled={submitting || !otpCode.trim()}
-            className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-          >
-            {submitting ? 'Verifying...' : 'Verify OTP'}
-          </button>
-
-          <div className="text-center">
-            <button
-              onClick={handleSkipVerification}
-              className="text-gray-500 hover:text-gray-700 text-sm underline"
-            >
-              Skip Verification
-            </button>
-            <p className="text-xs text-gray-400 mt-1">
-              Unverified clinics won't display the verification badge until manual verification is completed
-            </p>
           </div>
         </div>
       )}
+
+      {/* OTP Section */}
+      <div className="space-y-6">
+        {!otpSent ? (
+          <div>
+            <p className="text-gray-700 mb-6">
+              Click below to send an OTP to your clinic's registered phone number
+            </p>
+            <button
+              onClick={handleSendOTP}
+              disabled={submitting || !hasGoogleLink}
+              className="w-full bg-blue-600 text-white py-3 px-4 rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition duration-200"
+            >
+              {submitting ? 'Sending OTP...' : 'Send Verification OTP'}
+            </button>
+            
+            {!hasGoogleLink && (
+              <p className="text-orange-600 text-sm mt-2 text-center">
+                Please add your Google Maps link first to enable OTP verification
+              </p>
+            )}
+          </div>
+        ) : (
+          <div>
+            <p className="text-green-600 mb-4 flex items-center">
+              <Shield className="h-4 w-4 mr-2" />
+              ✓ OTP sent successfully! Check your registered phone number.
+            </p>
+            <input
+              type="text"
+              value={otpCode}
+              onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+              placeholder="Enter 6-digit OTP"
+              className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-center text-lg tracking-widest"
+              maxLength={6}
+            />
+            <button
+              onClick={handleVerifyOTP}
+              disabled={submitting || otpCode.length !== 6}
+              className="w-full mt-4 bg-green-600 text-white py-3 px-4 rounded-md hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition duration-200"
+            >
+              {submitting ? 'Verifying...' : 'Verify OTP'}
+            </button>
+          </div>
+        )}
+
+        {errors.otp && (
+          <div className="bg-red-50 p-4 rounded-md border border-red-200">
+            <p className="text-red-600 text-sm">{errors.otp}</p>
+          </div>
+        )}
+
+        {errors.general && (
+          <div className="bg-red-50 p-4 rounded-md border border-red-200">
+            <p className="text-red-600 text-sm">{errors.general}</p>
+          </div>
+        )}
+
+        <div className="text-center">
+          <button
+            onClick={handleSkipVerification}
+            className="text-gray-600 hover:text-gray-800 text-sm underline"
+          >
+            You can skip verification now and complete it later
+          </button>
+        </div>
+
+        <div className="bg-yellow-50 p-4 rounded-md border border-yellow-200">
+          <p className="text-yellow-800 text-sm">
+            <AlertCircle className="h-4 w-4 inline mr-1" />
+            Unverified clinics won't display the verification badge until manual verification is completed
+          </p>
+        </div>
+      </div>
     </div>
   );
 };

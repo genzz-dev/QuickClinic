@@ -147,3 +147,9 @@ export const checkAdminProfileExists = async () => {
 export const checkClinicExists = async () => {
   return await apiService.get('/admin/clinic/status');
 };
+/**
+ * Get Clinic Info
+ */
+export const getClinicInfo = async () => {
+  return await apiService.get('/admin/getClinic');
+};
