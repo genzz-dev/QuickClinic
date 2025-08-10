@@ -28,7 +28,7 @@ const ClinicDetailPage = () => {
         // Fetch clinic details
         const clinicResponse = await getClinicById(clinicId);
         setClinic(clinicResponse.data);
-
+        
         // Fetch clinic doctors
         const doctorsResponse = await getClinicDoctors(clinicId, 1, 20);
         setDoctors(doctorsResponse.data.doctors || []);

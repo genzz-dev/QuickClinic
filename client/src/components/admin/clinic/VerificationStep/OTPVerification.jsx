@@ -48,11 +48,7 @@ const OTPVerification = ({ onSuccess, onFailed, onManualReview }) => {
       return;
     }
 
-    // Basic validation for Google Maps link
-    if (!googleMapsLink.includes('maps.google.com') && !googleMapsLink.includes('goo.gl')) {
-      setErrors({ googleLink: 'Please enter a valid Google Maps link' });
-      return;
-    }
+  
 
     try {
       setUpdatingLink(true);

@@ -273,7 +273,7 @@ const handleClinicHover = async (clinicId) => {
 
 
   const handleClinicClick = (clinicId) => {
-    console.log("hye clicked")
+    console.log(clinicId);
     navigate(`/clinic/${clinicId}`);
   };
 

@@ -93,7 +93,7 @@ function AppInner() {
         }
       />
       <Route
-        path="/clinic/:id"
+        path="/clinic/:clinicId"
         element={
           <MainLayout>
             <ClinicDetailPage />

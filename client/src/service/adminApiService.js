@@ -25,7 +25,7 @@ export const addClinic = async (clinicData, logo, files = []) => {
   
   Object.entries(clinicData).forEach(([key, value]) => {
     if (key === 'address' && typeof value === 'object' && value !== null) {
-      // Append address fields individually
+      // Handles address object
       Object.entries(value).forEach(([addressKey, addressValue]) => {
         if (addressKey !== 'coordinates') {
           formData.append(`address.${addressKey}`, addressValue);
@@ -35,18 +35,30 @@ export const addClinic = async (clinicData, logo, files = []) => {
         }
       });
     } else if (key === 'contact' && typeof value === 'object' && value !== null) {
-      // Append contact fields individually
+      // Handles contact object
       Object.entries(value).forEach(([contactKey, contactValue]) => {
         formData.append(`contact.${contactKey}`, contactValue);
       });
-    } else if (typeof value === 'object' && value !== null) {
+    } 
+    // START: NEW BLOCK TO HANDLE OPENING HOURS
+    else if (key === 'openingHours' && typeof value === 'object' && value !== null) {
+      // Flatten the openingHours object
+      Object.entries(value).forEach(([day, hours]) => {
+        Object.entries(hours).forEach(([type, time]) => {
+          // Appends keys like: openingHours.monday.open, openingHours.monday.close
+          formData.append(`openingHours.${day}.${type}`, time);
+        });
+      });
+    } 
+    // END: NEW BLOCK
+    else if (typeof value === 'object' && value !== null) {
+      // Generic handler for any other objects (should now be fewer)
       formData.append(key, JSON.stringify(value));
     } else {
+      // Handles primitive values
       formData.append(key, value);
     }
   });
-
-  console.log('Form data entries:', [...formData.entries()]);
 
   if (logo) {
     formData.append("logo", logo);
@@ -56,6 +68,8 @@ export const addClinic = async (clinicData, logo, files = []) => {
       formData.append("photos", file);
     });
   }
+
+  console.log('Form data entries:', [...formData.entries()]);
   
   return await apiService.post('/admin/clinics', formData, { 
     headers: { 'Content-Type': 'multipart/form-data' } 
@@ -132,7 +146,7 @@ export const sendVerificationOTP = async () => {
 export const verifyOtp = async (code) => {
   const formData = new FormData();
   formData.append("code", code);
-  return await apiService.post('/clinics/verify/confirm-otp', formData);
+  return await apiService.post('/admin/clinics/verify/confirm-otp', formData);
 };
 /**
  * Check if Admin Profile Exists
