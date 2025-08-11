@@ -232,19 +232,41 @@ const fetchNearbyClinics = async (lat, lng, city, state) => {
     if (state) params.state = state;
     
     const response = await searchClinics(params);
+    
     if (response.success) {
-      // Add basic doctor info to clinic objects
-      const clinicsWithBasicDoctorInfo = response.data.map(clinic => ({
+      // Filter clinics by distance (e.g., within 10km)
+      const nearbyClinics = response.data.filter(clinic => {
+        if (!clinic.address?.coordinates?.lat || !clinic.address?.coordinates?.lng) {
+          return false; // Skip clinics without coordinates
+        }
+        
+        const distance = calculateDistance(
+          lat, lng,
+          clinic.address.coordinates.lat,
+          clinic.address.coordinates.lng
+        );
+        
+        return distance <= 10; // 10km radius
+      });
+      
+      // Sort by distance
+      const sortedClinics = nearbyClinics.sort((a, b) => {
+        const distanceA = calculateDistance(lat, lng, a.address.coordinates.lat, a.address.coordinates.lng);
+        const distanceB = calculateDistance(lat, lng, b.address.coordinates.lat, b.address.coordinates.lng);
+        return distanceA - distanceB;
+      });
+
+      const clinicsWithBasicDoctorInfo = sortedClinics.map(clinic => ({
         ...clinic,
         basicDoctors: clinic.doctors?.map(doctorId => ({
           id: doctorId,
-          specialization: "Loading...", // Placeholder
+          specialization: "Loading...",
           availableForTeleconsultation: false
         })) || []
       }));
-      
+
       setClinics(clinicsWithBasicDoctorInfo);
-      setInitialFiltersLoaded(true); // Now we can show all filters
+      setInitialFiltersLoaded(true);
     }
   } catch (error) {
     console.error('Error fetching clinics:', error);
@@ -252,6 +274,20 @@ const fetchNearbyClinics = async (lat, lng, city, state) => {
     setLoading(false);
   }
 };
+
+// Add this helper function
+const calculateDistance = (lat1, lng1, lat2, lng2) => {
+  const R = 6371; // Earth's radius in kilometers
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLng = (lng2 - lng1) * Math.PI / 180;
+  const a = 
+    Math.sin(dLat/2) * Math.sin(dLat/2) +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+    Math.sin(dLng/2) * Math.sin(dLng/2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  return R * c; // Distance in kilometers
+};
+
 
 const handleClinicHover = async (clinicId) => {
   setHoveredClinic(clinicId);
