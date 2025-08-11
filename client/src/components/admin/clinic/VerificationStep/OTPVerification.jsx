@@ -26,7 +26,7 @@ const OTPVerification = ({ onSuccess, onFailed, onManualReview }) => {
       setCheckingClinic(true);
       const response = await getClinicInfo();
       const clinic = response.data?.clinic || response.clinic;
-      
+      console.log(clinic);
       if (clinic?.googleMapsLink) {
         setHasGoogleLink(true);
         setGoogleMapsLink(clinic.googleMapsLink);

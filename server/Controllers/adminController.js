@@ -721,17 +721,9 @@ export const getClinicInfo = async (req, res) => {
       return res.status(404).json({ message: 'Clinic not found' });
     }
 
-    // Format the response
-    const formattedClinic = {
-      _id: clinic._id,
-      name: clinic.name,
-      description: clinic.description,
-      logo: clinic.logo,
-      photos: clinic.photos,
-      address: clinic.address,
-      contact: clinic.contact,
-      facilities: clinic.facilities,
-      openingHours: clinic.openingHours,
+    // Just add fullName to doctors and admins, keep everything else as is
+    const enhancedClinic = {
+      ...clinic, // Spread all clinic properties
       doctors: clinic.doctors.map(doctor => ({
         ...doctor,
         fullName: `${doctor.firstName} ${doctor.lastName}`
@@ -739,14 +731,12 @@ export const getClinicInfo = async (req, res) => {
       admins: clinic.admins.map(admin => ({
         ...admin,
         fullName: `${admin.firstName} ${admin.lastName}`
-      })),
-      createdAt: clinic.createdAt,
-      updatedAt: clinic.updatedAt
+      }))
     };
 
     res.json({
       message: 'Clinic information retrieved successfully',
-      clinic: formattedClinic
+      clinic: enhancedClinic
     });
   } catch (error) {
     console.error('Error fetching clinic information:', error);
@@ -756,6 +746,7 @@ export const getClinicInfo = async (req, res) => {
     });
   }
 };
+
 // Send verification OTP
 export const sendVerificationOTP = async (req, res) => {
   try {
