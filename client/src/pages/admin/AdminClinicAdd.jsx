@@ -1,13 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { addClinic, checkAdminProfileExists, checkClinicExists } from '../../service/adminApiService.js';
+import { addClinic} from '../../service/adminApiService.js';
 import AddClinicForm from '../../components/admin/clinic/AddClinicForm/AddClinicForm.jsx';
 import VerificationStep from '../../components/admin/clinic/VerificationStep/VerificationStep.jsx';
 import ProgressSteps from '../../components/admin/clinic/AddClinicForm/ProgressSteps.jsx';
 
 const AdminAddClinic = () => {
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(true);
   const [currentStep, setCurrentStep] = useState(1);
   const [clinicAdded, setClinicAdded] = useState(false);
 
@@ -50,35 +49,7 @@ const AdminAddClinic = () => {
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
 
-  // Check profile and clinic status on component mount
-  useEffect(() => {
-    checkUserStatus();
-  }, []);
-
-  const checkUserStatus = async () => {
-    try {
-      const [profileResponse, clinicResponse] = await Promise.all([
-        checkAdminProfileExists(),
-        checkClinicExists()
-      ]);
-
-      if (!profileResponse.exists) {
-        navigate('/admin/complete-profile');
-        return;
-      }
-
-      if (clinicResponse.exists) {
-        navigate('/admin/dashboard');
-        return;
-      }
-
-      setLoading(false);
-    } catch (error) {
-      console.error('Error checking user status:', error);
-      setLoading(false);
-    }
-  };
-
+  
   const handleFormSubmit = async (formData, files, addressMethod) => {
     setSubmitting(true);
     try {
@@ -107,13 +78,7 @@ const AdminAddClinic = () => {
     navigate('/admin/dashboard');
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-      </div>
-    );
-  }
+
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">

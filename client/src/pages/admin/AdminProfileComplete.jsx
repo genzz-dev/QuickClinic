@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { createAdminProfile, checkAdminProfileExists } from '../../service/adminApiService';
+import { createAdminProfile } from '../../service/adminApiService';
 
 export default function AdminProfileComplete() {
   const navigate = useNavigate();
@@ -13,28 +13,8 @@ export default function AdminProfileComplete() {
   });
   const [profilePreview, setProfilePreview] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [checkingProfile, setCheckingProfile] = useState(true);
   const [error, setError] = useState('');
 
-  useEffect(() => {
-    let mounted = true;
-    const checkProfile = async () => {
-      setCheckingProfile(true);
-      try {
-        const res = await checkAdminProfileExists();
-        if (mounted && res.exists) {
-          navigate('/', { replace: true });
-        } else {
-          setCheckingProfile(false);
-        }
-      } catch {
-        if (mounted) setCheckingProfile(false);
-      }
-    };
-    checkProfile();
-    return () => { mounted = false };
-    // eslint-disable-next-line
-  }, []);
 
   const handleChange = e => {
     const { name, value, files } = e.target;
@@ -65,7 +45,7 @@ export default function AdminProfileComplete() {
       }
       const profileData = { firstName, lastName, phone };
       await createAdminProfile(profileData, profilePicture);
-      navigate('/', { replace: true });
+      navigate('/admin/add-clinic', { replace: true });
     } catch (err) {
       setError(err?.response?.data?.message || 'Failed to complete profile');
     } finally {
@@ -73,16 +53,6 @@ export default function AdminProfileComplete() {
     }
   };
 
-  if (checkingProfile) {
-    return (
-      <div className="flex h-screen items-center justify-center bg-gray-50">
-        <div className="flex items-center gap-2 text-lg font-medium text-gray-500">
-          <span className="animate-spin rounded-full border-2 border-gray-200 border-b-indigo-400 h-6 w-6 inline-block" />
-          Checking your profile...
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-tr from-sky-100/70 via-white to-indigo-100/80 px-4">
