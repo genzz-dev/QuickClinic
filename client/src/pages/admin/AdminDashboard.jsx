@@ -1,38 +1,55 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { checkAdminProfileExists } from '../../service/adminApiService';
+import { checkAdminProfileExists, getClinicInfo } from '../../service/adminApiService';
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
-  const [checkingProfile, setCheckingProfile] = useState(true);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    let mounted = true;
+    let isMounted = true;
 
-    const checkProfile = async () => {
-      setCheckingProfile(true);
+    const runChecks = async () => {
       try {
-        const res = await checkAdminProfileExists();
-        console.log(res);
-        if (mounted && !res.exists) {
+        // Run both checks in parallel
+        const [profileRes, clinicRes] = await Promise.all([
+          checkAdminProfileExists(),
+          getClinicInfo()
+        ]);
+
+        if (!isMounted) return;
+
+        // Profile check
+        if (!profileRes.exists) {
           navigate('/admin/complete-profile', { replace: true });
-        } else {
-          setCheckingProfile(false);
+          return;
         }
+
+        // Clinic check
+        if (!clinicRes.clinic) {
+          navigate('/admin/add-clinic', { replace: true });
+          return;
+        }
+
+        // If both pass
+        setLoading(false);
       } catch (error) {
-        if (mounted) setCheckingProfile(false);
+        console.error("Error checking admin setup:", error);
+        if (isMounted) {
+          navigate('/admin/add-clinic', { replace: true });
+        }
       }
     };
 
-    checkProfile();
+    runChecks();
 
     return () => {
-      mounted = false;
+      isMounted = false;
     };
   }, [navigate]);
 
-  if (checkingProfile) {
-    return <p>Loading profile check...</p>;
+  if (loading) {
+    return <p>Loading admin dashboard...</p>;
   }
 
   return (
