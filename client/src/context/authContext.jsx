@@ -68,9 +68,10 @@ useEffect(() => {
 
   const login = async (credentials) => {
     setIsLoading(true);
+
     try {
       const result = await authService.login(credentials);
-      
+      console.log(result);
       if (result.success) {
         setUser(result.user);
         setIsAuthenticated(true);

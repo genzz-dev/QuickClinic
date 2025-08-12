@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect,useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation, useNavigate, Navigate } from 'react-router-dom';
 
 import Navbar from './components/public/DesktopNavbar';
@@ -40,7 +40,8 @@ function AppInner() {
   const { user, isAuthenticated, isLoading } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-
+  const [registerError, setRegisterError] = useState('');
+  const [loginError,setLoginError]=useState('');
   // Redirect from "/" to the role-based dashboard (after auth is loaded)
   useEffect(() => {
     if (!isLoading && isAuthenticated && user) {
@@ -50,7 +51,6 @@ function AppInner() {
       }
     }
   }, [isAuthenticated, isLoading, user, location.pathname, navigate]);
-
   return (
     <Routes>
       {/* AUTH ROUTES - NO NAVBAR */}
@@ -59,7 +59,7 @@ function AppInner() {
         element={
           <AuthLayout>
             <AnonymousRoute>
-              <LoginPage />
+              <LoginPage error={loginError} setError={setLoginError} />
             </AnonymousRoute>
           </AuthLayout>
         }
@@ -69,7 +69,7 @@ function AppInner() {
         element={
           <AuthLayout>
             <AnonymousRoute>
-              <RegisterPage />
+              <RegisterPage error={registerError} setError={setRegisterError}/>
             </AnonymousRoute>
           </AuthLayout>
         }

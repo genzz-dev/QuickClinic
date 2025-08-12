@@ -7,87 +7,170 @@ import { PasswordInput } from '../../components/auth/PasswordInput.jsx';
 import { AuthButton } from '../../components/auth/AuthButton.jsx';
 import { ErrorMessage } from '../../components/auth/ErrorMessage.jsx';
 
-const LoginPage = () => {
+const LoginPage = ({ error, setError }) => {
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState({});
+
   const { login, isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
 
+  // Track component lifecycle
   useEffect(() => {
-    if (isAuthenticated && user) {
-      // Redirect based on user role
-      switch (user.role) {
-        case 'doctor': navigate('/doctor-dashboard'); break;
-        case 'admin': navigate('/admin/dashboard'); break;
-        default: navigate('/patient-dashboard');
-      }
+    console.log("🚀 LoginPage MOUNTED");
+    return () => console.log("💀 LoginPage UNMOUNTING");
+  }, []);
+
+  // Track error state changes
+  useEffect(() => {
+    console.log("❌ Error changed:", error);
+  }, [error]);
+
+  // Track auth state that triggers navigation
+useEffect(() => {
+  // Only navigate if actually authenticated AND not loading
+  if (isAuthenticated && user && !isLoading) {
+    switch (user.role) {
+      case 'doctor':
+        navigate('/doctor-dashboard');
+        break;
+      case 'admin':
+        navigate('/admin/complete-profile');
+        break;
+      default:
+        navigate('/patient-dashboard');
     }
-  }, [isAuthenticated, user, navigate]);
+  }
+}, [isAuthenticated, user, navigate, isLoading]);
+
+  const validateForm = () => {
+    const errors = {};
+    if (!formData.email) errors.email = 'Email is required';
+    else if (!/\S+@\S+\.\S+/.test(formData.email)) errors.email = 'Email is invalid';
+    if (!formData.password) errors.password = 'Password is required';
+    setFieldErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
 
   const handleInputChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
     if (error) setError('');
+    if (fieldErrors[name]) setFieldErrors(prev => ({ ...prev, [name]: '' }));
   };
 
   const handleSubmit = async (e) => {
+    console.log("🎯 Form submitted");
+    
     e.preventDefault();
-    if (!formData.email || !formData.password) {
-      setError('Please enter both email and password.');
+    console.log("✋ preventDefault called");
+
+    if (!validateForm()) {
+      console.log("❌ Validation failed");
       return;
     }
+
+    console.log("🔄 Starting login...");
     setIsLoading(true);
     setError('');
-    
-    const result = await login(formData);
-    if (!result.success) {
-      setError(result.error || 'Login failed. Please check your credentials.');
-      setIsLoading(false);
-    } else {
-      // Redirect based on user role
-      switch (result.user.role) {
-        case 'doctor':
-          navigate('/doctor-dashboard');
-          break;
-        case 'admin':
-          navigate('/admin/dashboard');
-          break;
-        default:
-          navigate('/patient-dashboard');
+
+    try {
+      const result = await login({ 
+        email: formData.email, 
+        password: formData.password 
+      });
+      console.log("📝 Login result:", result?.success ? "SUCCESS" : "FAILED");
+
+      if (!result.success) {
+        console.log("❌ Setting error:", result.error);
+        setError(result.error || 'Login failed. Please try again.');
       }
+    } catch (err) {
+      console.log("💥 Login error:", err.message);
+      setError('An unexpected error occurred');
     }
-    // Successful login is handled by the useEffect hook
+    
+    setIsLoading(false);
+    console.log("🎯 Form submit completed");
   };
 
-  return (
-    <AuthLayout title="Welcome Back!" subtitle="Sign in to continue to Quick Clinic">
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <ErrorMessage error={error} />
-        
-        <div className="relative">
-            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none"><Mail className="h-5 w-5 text-gray-400" /></div>
-            <input id="email" name="email" type="email" value={formData.email} onChange={handleInputChange} placeholder="Email Address" required className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" />
+  // Track renders
+  console.log("🔄 RENDER - error:", error, "loading:", isLoading);
+return (
+    <AuthLayout>
+      <div className="space-y-6">
+        <div className="text-center">
+          <h2 className="text-3xl font-bold text-gray-900">Welcome Back</h2>
+          <p className="mt-2 text-sm text-gray-600">Sign in to your account</p>
         </div>
 
-        <PasswordInput id="password" name="password" value={formData.password} onChange={handleInputChange} placeholder="Password" showPassword={showPassword} setShowPassword={setShowPassword} required />
+        {error && <ErrorMessage message={error} />}
 
-        <div className="flex items-center justify-end">
-          <Link to="/forgot-password" className="text-sm font-medium text-blue-600 hover:text-blue-500">
-            Forgot password?
-          </Link>
-        </div>
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Email Input */}
+          <div>
+            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+              Email Address
+            </label>
+            <div className="relative">
+              <input
+                id="email"
+                name="email"
+                type="email"
+                value={formData.email}
+                onChange={handleInputChange}
+                className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                  fieldErrors.email ? 'border-red-500' : 'border-gray-300'
+                }`}
+                placeholder="Enter your email"
+              />
+              <Mail className="absolute left-3 top-3.5 h-5 w-5 text-gray-400" />
+            </div>
+            {fieldErrors.email && <p className="mt-1 text-sm text-red-600">{fieldErrors.email}</p>}
+          </div>
 
-        <div className="pt-2">
-          <AuthButton type="submit" isLoading={isLoading} disabled={isLoading}>
-            Sign In
+          {/* Password Input */}
+          <div>
+            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+              Password
+            </label>
+            <PasswordInput
+              id="password"
+              name="password"
+              value={formData.password}
+              onChange={handleInputChange}
+              showPassword={showPassword}
+              setShowPassword={setShowPassword}
+              error={fieldErrors.password}
+              placeholder="Enter your password"
+            />
+            {fieldErrors.password && <p className="mt-1 text-sm text-red-600">{fieldErrors.password}</p>}
+          </div>
+
+          {/* Forgot Password Link */}
+          <div className="text-right">
+            <Link to="/forgot-password" className="text-sm text-blue-600 hover:text-blue-500">
+              Forgot password?
+            </Link>
+          </div>
+
+          {/* Submit Button */}
+          <AuthButton type="submit" isLoading={isLoading} className="w-full">
+            {isLoading ? 'Signing In...' : 'Sign In'}
           </AuthButton>
-        </div>
 
-        <p className="text-center text-sm text-gray-600">
-          Don't have an account? <Link to="/register" className="font-semibold text-blue-600 hover:text-blue-500">Create one</Link>
-        </p>
-      </form>
+          {/* Register Link */}
+          <div className="text-center">
+            <p className="text-sm text-gray-600">
+              Don't have an account?{' '}
+              <Link to="/register" className="text-blue-600 hover:text-blue-500 font-medium">
+                Create one
+              </Link>
+            </p>
+          </div>
+        </form>
+      </div>
     </AuthLayout>
   );
 };

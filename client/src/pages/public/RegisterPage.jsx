@@ -7,14 +7,13 @@ import { PasswordInput } from '../../components/auth/PasswordInput.jsx';
 import { AuthButton } from '../../components/auth/AuthButton.jsx';
 import { ErrorMessage } from '../../components/auth/ErrorMessage.jsx';
 
-const RegisterPage = () => {
+const RegisterPage = ({error,setError}) => {
   const navigate = useNavigate();
-  const { register, isAuthenticated } = useAuth();
+  const {user, register, isAuthenticated } = useAuth();
   
   const [formData, setFormData] = useState({ email: '', password: '', confirmPassword: '', role: 'patient' });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [fieldErrors, setFieldErrors] = useState({});
 
@@ -61,9 +60,9 @@ const RegisterPage = () => {
 
     const result = await register({ email: formData.email, password: formData.password, role: formData.role });
     if (!result.success) {
+      console.log(result);
       setError(result.error || 'Registration failed. Please try again.');
     }
-    // Note: successful navigation is handled by the useEffect hook
     setIsLoading(false);
   };
 
