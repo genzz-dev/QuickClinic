@@ -12,37 +12,23 @@ const LoginPage = ({ error, setError }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [fieldErrors, setFieldErrors] = useState({});
-
   const { login, isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
 
-  // Track component lifecycle
   useEffect(() => {
-    console.log("🚀 LoginPage MOUNTED");
-    return () => console.log("💀 LoginPage UNMOUNTING");
-  }, []);
-
-  // Track error state changes
-  useEffect(() => {
-    console.log("❌ Error changed:", error);
-  }, [error]);
-
-  // Track auth state that triggers navigation
-useEffect(() => {
-  // Only navigate if actually authenticated AND not loading
-  if (isAuthenticated && user && !isLoading) {
-    switch (user.role) {
-      case 'doctor':
-        navigate('/doctor-dashboard');
-        break;
-      case 'admin':
-        navigate('/admin/complete-profile');
-        break;
-      default:
-        navigate('/patient-dashboard');
+    if (isAuthenticated && user) {
+      switch (user.role) {
+        case 'doctor':
+          navigate('/doctor-dashboard');
+          break;
+        case 'admin':
+          navigate('/admin/complete-profile');
+          break;
+        default:
+          navigate('/patient-dashboard');
+      }
     }
-  }
-}, [isAuthenticated, user, navigate, isLoading]);
+  }, [isAuthenticated, navigate]);
 
   const validateForm = () => {
     const errors = {};
@@ -61,43 +47,27 @@ useEffect(() => {
   };
 
   const handleSubmit = async (e) => {
-    console.log("🎯 Form submitted");
-    
     e.preventDefault();
-    console.log("✋ preventDefault called");
-
-    if (!validateForm()) {
-      console.log("❌ Validation failed");
-      return;
-    }
-
-    console.log("🔄 Starting login...");
-    setIsLoading(true);
-    setError('');
-
-    try {
-      const result = await login({ 
-        email: formData.email, 
-        password: formData.password 
-      });
-      console.log("📝 Login result:", result?.success ? "SUCCESS" : "FAILED");
-
-      if (!result.success) {
-        console.log("❌ Setting error:", result.error);
-        setError(result.error || 'Login failed. Please try again.');
-      }
-    } catch (err) {
-      console.log("💥 Login error:", err.message);
-      setError('An unexpected error occurred');
-    }
     
+    if (!validateForm()) return;
+
+    setIsLoading(true);
+    setError(''); // Clear any existing errors
+
+    // Call the login function and handle the result
+    const result = await login({ 
+      email: formData.email, 
+      password: formData.password 
+    });
+
+    if (!result.success) {
+      setError(result.error || 'Login failed. Please try again.');
+    }
+
     setIsLoading(false);
-    console.log("🎯 Form submit completed");
   };
 
-  // Track renders
-  console.log("🔄 RENDER - error:", error, "loading:", isLoading);
-return (
+  return (
     <AuthLayout>
       <div className="space-y-6">
         <div className="text-center">
@@ -105,7 +75,7 @@ return (
           <p className="mt-2 text-sm text-gray-600">Sign in to your account</p>
         </div>
 
-        {error && <ErrorMessage message={error} />}
+         <ErrorMessage error={error} />
 
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Email Input */}
