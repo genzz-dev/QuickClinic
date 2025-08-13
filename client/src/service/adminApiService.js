@@ -36,7 +36,7 @@ export const addClinic = async (clinicData, logo, files = []) => {
  */
 export const updateClinic = async (clinicData, logo, files = []) => {
   const formData = createFormDataFromObject(clinicData, { logo, photos: files });
-  
+  console.log('Form data entries for update:', [...formData.entries()]);
   return await apiService.put('/admin/clinics', formData, {
     headers: { 'Content-Type': 'multipart/form-data' }
   });

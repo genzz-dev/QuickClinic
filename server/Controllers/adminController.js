@@ -238,6 +238,7 @@ export const updateClinic = async (req, res) => {
   try {
     const { clinicId } = req.user;
     const updates = req.body;
+    console.log('Received updates:', updates);
     if (!clinicId) {
       return res.status(400).json({ message: 'Admin is not associated with any clinic' });
     }

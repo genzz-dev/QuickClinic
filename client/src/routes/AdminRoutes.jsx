@@ -8,6 +8,7 @@ import AdminPreventGuard from './guards/AdminPreventGuard';
 import AdminDashboard from '../pages/admin/AdminDashboard';
 import AdminProfileComplete from '../pages/admin/AdminProfileComplete';
 import AdminClinicAdd from '../pages/admin/AdminClinicAdd';
+import UpdateClinic from '../pages/admin/UpdateClinic';
 
 export default function AdminRoutes() {
   return (
@@ -23,7 +24,16 @@ export default function AdminRoutes() {
           </ProtectedRoute>
         }
       />
-
+      <Route
+        path="/admin/update-clinic"
+        element={
+          <ProtectedRoute allowedRoles={['admin']}>
+            <AdminSetupGuard requireProfile={true} requireClinic={true}>
+              <UpdateClinic />
+            </AdminSetupGuard>
+          </ProtectedRoute>
+        }
+      />
       {/* Complete Profile - Prevent if profile already exists */}
       <Route
         path="/admin/complete-profile"
