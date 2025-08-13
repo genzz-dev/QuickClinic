@@ -23,11 +23,11 @@ import AdminProfileComplete from './pages/admin/AdminProfileComplete';
 import AdminClinicAdd from './pages/admin/AdminClinicAdd';
 
 import { useAuth } from './context/authContext';
-import ProtectedRoute from './routes/protectedRoutes';
-import AnonymousRoute from './routes/AnonymousRoute';
+import ProtectedRoute from './routes/guards/protectedRoutes';
+import AnonymousRoute from './routes/guards/AnonymousRoute';
 import getDashboardPath from './utility/getDashboardPath';
-import AdminSetupGuard from './routes/AdminSetupGuard';
-import AdminPreventGuard from './routes/AdminPreventGuard';
+import AdminSetupGuard from './routes/guards/AdminSetupGuard';
+import AdminPreventGuard from './routes/guards/AdminPreventGuard';
 
 // --- Layouts ---
 const MainLayout = ({ children }) => (

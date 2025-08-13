@@ -2,8 +2,8 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { toast } from "react-toastify";
-import { checkAdminProfileExists, checkClinicExists } from "../service/adminApiService";
-import { useAuth } from "../context/authContext";
+import { checkAdminProfileExists, checkClinicExists } from "../../service/adminApiService";
+import { useAuth } from "../../context/authContext";
 
 const AdminSetupGuard = ({ requireProfile = true, requireClinic = true, children }) => {
   const { isAuthenticated, user } = useAuth();
