@@ -234,16 +234,31 @@ export const addClinic = async (req, res) => {
 };
 
 // Update clinic information
+const unflatten = (data) => {
+  if (Object.prototype.toString.call(data) !== '[object Object]') {
+    return data;
+  }
+  const result = {};
+  for (const i in data) {
+    const keys = i.split('.');
+    keys.reduce((r, e, j) => {
+      return r[e] || (r[e] = isNaN(Number(keys[j + 1])) ? (keys.length - 1 === j ? data[i] : {}) : []);
+    }, result);
+  }
+  return result;
+};
+
+
 export const updateClinic = async (req, res) => {
   try {
     const { clinicId } = req.user;
-    const updates = req.body;
-    console.log('Received updates:', updates);
     if (!clinicId) {
       return res.status(400).json({ message: 'Admin is not associated with any clinic' });
     }
 
-    if (!updates || (Object.keys(updates).length === 0 && !req.files?.logo && !req.files?.photos)) {
+    const updates = req.body;
+    
+    if (Object.keys(updates).length === 0 && !req.files?.logo && !req.files?.photos) {
       return res.status(400).json({ message: 'No updates provided' });
     }
 
@@ -251,79 +266,41 @@ export const updateClinic = async (req, res) => {
     if (!existingClinic) {
       return res.status(404).json({ message: 'Clinic not found' });
     }
-
+    
+    // We will build the final update object with only a $set operator for most fields.
     const updateObj = { $set: {} };
+
+    // Unflatten the updates to handle nested objects and arrays correctly.
+    const unflattenedUpdates = unflatten(updates);
+
+    // This will hold the final, combined list of photo URLs.
+    // Start with the photos sent from the form (which handles deletions/reordering).
+    let finalPhotoArray = [];
+    if (unflattenedUpdates.photos) {
+        finalPhotoArray = Array.isArray(unflattenedUpdates.photos) 
+            ? unflattenedUpdates.photos 
+            : [unflattenedUpdates.photos];
+        finalPhotoArray = finalPhotoArray.filter(p => p); // Clean up any null/empty values
+    } else {
+        // If no photos array is sent, start with the existing photos from the DB.
+        finalPhotoArray = existingClinic.photos || [];
+    }
     
-    // Handle basic field updates
-    if (updates.name !== undefined) updateObj.$set.name = updates.name;
-    if (updates.description !== undefined) updateObj.$set.description = updates.description;
-if (updates.openingHours) {
-  Object.keys(updates.openingHours).forEach(day => {
-    if (updates.openingHours[day]?.open !== undefined) {
-      updateObj.$set[`openingHours.${day}.open`] = updates.openingHours[day].open;
-    }
-    if (updates.openingHours[day]?.close !== undefined) {
-      updateObj.$set[`openingHours.${day}.close`] = updates.openingHours[day].close;
-    }
-    if (updates.openingHours[day]?.isClosed !== undefined) {
-      updateObj.$set[`openingHours.${day}.isClosed`] = updates.openingHours[day].isClosed;
-    }
-  });
-}
-    
-    // Handle Google Maps link update
-    if (updates.googleMapsLink) {
-      updateObj.$set.googleMapsLink = updates.googleMapsLink;
-     
-      if (updates.googleMapsLink) {
-        try {
-          const placeId = await extractPlaceIdFromUrl(updates.googleMapsLink);
-          const placeDetails = await withRateLimit(() => fetchPlaceDetails(placeId));
+    // Process all non-file fields from the form.
+    for (const key in unflattenedUpdates) {
+      // We are handling 'photos' separately, so we skip it here.
+      if (key === 'photos') continue;
 
-          updateObj.$set['address.formattedAddress'] = cleanFormattedAddress(placeDetails.adr_address) || '';
-          
-          const addressComponents = parseAddressComponents(placeDetails.address_components);
-          if (addressComponents.country) updateObj.$set['address.country'] = addressComponents.country;
-          if (addressComponents.zipCode) updateObj.$set['address.zipCode'] = addressComponents.zipCode;
-          if (addressComponents.state) updateObj.$set['address.state'] = addressComponents.state;
-          if (addressComponents.city) updateObj.$set['address.city'] = addressComponents.city;
-
-          if (placeDetails.geometry?.location) {
-            updateObj.$set['address.coordinates'] = {
-              lat: placeDetails.geometry.location.lat,
-              lng: placeDetails.geometry.location.lng,
-            };
-          }
-
-          const googlePhotos = await withRateLimit(() => fetchPlacePhotos(placeId));
-          if (googlePhotos.length > 0) {
-            updateObj.$set.photos = googlePhotos;
-          }
-        } catch (googleError) {
-          console.error('Google Maps integration error:', googleError);
-        }
+      if (key === 'facilities') {
+          const facilities = Array.isArray(unflattenedUpdates.facilities) ? unflattenedUpdates.facilities : [unflattenedUpdates.facilities];
+          updateObj.$set.facilities = facilities.filter(f => f); // Filter out empty values
+      } else {
+        // This correctly sets all other fields, including nested ones like 'openingHours.monday.open'
+        updateObj.$set[key] = unflattenedUpdates[key];
       }
     }
 
-    // Handle manual address update
-    if (!updates.googleMapsLink && updates.address) {
-      Object.keys(updates.address).forEach(key => {
-        if (updates.address[key] !== undefined) {
-          updateObj.$set[`address.${key}`] = updates.address[key];
-        }
-      });
-    }
-
-    // Handle manual contact update
-    if (updates.contact) {
-      Object.keys(updates.contact).forEach(key => {
-        if (updates.contact[key] !== undefined) {
-          updateObj.$set[`contact.${key}`] = updates.contact[key];
-        }
-      });
-    }
-
-    // Handle manual logo upload
+    // Handle logo upload.
     if (req.files?.logo) {
       try {
         const result = await uploadToCloudinary(req.files.logo[0].path);
@@ -334,60 +311,53 @@ if (updates.openingHours) {
       }
     }
 
-    // Handle manual photos upload
+    // Handle NEW photo uploads.
     if (req.files?.photos) {
       try {
-        const newPhotos = await Promise.all(
+        const newPhotoUrls = await Promise.all(
           req.files.photos.map(async (file) => {
             const result = await uploadToCloudinary(file.path);
-            return {
-              url: result.url,
-              uploadedAt: new Date(),
-              originalName: file.originalname,
-            };
+            return result.url; // The schema expects an array of strings.
           })
         );
-        updateObj.$push = { photos: { $each: newPhotos } };
+        // Add the newly uploaded photo URLs to our final array.
+        finalPhotoArray.push(...newPhotoUrls);
       } catch (uploadError) {
         console.error('Photos upload error:', uploadError);
         return res.status(500).json({ message: 'Failed to upload new photos' });
       }
     }
+     
+    // Now, set the 'photos' field with the final, combined array using a single $set operation.
+    // This avoids the conflict entirely.
+    updateObj.$set.photos = finalPhotoArray;
 
-    // Custom validation
-    const validationErrors = [];
+    // Final validation.
     if (updateObj.$set.name !== undefined && updateObj.$set.name?.trim() === '') {
-      validationErrors.push('Clinic name cannot be empty');
+        return res.status(400).json({ message: 'Validation error', errors: ['Clinic name cannot be empty'] });
     }
-    if (updateObj.$set['contact.email'] && !isValidEmail(updateObj.$set['contact.email'])) {
-      validationErrors.push('Invalid email format');
-    }
-    if (updateObj.$set['contact.phone'] && !isValidPhone(updateObj.$set['contact.phone'])) {
-      validationErrors.push('Invalid phone format');
-    }
-
-    if (validationErrors.length > 0) {
-      return res.status(400).json({ message: 'Validation error', errors: validationErrors });
-    }
-
-    const clinic = await Clinic.findByIdAndUpdate(
-      clinicId, 
-      updateObj, 
-      { new: true, runValidators: false }
+    
+    const updatedClinic = await Clinic.findByIdAndUpdate(
+      clinicId,
+      updateObj,
+      { new: true, runValidators: true }
     ).select('-__v');
 
     res.json({
       message: 'Clinic updated successfully',
-      clinic: clinic.toObject({ getters: true })
+      clinic: updatedClinic.toObject({ getters: true })
     });
+
   } catch (error) {
     console.error('Error updating clinic:', error);
-
     if (error.name === 'ValidationError') {
       const errors = Object.values(error.errors).map((err) => err.message);
       return res.status(400).json({ message: 'Validation error', errors });
     }
-
+    // Catch the specific conflict error just in case, though the logic should prevent it.
+    if (error.codeName === 'ConflictingUpdateOperators') {
+      return res.status(400).json({ message: `A conflict occurred while trying to update fields. Details: ${error.errmsg}`});
+    }
     res.status(500).json({
       message: 'Failed to update clinic',
       error: process.env.NODE_ENV === 'development' ? error.message : undefined,
