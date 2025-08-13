@@ -1,6 +1,7 @@
 import React from 'react';
 import { Star, ChevronRight ,User} from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import Loading from '../../ui/Loading';
 
 const ClinicDoctorsPopup = ({ clinic, hoveredClinic, clinicDoctors }) => {
   const navigate=useNavigate();
@@ -65,10 +66,7 @@ const ClinicDoctorsPopup = ({ clinic, hoveredClinic, clinicDoctors }) => {
               ))}
             </div>
           ) : (
-            <div className="text-center py-4">
-              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mx-auto mb-2"></div>
-              <p className="text-sm text-gray-500">Loading doctors...</p>
-            </div>
+            <Loading/>
           )}
         </div>
       )}

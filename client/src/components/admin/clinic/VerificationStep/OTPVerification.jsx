@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Shield, AlertCircle, ExternalLink } from 'lucide-react';
 import { sendVerificationOTP, verifyOtp, updateClinic, getClinicInfo } from '../../../../service/adminApiService.js';
+import Loading from '../../../ui/Loading.jsx';
 
 const OTPVerification = ({ onSuccess, onFailed, onManualReview }) => {
   const [submitting, setSubmitting] = useState(false);
@@ -121,12 +122,7 @@ const OTPVerification = ({ onSuccess, onFailed, onManualReview }) => {
 
   if (checkingClinic) {
     return (
-      <div className="max-w-2xl mx-auto bg-white rounded-lg shadow-lg p-8">
-        <div className="flex items-center justify-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-          <span className="ml-2">Checking clinic information...</span>
-        </div>
-      </div>
+      <Loading/>
     );
   }
 

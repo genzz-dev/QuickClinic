@@ -4,6 +4,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { toast } from "react-toastify";
 import { checkAdminProfileExists, checkClinicExists } from "../../service/adminApiService";
 import { useAuth } from "../../context/authContext";
+import Loading from "../../components/ui/Loading";
 
 const AdminPreventGuard = ({ preventProfile = false, preventClinic = false, children }) => {
   const { isAuthenticated, user } = useAuth();
@@ -52,7 +53,7 @@ const AdminPreventGuard = ({ preventProfile = false, preventClinic = false, chil
     };
   }, [preventProfile, preventClinic, isAuthenticated, user, navigate, location]);
 
-  if (loading) return <div>Checking...</div>;
+  if (loading) return <Loading/>
   return children;
 };
 

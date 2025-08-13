@@ -11,6 +11,7 @@ import {
   Eye,
   Activity
 } from 'lucide-react';
+import Loading from '../../ui/Loading';
 
 const specialties = [
   { name: 'Cardiology', icon: Heart, color: 'text-gray-600', bgColor: 'bg-gray-50' },
@@ -181,10 +182,7 @@ const HeroSection = ({
                   className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isLoading ? (
-                    <div className="flex items-center justify-center">
-                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-                      Searching...
-                    </div>
+                    <Loading/>
                   ) : (
                     `Search ${searchType}`
                   )}

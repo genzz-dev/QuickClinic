@@ -2,12 +2,13 @@
 import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/authContext';
+import Loading from '../../components/ui/Loading';
 
 const ProtectedRoute = ({ allowedRoles = [], children }) => {
   const { isAuthenticated, user, isLoading } = useAuth();
   const location = useLocation();
 
-  if (isLoading) return <div>Loading...</div>;
+  if (isLoading) return <Loading/>;
 
   // Not logged in or no user
   if (!isAuthenticated || !user) {

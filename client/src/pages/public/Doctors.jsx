@@ -8,6 +8,7 @@ import DoctorCard from '../../components/public/Doctors/DoctorCard';
 import LoadingState from '../../components/public/Doctors/LoadingState';
 import ErrorState from '../../components/public/Doctors/ErrorState';
 import NoResults from '../../components/public/Doctors/NoResults';
+import Loading from '../../components/ui/Loading';
 
 const Doctors = () => {
   const navigate = useNavigate();
@@ -192,7 +193,7 @@ const Doctors = () => {
   };
 
   if (loading) {
-    return <LoadingState />;
+    return <Loading/>;
   }
 
   return (

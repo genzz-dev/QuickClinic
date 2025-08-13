@@ -15,6 +15,7 @@ import TeleconsultationBanner from '../../components/public/DoctorDetailsPage/Te
 import LoadingState from '../../components/public/DoctorDetailsPage/LoadingState';
 import ErrorState from '../../components/public/DoctorDetailsPage/ErrorState';
 import NotFoundState from '../../components/public/DoctorDetailsPage/NotFoundState';
+import Loading from '../../components/ui/Loading';
 
 const DoctorDetailsPage = () => {
   const { doctorId } = useParams();
@@ -71,7 +72,7 @@ const DoctorDetailsPage = () => {
     }
   };
 
-  if (loading) return <LoadingState />;
+  if (loading) return <Loading/>
   if (error) return <ErrorState error={error} />;
   if (!doctor) return <NotFoundState />;
 

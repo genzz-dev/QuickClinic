@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Star,MapPin,Stethoscope,CheckCircle } from 'lucide-react';
+import { Star,MapPin,Stethoscope,CheckCircle, Loader } from 'lucide-react';
 import { getClinicById, getClinicDoctors } from '../../service/publicapi';
 import ClinicHeader from '../../components/public/ClinicDetailPage/ClinicHeader'
 import PhotoGallery from '../../components/public/ClinicDetailPage/PhotoGallery';
 import DoctorCard from '../../components/public/ClinicDetailPage/DoctorCard';
 import OpeningHours from '../../components/public/ClinicDetailPage/OpeningHours';
 import QuickStats from '../../components/public/ClinicDetailPage/QuickStats';
+import Loading from '../../components/ui/Loading';
 
 const ClinicDetailPage = () => {
   const { clinicId } = useParams();
@@ -87,12 +88,7 @@ const ClinicDetailPage = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading clinic details...</p>
-        </div>
-      </div>
+      <Loading/>
     );
   }
 

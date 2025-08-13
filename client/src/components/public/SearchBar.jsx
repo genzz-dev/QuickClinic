@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, User, Building } from 'lucide-react';
 import { getSearchSuggestions } from '../../service/publicapi';
+import Loading from '../ui/Loading';
 
 const SearchBar = () => {
   const [query, setQuery] = useState('');
@@ -95,10 +96,7 @@ const SearchBar = () => {
       {showSuggestions && (
         <div className="absolute top-full left-0 right-0 bg-white border border-gray-200 rounded-lg shadow-xl mt-1 z-[110] max-h-80 overflow-y-auto">
           {isLoading ? (
-            <div className="p-4 text-center text-gray-500">
-              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500 mx-auto mb-2"></div>
-              <span className="text-sm">Loading...</span>
-            </div>
+            <Loading/>
           ) : suggestions.length > 0 ? (
             <>
               {suggestions.map((suggestion) => (

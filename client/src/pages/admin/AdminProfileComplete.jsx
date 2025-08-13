@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createAdminProfile } from '../../service/adminApiService';
+import Loading from '../../components/ui/Loading';
 
 export default function AdminProfileComplete() {
   const navigate = useNavigate();
@@ -154,9 +155,7 @@ export default function AdminProfileComplete() {
           >
             {loading
               ? (
-                <span className="flex items-center justify-center gap-2">
-                  <span className="animate-spin rounded-full border-2 border-gray-200 border-b-white h-5 w-5 inline-block"/> Submitting...
-                </span>
+                <Loading/>
               )
               : 'Save & Continue'}
           </button>

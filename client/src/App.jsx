@@ -11,6 +11,7 @@ import PublicRoutes from './routes/PublicRoutes';
 import AdminRoutes from './routes/AdminRoutes';
 import PatientRoutes from './routes/PatientRoutes';
 import DoctorRoutes from './routes/DoctorRoutes';
+import Loading from './components/ui/Loading';
 
 function AppInner() {
   const { user, isAuthenticated, isLoading } = useAuth();
@@ -28,7 +29,7 @@ function AppInner() {
     }
   }, [isAuthenticated, isLoading, user, location.pathname, navigate]);
 
-  if (isLoading) return null;
+  if (isLoading) return <Loading/>;
 
   return (
     <>

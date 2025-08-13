@@ -7,6 +7,7 @@ import NoClinicsFound from '../../components/public/Nearbyclinics/NoClinicsFound
 import ClinicCard from '../../components/public/Nearbyclinics/ClinicCard';
 import ClinicFilters from '../../components/public/Nearbyclinics/ClinicFilters';
 import { Navigate, useNavigate } from 'react-router-dom';
+import Loading from '../../components/ui/Loading';
 
 const NearbyClinicsPage = () => {
   const [initialFiltersLoaded, setInitialFiltersLoaded] = useState(false);
@@ -317,7 +318,7 @@ const handleClinicHover = async (clinicId) => {
     window.location.reload();
   };
 
-  if (loading) return <LoadingState />;
+  if (loading) return <Loading />;
   if (locationError) return <ErrorState error={locationError} onRetry={handleRetry} />;
   return (
     <div className="min-h-screen bg-gray-50">

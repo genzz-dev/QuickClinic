@@ -1,5 +1,6 @@
 import React from 'react';
 import { Loader2 } from 'lucide-react';
+import Loading from '../ui/Loading';
 
 export const AuthButton = ({
   children,
@@ -28,8 +29,7 @@ export const AuthButton = ({
     >
       {isLoading ? (
         <>
-          <Loader2 className="w-5 h-5 animate-spin" />
-          <span>Processing...</span>
+          <Loading/>
         </>
       ) : (
         children
