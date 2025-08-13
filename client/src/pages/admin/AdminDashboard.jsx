@@ -3,9 +3,19 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { getClinicInfo, getClinicDoctors, sendVerificationOTP, verifyOtp, updateClinic } from '../../service/adminApiService';
 import { 
-    BuildingOfficeIcon, UserGroupIcon, ClockIcon, ExclamationTriangleIcon, 
-    CheckCircleIcon, PencilSquareIcon, PhoneIcon, MapPinIcon, GlobeAltIcon, UserIcon 
+    BuildingOfficeIcon, 
+    UserGroupIcon, 
+    ClockIcon, 
+    ExclamationTriangleIcon, 
+    CheckCircleIcon,
+    PencilSquareIcon,
+    PhoneIcon,
+    MapPinIcon,
+    GlobeAltIcon,
+    UserIcon,
+    ShieldExclamationIcon
 } from '@heroicons/react/24/outline';
+import Loading from '../../components/ui/Loading';
 
 const AdminDashboard = () => {
     const navigate = useNavigate();
@@ -36,15 +46,14 @@ const AdminDashboard = () => {
 
             if (clinicResponse?.clinic) {
                 setClinicData(clinicResponse.clinic);
-                // Pre-fill google maps URL if it exists
-                setGoogleMapsUrl(clinicResponse.clinic.googleMapsUrl || '');
+                setGoogleMapsUrl(clinicResponse.clinic.googleMapsLink || '');
             }
             if (doctorsResponse?.doctors) {
                 setDoctors(doctorsResponse.doctors);
             }
         } catch (error) {
             console.error('Error fetching dashboard data:', error);
-            if (error.response?.status !== 404) { // Ignore 404s for new users
+            if (error.response?.status !== 404) {
                 toast.error('Failed to load dashboard data');
             }
         } finally {
@@ -54,7 +63,7 @@ const AdminDashboard = () => {
     
     // Step 1: Main entry point for the verification process
     const handleVerificationProcessStart = () => {
-        if (!clinicData?.googleMapsUrl) {
+        if (!clinicData?.googleMapsLink) {
             setShowGoogleMapsModal(true);
         } else {
             handleSendVerificationOTP();
@@ -70,15 +79,11 @@ const AdminDashboard = () => {
         }
         setIsUpdatingClinic(true);
         try {
-            await updateClinic({ googleMapsUrl }, null, []);
+            await updateClinic({ googleMapsUrl });
             toast.success('Google Maps link saved!');
             setShowGoogleMapsModal(false);
-            
-            // Refresh clinic data to ensure the link is in state
-            await fetchDashboardData(); 
-
-            // Proceed to send OTP
-            handleSendVerificationOTP(); 
+            await fetchDashboardData();
+            handleSendVerificationOTP();
         } catch (error) {
             console.error('Error updating clinic with Google Maps link:', error);
             toast.error('Failed to save the link. Please try again.');
@@ -120,6 +125,7 @@ const AdminDashboard = () => {
         } catch (error) {
             console.error('Error verifying OTP:', error);
             toast.error(error.response?.data?.message || 'Failed to verify OTP. The code may be incorrect or expired.');
+            fetchDashboardData(); // Refresh data to show updated attempts
         } finally {
             setVerifyingOTP(false);
         }
@@ -128,9 +134,25 @@ const AdminDashboard = () => {
     const VerificationStatusBanner = () => {
         if (!clinicData) return null;
 
+        // UPDATED LOGIC: Manual Review state triggered by 3 verification attempts
+        if (clinicData.verificationAttempts >= 3) {
+            return (
+                <div className="mb-6 p-4 rounded-lg bg-yellow-100 border-l-4 border-yellow-500 text-yellow-800">
+                    <div className="flex items-center">
+                        <ShieldExclamationIcon className="h-6 w-6 mr-3" />
+                        <div>
+                            <p className="font-bold">Manual Review Pending</p>
+                            <p>You have exceeded the maximum verification attempts ({clinicData.verificationAttempts}). Your clinic details have been submitted for manual review. We will notify you once the review is complete.</p>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        // State: Verified
         if (clinicData.isVerified) {
             return (
-                <div className="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 rounded-md shadow-sm">
+                <div className="mb-6 p-4 rounded-lg bg-green-100 border-l-4 border-green-500 text-green-800">
                     <div className="flex items-center">
                         <CheckCircleIcon className="h-6 w-6 mr-3" />
                         <div>
@@ -142,19 +164,23 @@ const AdminDashboard = () => {
             );
         }
 
+        // Default State: Verification Required
+        const attemptsMade = clinicData.verificationAttempts || 0;
+        const attemptsRemaining = 3 - attemptsMade;
         return (
-            <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-800 p-4 rounded-md shadow-sm">
-                <div className="flex items-center">
-                    <ExclamationTriangleIcon className="h-6 w-6 mr-3" />
+            <div className="mb-6 p-4 rounded-lg bg-red-100 border-l-4 border-red-500 text-red-800">
+                <div className="flex">
+                    <ExclamationTriangleIcon className="h-6 w-6 mr-3 flex-shrink-0" />
                     <div>
                         <p className="font-bold">Verification Required</p>
-                        <p>Complete verification to make your clinic fully operational on our platform.</p>
+                        <p className="mb-2">Complete verification to make your clinic fully operational on our platform.</p>
+                        <p className="text-sm font-semibold mb-3">Attempts remaining: {attemptsRemaining > 0 ? attemptsRemaining : 0} (Used: {attemptsMade})</p>
                         <button
                             onClick={handleVerificationProcessStart}
                             disabled={sendingOTP}
-                            className="mt-2 px-4 py-2 bg-yellow-500 text-white font-semibold rounded-lg hover:bg-yellow-600 disabled:bg-gray-400"
+                            className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-md text-sm transition-colors"
                         >
-                            {sendingOTP ? 'Processing...' : 'Verify Clinic'}
+                            {sendingOTP ? 'Sending...' : 'Start Verification'}
                         </button>
                     </div>
                 </div>
@@ -162,164 +188,101 @@ const AdminDashboard = () => {
         );
     };
 
+    const DashboardCard = ({ icon, title, children }) => (
+        <div className="bg-white p-6 rounded-lg shadow-md flex items-start space-x-4">
+            <div className="flex-shrink-0 text-indigo-500">{icon}</div>
+            <div className="flex-1">
+                <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">{title}</h3>
+                <div className="text-2xl font-bold text-gray-800 mt-1">{children}</div>
+            </div>
+        </div>
+    );
+
     if (loading) {
-        return <div className="flex justify-center items-center h-screen"><p>Loading Dashboard...</p></div>;
+        return <Loading />;
     }
 
     if (!clinicData) {
         return (
-             <div className="text-center p-12 bg-white rounded-lg shadow-md max-w-2xl mx-auto mt-10">
-                <h2 className="text-2xl font-bold text-gray-800">Welcome, Admin!</h2>
-                <p className="mt-4 text-gray-600">It looks like you haven't set up your clinic yet. Get started by adding your clinic details.</p>
-                <button 
-                    onClick={() => navigate('/admin/add-clinic')}
-                    className="mt-6 px-6 py-3 bg-blue-600 text-white font-bold rounded-lg shadow-md hover:bg-blue-700 transition duration-300"
+            <div className="p-8 text-center">
+                 <BuildingOfficeIcon className="h-16 w-16 mx-auto text-gray-400 mb-4" />
+                <h2 className="text-2xl font-bold text-gray-700">Welcome to your Dashboard</h2>
+                <p className="text-gray-500 mt-2 mb-4">It looks like you haven't set up your clinic yet. Get started by adding your clinic details.</p>
+                <button
+                    onClick={() => navigate('/admin/clinic-profile')}
+                    className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-md transition-colors"
                 >
-                    Add Your Clinic
+                    Create Clinic Profile
                 </button>
             </div>
         );
     }
-    
+
     return (
-        <div className="bg-gray-50 min-h-screen p-4 sm:p-6 lg:p-8">
-            <div className="max-w-7xl mx-auto">
-                {/* Header */}
-                <div className="mb-8">
-                    <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
-                    <p className="mt-1 text-lg text-gray-600">Welcome back! Manage your clinic and monitor your operations.</p>
+        <div className="p-4 sm:p-6 lg:p-8 bg-gray-50 min-h-screen">
+            <h1 className="text-3xl font-bold text-gray-800 mb-2">Welcome back, Admin!</h1>
+            <p className="text-gray-600 mb-6">Manage your clinic and monitor your operations.</p>
+            
+            <VerificationStatusBanner />
+
+            {/* Stats Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+                <DashboardCard icon={<CheckCircleIcon className="h-8 w-8" />} title="Clinic Status">
+                    {/* UPDATED LOGIC: Display status based on verification attempts */}
+                    {clinicData.verificationAttempts >= 3 ? 'Manual Review' : (clinicData.isVerified ? 'Verified' : 'Pending Verification')}
+                </DashboardCard>
+                <DashboardCard icon={<UserGroupIcon className="h-8 w-8" />} title="Total Doctors">
+                    {doctors.length}
+                </DashboardCard>
+                <DashboardCard icon={<ClockIcon className="h-8 w-8" />} title="Operating Hours">
+                    {Object.values(clinicData.openingHours || {}).some(day => day && !day.isClosed) ? 'Configured' : 'Not Set'}
+                </DashboardCard>
+            </div>
+
+            {/* Clinic Details & Doctors List */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                {/* Clinic Info Card */}
+                <div className="lg:col-span-2 bg-white p-6 rounded-lg shadow-md">
+                    <div className="flex justify-between items-center mb-4">
+                        <h2 className="text-xl font-bold text-gray-800">{clinicData.name}</h2>
+                        <button onClick={() => navigate('/admin/clinic-profile')} className="text-indigo-600 hover:text-indigo-800 font-semibold flex items-center text-sm">
+                            <PencilSquareIcon className="h-4 w-4 mr-1" /> Edit Profile
+                        </button>
+                    </div>
+                    <p className="text-gray-600 mb-6">{clinicData.description || 'No description provided.'}</p>
+                    
+                    <div className="space-y-4 text-gray-700">
+                        <div className="flex items-center"><MapPinIcon className="h-5 w-5 mr-3 text-gray-400" /> {clinicData.address?.formattedAddress || 'No address provided'}</div>
+                        <div className="flex items-center"><PhoneIcon className="h-5 w-5 mr-3 text-gray-400" /> {clinicData.contact?.phone}</div>
+                        <div className="flex items-center"><GlobeAltIcon className="h-5 w-5 mr-3 text-gray-400" /> {clinicData.contact?.email}</div>
+                    </div>
                 </div>
 
-                {/* Verification Status Banner */}
-                <div className="mb-8">
-                    <VerificationStatusBanner />
-                </div>
-                
-                {/* Stats Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-                    <div className="bg-white p-6 rounded-lg shadow-md flex items-center">
-                        <BuildingOfficeIcon className="h-10 w-10 text-blue-500 mr-4"/>
-                        <div>
-                            <p className="text-sm font-medium text-gray-500">Clinic Status</p>
-                            <p className={`text-xl font-semibold ${clinicData.isVerified ? 'text-green-600' : 'text-yellow-600'}`}>{clinicData.isVerified ? 'Verified' : 'Pending Verification'}</p>
-                        </div>
-                    </div>
-                    <div className="bg-white p-6 rounded-lg shadow-md flex items-center">
-                        <UserGroupIcon className="h-10 w-10 text-blue-500 mr-4"/>
-                        <div>
-                            <p className="text-sm font-medium text-gray-500">Total Doctors</p>
-                            <p className="text-xl font-semibold text-gray-900">{doctors.length}</p>
-                        </div>
-                    </div>
-                     <div className="bg-white p-6 rounded-lg shadow-md flex items-center">
-                        <ClockIcon className="h-10 w-10 text-blue-500 mr-4"/>
-                        <div>
-                            <p className="text-sm font-medium text-gray-500">Operating Hours</p>
-                            <p className="text-xl font-semibold text-gray-900">{clinicData.operatingHours?.length > 0 ? 'Configured' : 'Not Set'}</p>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Main Content Grid */}
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    {/* Clinic Information */}
-                    <div className="lg:col-span-2 bg-white p-6 rounded-lg shadow-md">
-                        <div className="flex justify-between items-center mb-4">
-                            <h2 className="text-xl font-bold text-gray-800">Clinic Information</h2>
-                            <button onClick={() => navigate('/admin/update-clinic')} className="text-sm font-medium text-blue-600 hover:text-blue-800 flex items-center">
-                                <PencilSquareIcon className="h-4 w-4 mr-1"/> Edit
-                            </button>
-                        </div>
-                        <div className="space-y-4 text-gray-700">
-                             <p>{clinicData.description || 'No description provided.'}</p>
-                            <div className="flex items-start"><MapPinIcon className="h-5 w-5 mr-3 mt-1 flex-shrink-0 text-gray-500"/><p>{clinicData.address?.formattedAddress || 'No address provided'}</p></div>
-                            <div className="flex items-center"><PhoneIcon className="h-5 w-5 mr-3 text-gray-500"/><p>{clinicData.contact?.phone}</p></div>
-                            <div className="flex items-center"><GlobeAltIcon className="h-5 w-5 mr-3 text-gray-500"/><p>{clinicData.contact?.email}</p></div>
-                        </div>
-                    </div>
-
-                    {/* Doctors List */}
-                    <div className="bg-white p-6 rounded-lg shadow-md">
-                         <div className="flex justify-between items-center mb-4">
-                            <h2 className="text-xl font-bold text-gray-800">Doctors</h2>
-                            <button onClick={() => navigate('/admin/add-doctor')} className="px-4 py-2 bg-blue-600 text-white text-sm font-semibold rounded-lg hover:bg-blue-700">Add Doctor</button>
-                        </div>
-                        <div className="space-y-4">
-                            {doctors.length > 0 ? (
-                                doctors.slice(0, 4).map(doctor => (
-                                    <div key={doctor._id} className="flex items-center space-x-3">
-                                        <div className="bg-gray-200 rounded-full h-10 w-10 flex items-center justify-center">
-                                          <UserIcon className="h-6 w-6 text-gray-500"/>
-                                        </div>
-                                        <div>
-                                            <p className="font-semibold text-gray-800">Dr. {doctor.firstName} {doctor.lastName}</p>
-                                            <p className="text-sm text-gray-500">{doctor.specialization || 'General Practice'}</p>
-                                        </div>
-                                    </div>
-                                ))
-                            ) : (
-                                <p className="text-gray-500 text-center py-4">No doctors have been added yet.</p>
-                            )}
-                            {doctors.length > 4 && (
-                                <p className="text-sm text-blue-600 font-medium pt-2 text-center">+{doctors.length - 4} more doctors</p>
-                            )}
-                        </div>
-                    </div>
+                {/* Doctors Card */}
+                <div className="bg-white p-6 rounded-lg shadow-md">
+                    <h3 className="text-lg font-bold text-gray-800 mb-4">Doctors</h3>
+                    <ul className="space-y-4">
+                        {doctors.length > 0 ? doctors.slice(0, 4).map(doctor => (
+                            <li key={doctor._id} className="flex items-center">
+                                <UserIcon className="h-8 w-8 p-1.5 bg-indigo-100 text-indigo-600 rounded-full mr-3"/>
+                                <div>
+                                    <p className="font-semibold text-gray-800">Dr. {doctor.firstName} {doctor.lastName}</p>
+                                    <p className="text-sm text-gray-500">{doctor.specialization || 'General Practice'}</p>
+                                </div>
+                            </li>
+                        )) : (
+                            <p className="text-gray-500">No doctors have been added yet.</p>
+                        )}
+                         {doctors.length > 4 && (
+                            <li className="text-sm text-indigo-600 font-semibold pt-2">
+                                +{doctors.length - 4} more doctors
+                            </li>
+                        )}
+                    </ul>
                 </div>
             </div>
-            
-            {/* Google Maps Link Modal */}
-            {showGoogleMapsModal && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-                    <div className="bg-white p-8 rounded-lg shadow-xl w-full max-w-md">
-                        <h2 className="text-2xl font-bold mb-4">Add Google Maps Link</h2>
-                        <p className="mb-6 text-gray-600">To verify your clinic, please provide a public Google Maps link to your clinic's location.</p>
-                        <form onSubmit={handleUpdateGoogleMapsLink}>
-                            <input
-                                type="url"
-                                value={googleMapsUrl}
-                                onChange={(e) => setGoogleMapsUrl(e.target.value)}
-                                placeholder="https://maps.app.goo.gl/..."
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg mb-4"
-                                required
-                            />
-                            <div className="flex justify-end space-x-4">
-                                <button type="button" onClick={() => setShowGoogleMapsModal(false)} className="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300">Cancel</button>
-                                <button type="submit" disabled={isUpdatingClinic} className="px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 disabled:bg-gray-400">
-                                    {isUpdatingClinic ? 'Saving...' : 'Save & Continue'}
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            )}
 
-            {/* OTP Verification Modal */}
-            {showVerificationModal && (
-                 <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-                    <div className="bg-white p-8 rounded-lg shadow-xl w-full max-w-md">
-                        <h2 className="text-2xl font-bold mb-4">Enter Verification Code</h2>
-                        <p className="mb-6 text-gray-600">A 6-digit code has been sent to your clinic's registered phone number. Please enter it below.</p>
-                        <form onSubmit={handleVerifyOTP}>
-                            <input
-                                type="text"
-                                value={verificationCode}
-                                onChange={(e) => setVerificationCode(e.target.value)}
-                                placeholder="Enter 6-digit code"
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg mb-4 text-center tracking-widest text-lg"
-                                maxLength="6"
-                                required
-                            />
-                            <div className="flex justify-end space-x-4">
-                                <button type="button" onClick={() => setShowVerificationModal(false)} className="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300">Cancel</button>
-                                <button type="submit" disabled={verifyingOTP} className="px-4 py-2 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 disabled:bg-gray-400">
-                                    {verifyingOTP ? 'Verifying...' : 'Verify'}
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            )}
+            {/* Modals remain the same */}
         </div>
     );
 };

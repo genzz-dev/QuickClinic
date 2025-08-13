@@ -269,11 +269,11 @@ if (updates.openingHours) {
     }
   });
 }
-
+    
     // Handle Google Maps link update
-    if (updates.googleMapsLink !== undefined) {
+    if (updates.googleMapsLink) {
       updateObj.$set.googleMapsLink = updates.googleMapsLink;
-      
+     
       if (updates.googleMapsLink) {
         try {
           const placeId = await extractPlaceIdFromUrl(updates.googleMapsLink);
@@ -765,31 +765,24 @@ export const sendVerificationOTP = async (req, res) => {
       return res.status(400).json({ message: 'Clinic is already verified' });
     }
 
-    // Check verification attempts (max 3 per day)
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    
-    if (clinic.lastVerificationAttempt && 
-        clinic.lastVerificationAttempt >= today && 
-        clinic.verificationAttempts >= 3) {
-      return res.status(429).json({ 
-        message: 'Maximum verification attempts reached for today' 
+    // Check permanent max attempts (3 total, forever)
+    if (clinic.verificationAttempts >= 3) {
+      return res.status(429).json({
+        message: 'Maximum verification attempts reached. Verification is no longer possible.'
       });
     }
 
     // Get phone from Google Maps if not already fetched
     let phoneNumber = clinic.googleMapsPhone;
-    
     if (!phoneNumber && clinic.googleMapsLink) {
       try {
         const placeId = await extractPlaceIdFromUrl(clinic.googleMapsLink);
         const phoneData = await withRateLimit(() => fetchPlacePhone(placeId));
-        
         phoneNumber = phoneData.internationalPhone || phoneData.formattedPhone;
-        
+
         if (phoneNumber) {
-          await Clinic.findByIdAndUpdate(clinicId, { 
-            googleMapsPhone: phoneNumber 
+          await Clinic.findByIdAndUpdate(clinicId, {
+            googleMapsPhone: phoneNumber
           });
         }
       } catch (error) {
@@ -798,42 +791,47 @@ export const sendVerificationOTP = async (req, res) => {
     }
 
     if (!phoneNumber) {
-      return res.status(400).json({ 
-        message: 'No phone number found for this clinic. Please add a Google Maps link with phone number.' 
+      return res.status(400).json({
+        message:
+          'No phone number found for this clinic. Please add a Google Maps link with phone number.'
       });
     }
 
+    // Increment attempt BEFORE sending OTP (so failures still count)
+    const updatedClinic = await Clinic.findByIdAndUpdate(
+      clinicId,
+      {
+        $inc: { verificationAttempts: 1 },
+        $set: { lastVerificationAttempt: new Date() }
+      },
+      { new: true }
+    );
+
     // Send OTP
     const otpResult = await sendOTP(phoneNumber);
-    
+    console.log('OTP sent result:', otpResult);
+
     if (!otpResult.success) {
-      return res.status(500).json({ message: otpResult.message });
+      return res.status(500).json({
+        message: otpResult.message,
+        attemptsLeft: Math.max(0, 3 - updatedClinic.verificationAttempts)
+      });
     }
-
-    // Update attempt counter
-    const newAttempts = (clinic.lastVerificationAttempt >= today) 
-      ? clinic.verificationAttempts + 1 
-      : 1;
-
-    await Clinic.findByIdAndUpdate(clinicId, {
-      verificationAttempts: newAttempts,
-      lastVerificationAttempt: new Date()
-    });
 
     res.json({
       message: 'OTP sent successfully',
-      phone: phoneNumber.replace(/(\d{3})\d{4}(\d{4})/, '$1****$2'), // Mask middle digits
-      attemptsLeft: 3 - newAttempts
+      phone: phoneNumber.replace(/(\d{3})\d{4}(\d{4})/, '$1****$2'),
+      attemptsLeft: Math.max(0, 3 - updatedClinic.verificationAttempts)
     });
-
   } catch (error) {
     console.error('Error sending verification OTP:', error);
-    res.status(500).json({ 
+    res.status(500).json({
       message: 'Failed to send verification OTP',
       error: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
 };
+
 
 // Verify OTP and mark clinic as verified
 export const verifyClinicOTP = async (req, res) => {
