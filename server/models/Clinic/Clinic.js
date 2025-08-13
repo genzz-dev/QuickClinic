@@ -10,6 +10,7 @@ const clinicSchema = new mongoose.Schema({
   uppercase: true, // Ensures stored value is in uppercase
   trim: true,
 },
+manualReview: { type: Boolean, default: false },
 gstName:{type:String},
 isVerified:{type:Boolean,default:false},
   address: {
