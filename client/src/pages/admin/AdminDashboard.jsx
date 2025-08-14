@@ -14,97 +14,11 @@ import {
 } from '@heroicons/react/24/outline';
 import Loading from '../../components/ui/Loading';
 import ClinicProfile from '../../components/admin/dashboard/ClinicProfile';
+import StatCard from '../../components/admin/dashboard/StatCard';
+import ActionButton from '../../components/admin/dashboard/ActionButton';
+import VerificationBanner from '../../components/admin/dashboard/VerificationBanner';
 
-const StatCard = ({ title, value, icon }) => (
-  <div className="bg-white border border-gray-100 p-5 rounded-xl shadow-sm hover:shadow-md transform hover:-translate-y-0.5 transition-all duration-300">
-    <div className="flex items-center gap-3">
-      <div className="bg-indigo-50 p-3 rounded-lg">
-        {icon}
-      </div>
-      <div>
-        <p className="text-xs uppercase tracking-wide text-gray-500">{title}</p>
-        <p className="mt-0.5 text-2xl font-semibold text-gray-900">{value}</p>
-      </div>
-    </div>
-  </div>
-);
 
-const ActionButton = ({ label, icon, onClick }) => (
-  <button
-    onClick={onClick}
-    className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-all"
-  >
-    {icon}
-    {label}
-  </button>
-);
-
-const VerificationBanner = ({ clinicData, onVerify, onSetup }) => {
-  if (!clinicData) {
-    return (
-      <div className="bg-white border border-gray-100 rounded-xl p-6 flex items-center justify-between shadow-sm">
-        <div className="flex items-start gap-3">
-          <BuildingOfficeIcon className="h-7 w-7 text-gray-500" />
-          <div>
-            <h4 className="text-lg font-semibold text-gray-900">Set up clinic</h4>
-            <p className="text-sm text-gray-600 mt-0.5">Add your clinic details to unlock verification and management features.</p>
-          </div>
-        </div>
-        <ActionButton
-          label="Setup Clinic"
-          icon={<ArrowRightIcon className="h-4 w-4" />}
-          onClick={onSetup}
-        />
-      </div>
-    );
-  }
-
-  // Lockout state
-  if ((clinicData.verificationAttempts || 0) >= 3) {
-    return (
-      <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-5 flex items-start gap-3 shadow-sm">
-        <ShieldExclamationIcon className="h-6 w-6 text-yellow-700 mt-0.5" />
-        <div>
-          <h4 className="font-semibold text-yellow-800">Manual review pending</h4>
-          <p className="text-sm text-yellow-700">Max attempts exceeded. Our team will review your clinic details.</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (clinicData.isVerified) {
-    return (
-      <div className="bg-green-50 border border-green-200 rounded-xl p-5 flex items-start gap-3 shadow-sm">
-        <CheckCircleIcon className="h-6 w-6 text-green-700 mt-0.5" />
-        <div>
-          <h4 className="font-semibold text-green-800">Clinic verified</h4>
-          <p className="text-sm text-green-700">All features unlocked and listing is active for patients.</p>
-        </div>
-      </div>
-    );
-  }
-
-  const attemptsMade = clinicData.verificationAttempts || 0;
-  const attemptsRemaining = Math.max(0, 3 - attemptsMade);
-
-  return (
-    <div className="bg-blue-50 border border-blue-200 rounded-xl p-5 flex items-center justify-between shadow-sm">
-      <div className="flex items-start gap-3">
-        <ExclamationTriangleIcon className="h-6 w-6 text-blue-700 mt-0.5" />
-        <div>
-          <h4 className="font-semibold text-blue-800">Verification required</h4>
-          <p className="text-sm text-blue-700">Complete verification to unlock full admin capabilities.</p>
-          <p className="text-xs text-blue-800/70 mt-1">Attempts remaining: {attemptsRemaining} (used: {attemptsMade})</p>
-        </div>
-      </div>
-      <ActionButton
-        label="Verify now"
-        icon={<CheckCircleIcon className="h-4 w-4" />}
-        onClick={onVerify}
-      />
-    </div>
-  );
-};
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -209,87 +123,172 @@ const AdminDashboard = () => {
   };
 
   if (loading) return <Loading />;
+return (
+  <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      {/* Header */}
+      <div className="mb-8">
+        <h1 className="text-4xl font-bold text-gray-900 mb-3 tracking-tight">
+          {clinicData ? `Manage ${clinicData.name}` : 'Setup Your Clinic'}
+        </h1>
+        <p className="text-lg text-gray-600 max-w-2xl">
+          {clinicData ? 'Monitor and manage your clinic operations with comprehensive tools' : 'Get started with Quick Clinic management and streamline your healthcare operations'}
+        </p>
+      </div>
 
-  return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">Clinic Admin</h1>
-            <p className="text-gray-600 mt-1">{clinicData ? `Manage ${clinicData.name}` : 'Set up and manage clinic data'}</p>
-          </div>
-          <div className="flex items-center gap-3">
-            <ActionButton
-              label="Edit Clinic"
-              icon={<PencilSquareIcon className="h-4 w-4" />}
-              onClick={() => navigate('/admin/update-clinic')}
-            />
-            <ActionButton
-              label="Add & Manage Doctors"
-              icon={<PlusCircleIcon className="h-4 w-4" />}
-              onClick={() => navigate('/admin/manage-doctor')}
-            />
-          </div>
-        </div>
+      {/* Verification Banner */}
+      <div className="mb-8">
+        <VerificationBanner 
+          clinicData={clinicData}
+          onVerify={handleVerificationProcessStart}
+          onSetup={() => navigate('/admin/update-clinic')}
+        />
+      </div>
 
-        {/* Verification */}
-        <div className="mb-8">
-          <VerificationBanner
-            clinicData={clinicData}
-            onVerify={handleVerificationProcessStart}
-            onSetup={() => navigate('/admin/update-clinic')}
+      {/* Stats Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+        <div className="transform hover:scale-105 transition-transform duration-200">
+          <StatCard
+            title="Total Doctors"
+            value={doctors.length}
+            icon={UserGroupIcon}
           />
         </div>
-
-        {/* Stats */}
-        {clinicData && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-10">
-            <StatCard
-              title="Verification"
-              value={clinicData.isVerified ? 'Verified' : 'Pending'}
-              icon={<CheckCircleIcon className="h-6 w-6 text-indigo-600" />}
-            />
-            <StatCard
-              title="Doctors"
-              value={doctors.length}
-              icon={<UserGroupIcon className="h-6 w-6 text-indigo-600" />}
-            />
-            <StatCard
-              title="Clinic"
-              value={clinicData.name || 'Not set'}
-              icon={<BuildingOfficeIcon className="h-6 w-6 text-indigo-600" />}
-            />
-          </div>
-        )}
-
-        {/* Profile */}
-        <div className="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden">
-          <ClinicProfile clinicData={clinicData} doctors={doctors} />
+        <div className="transform hover:scale-105 transition-transform duration-200">
+          <StatCard
+            title="Verification Status"
+            value={clinicData?.verificationStatus === 'verified' ? 'Verified' : 'Pending'}
+            icon={CheckCircleIcon}
+          />
+        </div>
+        <div className="transform hover:scale-105 transition-transform duration-200">
+          <StatCard
+            title="Profile Completion"
+            value="85%"
+            icon={BuildingOfficeIcon}
+            trend="up"
+            trendValue="+5%"
+          />
+        </div>
+        <div className="transform hover:scale-105 transition-transform duration-200">
+          <StatCard
+            title="Active Features"
+            value={clinicData?.verificationStatus === 'verified' ? 'All' : 'Limited'}
+            icon={ShieldExclamationIcon}
+          />
         </div>
       </div>
 
-      {/* Google Maps Modal */}
-      {showGoogleMapsModal && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-          <div className="bg-white w-full max-w-md rounded-xl p-6 shadow-lg">
-            <h3 className="text-lg font-semibold text-gray-900">Provide Google Maps Link</h3>
-            <p className="text-sm text-gray-600 mt-1">Add a valid Maps URL to continue verification.</p>
-            <form onSubmit={handleUpdateGoogleMapsLink} className="mt-4">
-              <input
-                type="url"
-                value={googleMapsUrl}
-                onChange={(e) => setGoogleMapsUrl(e.target.value)}
-                placeholder="https://maps.google.com/..."
-                className="w-full p-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                required
+      {/* Action Cards Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 mb-10">
+        <div className="space-y-6">
+          <div className="flex items-center space-x-3 mb-6">
+            <div className="w-8 h-8 bg-gray-900 rounded-lg flex items-center justify-center">
+              <span className="text-white font-bold text-sm">⚡</span>
+            </div>
+            <h2 className="text-2xl font-bold text-gray-900">Quick Actions</h2>
+          </div>
+          
+          <div className="space-y-4">
+            <div className="transform hover:translate-x-2 transition-transform duration-200">
+              <ActionButton
+                title="Manage Clinic Profile"
+                description="Update clinic information, contact details, and settings"
+                icon={BuildingOfficeIcon}
+                onClick={() => navigate('/admin/update-clinic')}
+                variant="primary"
               />
-              <div className="mt-4 flex items-center justify-end gap-3">
-                <button type="button" onClick={() => setShowGoogleMapsModal(false)} className="px-4 py-2 text-sm rounded-lg border">
+            </div>
+            
+            <div className="transform hover:translate-x-2 transition-transform duration-200">
+              <ActionButton
+                title="Doctor Management"
+                description="Add, edit, or remove doctors from your clinic"
+                icon={UserGroupIcon}
+                onClick={() => navigate('/admin/doctors')}
+                variant="secondary"
+              />
+            </div>
+            
+            <div className="transform hover:translate-x-2 transition-transform duration-200">
+              <ActionButton
+                title="Edit Profile"
+                description="Modify clinic details and preferences"
+                icon={PencilSquareIcon}
+                onClick={() => navigate('/admin/update-clinic')}
+                variant="secondary"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Clinic Profile */}
+        <div className="space-y-6">
+          <div className="flex items-center space-x-3 mb-6">
+            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+              <span className="text-white font-bold text-sm">🏥</span>
+            </div>
+            <h2 className="text-2xl font-bold text-gray-900">Clinic Overview</h2>
+          </div>
+          <div className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden hover:shadow-xl transition-shadow duration-300">
+            <ClinicProfile 
+              clinicData={clinicData} 
+              doctors={doctors}
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Modals */}
+      {showGoogleMapsModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center p-4 z-50 animate-fadeIn">
+          <div className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl transform animate-slideUp">
+            <div className="text-center mb-6">
+              <div className="mx-auto w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-4">
+                <span className="text-2xl">📍</span>
+              </div>
+              <h3 className="text-2xl font-bold text-gray-900 mb-2">Add Google Maps Link</h3>
+              <p className="text-gray-600">Help patients find your clinic easily</p>
+            </div>
+            <form onSubmit={handleUpdateGoogleMapsLink}>
+              <div className="mb-6">
+                <label className="block text-sm font-semibold text-gray-700 mb-3">
+                  Google Maps URL
+                </label>
+                <input
+                  type="url"
+                  value={googleMapsUrl}
+                  onChange={(e) => setGoogleMapsUrl(e.target.value)}
+                  className="w-full px-4 py-4 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-gray-900/20 focus:border-gray-900 transition-all duration-200 text-sm"
+                  placeholder="https://maps.google.com/..."
+                  required
+                />
+                <p className="text-xs text-gray-500 mt-3 bg-gray-50 p-3 rounded-lg">
+                  💡 Add a valid Maps URL to continue verification and help patients locate your clinic
+                </p>
+              </div>
+              <div className="flex space-x-4">
+                <button
+                  type="button"
+                  onClick={() => setShowGoogleMapsModal(false)}
+                  className="flex-1 px-6 py-4 border-2 border-gray-200 text-gray-700 rounded-xl hover:bg-gray-50 hover:border-gray-300 transition-all duration-200 font-medium"
+                >
                   Cancel
                 </button>
-                <button type="submit" disabled={isUpdatingClinic} className="px-4 py-2 text-sm rounded-lg bg-indigo-600 text-white disabled:bg-indigo-300">
-                  {isUpdatingClinic ? 'Saving...' : 'Save & Continue'}
+                <button
+                  type="submit"
+                  disabled={isUpdatingClinic}
+                  className="flex-1 bg-gray-900 text-white px-6 py-4 rounded-xl hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 font-medium shadow-lg hover:shadow-xl"
+                >
+                  {isUpdatingClinic ? (
+                    <span className="flex items-center justify-center">
+                      <svg className="animate-spin -ml-1 mr-3 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      Saving...
+                    </span>
+                  ) : 'Save & Continue'}
                 </button>
               </div>
             </form>
@@ -297,28 +296,58 @@ const AdminDashboard = () => {
         </div>
       )}
 
-      {/* OTP Modal */}
       {showVerificationModal && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-          <div className="bg-white w-full max-w-md rounded-xl p-6 shadow-lg">
-            <h3 className="text-lg font-semibold text-gray-900">Enter verification code</h3>
-            <p className="text-sm text-gray-600 mt-1">A 6-digit code was sent to your registered phone.</p>
-            <form onSubmit={handleVerifyOTP} className="mt-4">
-              <input
-                type="text"
-                value={verificationCode}
-                onChange={(e) => setVerificationCode(e.target.value)}
-                placeholder="123456"
-                maxLength={6}
-                className="w-full p-2.5 border rounded-lg text-center tracking-widest focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                required
-              />
-              <div className="mt-4 flex items-center justify-end gap-3">
-                <button type="button" onClick={() => setShowVerificationModal(false)} className="px-4 py-2 text-sm rounded-lg border">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center p-4 z-50 animate-fadeIn">
+          <div className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl transform animate-slideUp">
+            <div className="text-center mb-8">
+              <div className="mx-auto w-20 h-20 bg-emerald-100 rounded-full flex items-center justify-center mb-6">
+                <CheckCircleIcon className="h-10 w-10 text-emerald-600" />
+              </div>
+              <h3 className="text-2xl font-bold text-gray-900 mb-3">Enter Verification Code</h3>
+              <p className="text-gray-600 leading-relaxed">
+                We've sent a 6-digit verification code to your registered phone number
+              </p>
+            </div>
+            <form onSubmit={handleVerifyOTP}>
+              <div className="mb-8">
+                <input
+                  type="text"
+                  value={verificationCode}
+                  onChange={(e) => setVerificationCode(e.target.value)}
+                  className="w-full px-6 py-6 text-center text-3xl font-mono border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-emerald-500/20 focus:border-emerald-500 tracking-widest transition-all duration-200"
+                  placeholder="000000"
+                  maxLength="6"
+                  required
+                />
+                <p className="text-center text-sm text-gray-500 mt-4">
+                  Enter the 6-digit code sent to your phone
+                </p>
+              </div>
+              <div className="flex space-x-4">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowVerificationModal(false);
+                    setVerificationCode('');
+                  }}
+                  className="flex-1 px-6 py-4 border-2 border-gray-200 text-gray-700 rounded-xl hover:bg-gray-50 hover:border-gray-300 transition-all duration-200 font-medium"
+                >
                   Cancel
                 </button>
-                <button type="submit" disabled={verifyingOTP || sendingOTP} className="px-4 py-2 text-sm rounded-lg bg-indigo-600 text-white disabled:bg-indigo-300">
-                  {verifyingOTP ? 'Verifying...' : 'Verify'}
+                <button
+                  type="submit"
+                  disabled={verifyingOTP}
+                  className="flex-1 bg-emerald-600 text-white px-6 py-4 rounded-xl hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 font-medium shadow-lg hover:shadow-xl"
+                >
+                  {verifyingOTP ? (
+                    <span className="flex items-center justify-center">
+                      <svg className="animate-spin -ml-1 mr-3 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      Verifying...
+                    </span>
+                  ) : 'Verify Code'}
                 </button>
               </div>
             </form>
@@ -326,7 +355,37 @@ const AdminDashboard = () => {
         </div>
       )}
     </div>
-  );
+
+    <style jsx>{`
+      @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+      }
+      
+      @keyframes slideUp {
+        from { 
+          opacity: 0;
+          transform: translateY(20px) scale(0.95);
+        }
+        to { 
+          opacity: 1;
+          transform: translateY(0) scale(1);
+        }
+      }
+      
+      .animate-fadeIn {
+        animation: fadeIn 0.2s ease-out;
+      }
+      
+      .animate-slideUp {
+        animation: slideUp 0.3s ease-out;
+      }
+    `}</style>
+  </div>
+);
+
+
+  
 };
 
 export default AdminDashboard;

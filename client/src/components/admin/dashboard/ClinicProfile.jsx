@@ -1,20 +1,29 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import {
-  PhoneIcon, MapPinIcon, GlobeAltIcon, EnvelopeIcon,
-  PhotoIcon, UserGroupIcon, CheckBadgeIcon, PencilSquareIcon, BuildingOfficeIcon, ClockIcon
+import { 
+  PhoneIcon, 
+  MapPinIcon, 
+  GlobeAltIcon, 
+  EnvelopeIcon, 
+  PhotoIcon, 
+  UserGroupIcon, 
+  CheckBadgeIcon, 
+  PencilSquareIcon, 
+  BuildingOfficeIcon, 
+  ClockIcon 
 } from '@heroicons/react/24/outline';
 
 const Section = ({ title, cta, onCta, children }) => (
-  <div className="p-6">
-    <div className="flex items-center justify-between mb-3">
+  <div className="border-b border-gray-100 last:border-b-0 py-6 first:pt-0 last:pb-0">
+    <div className="flex items-center justify-between mb-4">
       <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
       {cta && (
         <button
           onClick={onCta}
-          className="inline-flex items-center gap-1.5 text-sm font-semibold text-indigo-600 hover:text-indigo-800"
+          className="text-gray-600 hover:text-gray-900 text-sm font-medium flex items-center space-x-1 transition-colors duration-200"
         >
-          <PencilSquareIcon className="h-4 w-4" /> {cta}
+          <span>{cta}</span>
+          <PencilSquareIcon className="h-4 w-4" />
         </button>
       )}
     </div>
@@ -22,197 +31,291 @@ const Section = ({ title, cta, onCta, children }) => (
   </div>
 );
 
-const TimePill = ({ label }) => (
-  <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800 ring-1 ring-gray-200">
-    {label}
-  </span>
-);
-
-const DayRow = ({ day, data }) => {
-  const cap = day.charAt(0).toUpperCase() + day.slice(1);
-  return (
-    <div className="flex items-center justify-between text-sm">
-      <span className="text-gray-700">{cap}</span>
-      {data?.isClosed ? (
-        <span className="text-gray-400">Closed</span>
-      ) : (
-        <div className="flex items-center gap-2">
-          <TimePill label={data?.open || '--:--'} />
-          <span className="text-gray-400">to</span>
-          <TimePill label={data?.close || '--:--'} />
-        </div>
-      )}
-    </div>
-  );
-};
-
 const ClinicProfile = ({ clinicData, doctors }) => {
   const navigate = useNavigate();
 
   if (!clinicData) {
     return (
-      <div className="p-10 text-center">
-        <BuildingOfficeIcon className="h-16 w-16 mx-auto text-gray-300" />
-        <h3 className="mt-3 text-lg font-semibold text-gray-900">No clinic profile yet</h3>
-        <p className="text-gray-600 mt-1">Create your clinic to start managing details.</p>
-        <button
-          onClick={() => navigate('/admin/update-clinic')}
-          className="mt-5 inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-500"
-        >
-          <PencilSquareIcon className="h-4 w-4" /> Setup Clinic
-        </button>
+      <div className="p-6">
+        <div className="text-center py-12">
+          <div className="mx-auto w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+            <BuildingOfficeIcon className="h-8 w-8 text-gray-400" />
+          </div>
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">No Clinic Setup</h3>
+          <p className="text-gray-600 mb-6">Create your clinic to start managing details.</p>
+          <button
+            onClick={() => navigate('/admin/update-clinic')}
+            className="bg-gray-900 hover:bg-gray-800 text-white px-6 py-3 rounded-lg font-medium transition-colors duration-200"
+          >
+            Setup Clinic
+          </button>
+        </div>
       </div>
     );
   }
 
-  const {
-    name, description, logo, photos = [], googleMapsLink, isVerified,
-    gstNumber, gstName, address, contact, facilities = [], openingHours = {}
+  // Extract data properly from your clinic data structure
+  const { 
+    name, 
+    description, 
+    contact = {}, // Default to empty object if contact doesn't exist
+    address, 
+    operatingHours, 
+    photos, 
+    facilities, 
+    gstNumber, 
+    gstName,
+    googleMapsLink,
+    isVerified
   } = clinicData;
 
-  const days = ['monday','tuesday','wednesday','thursday','friday','saturday','sunday'];
+  // Extract contact details from the nested contact object
+  const { phone, email, website } = contact;
+
+  // Helper function to format address
+  const formatAddress = (addressData) => {
+    if (!addressData) return 'Address not provided';
+    
+    // If address is a string, return it directly
+    if (typeof addressData === 'string') {
+      return addressData;
+    }
+    
+    // If address is an object, format it properly
+    if (typeof addressData === 'object') {
+      const { formattedAddress, city, state, zipCode, country } = addressData;
+      
+      // Use formattedAddress if available
+      if (formattedAddress) {
+        return formattedAddress;
+      }
+      
+      // Otherwise, construct from available parts
+      const parts = [];
+      if (city) parts.push(city);
+      if (state) parts.push(state);
+      if (zipCode) parts.push(zipCode);
+      if (country) parts.push(country);
+      
+      return parts.length > 0 ? parts.join(', ') : 'Address not provided';
+    }
+    
+    return 'Address not provided';
+  };
+
+  // Helper function to format facilities
+  const formatFacilities = (facilitiesData) => {
+    if (!facilitiesData || !Array.isArray(facilitiesData)) return [];
+    
+    // Handle case where facilities might be stored as stringified array
+    return facilitiesData.filter(facility => {
+      // Remove any empty strings or invalid entries like '[]'
+      return facility && facility !== '[]' && typeof facility === 'string';
+    });
+  };
+
+  const formattedFacilities = formatFacilities(facilities);
 
   return (
-    <div className="divide-y divide-gray-100">
-      {/* Header */}
-      <div className="p-6 flex flex-col md:flex-row md:items-center gap-4">
-        <img
-          src={logo || 'https://via.placeholder.com/96'}
-          alt="Clinic Logo"
-          className="h-20 w-20 rounded-xl object-cover ring-1 ring-gray-200"
-        />
-        <div className="flex-1">
-          <div className="flex items-center gap-2">
-            <h2 className="text-2xl font-bold text-gray-900">{name || 'Clinic name'}</h2>
-            {isVerified && <CheckBadgeIcon className="h-6 w-6 text-green-600" />}
-          </div>
-          <p className="text-gray-600 mt-1">{description || 'Add a brief clinic description for patients.'}</p>
-        </div>
-        <button
-          onClick={() => navigate('/admin/update-clinic')}
-          className="inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-200 hover:bg-gray-50"
-        >
-          <PencilSquareIcon className="h-4 w-4" />
-          Edit Clinic
-        </button>
-      </div>
-
-      {/* Contact & Location */}
-      <Section title="Contact & Location" cta="Edit" onCta={() => navigate('/admin/update-clinic')}>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-700">
-          <p className="flex items-start">
-            <MapPinIcon className="h-4 w-4 mr-2 text-gray-400 mt-0.5" />
-            {address?.formattedAddress || 'Add full address'}
-          </p>
-          <p className="flex items-center">
-            <PhoneIcon className="h-4 w-4 mr-2 text-gray-400" />
-            {contact?.phone || 'Add phone number'}
-          </p>
-          <p className="flex items-center">
-            <EnvelopeIcon className="h-4 w-4 mr-2 text-gray-400" />
-            {contact?.email || 'Add email'}
-          </p>
-          <p className="flex items-center">
-            <GlobeAltIcon className="h-4 w-4 mr-2 text-gray-400" />
-            {contact?.website ? (
-              <span className="text-indigo-600">{contact.website}</span>
-            ) : 'Add website'}
-          </p>
-          {googleMapsLink && (
-            <p className="flex items-center col-span-full">
-              <MapPinIcon className="h-4 w-4 mr-2 text-gray-400" />
-              <span className="text-indigo-600">Google Maps added</span>
+    <div className="p-6">
+      {/* Clinic Basic Info */}
+      <Section 
+        title="Clinic Information" 
+        cta="Edit Details" 
+        onCta={() => navigate('/admin/update-clinic')}
+      >
+        <div className="space-y-4">
+          {/* Clinic Name & Description */}
+          <div>
+            <div className="flex items-center space-x-2 mb-2">
+              <h2 className="text-2xl font-bold text-gray-900">
+                {name || 'Clinic Name Not Set'}
+              </h2>
+              {isVerified && (
+                <CheckBadgeIcon className="h-6 w-6 text-green-500" title="Verified Clinic" />
+              )}
+            </div>
+            <p className="text-gray-600 leading-relaxed">
+              {description || 'Add a brief clinic description for patients.'}
             </p>
+          </div>
+
+          {/* Contact Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6">
+            <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
+              <PhoneIcon className="h-5 w-5 text-gray-500 flex-shrink-0" />
+              <span className="text-gray-900">{phone || 'Not provided'}</span>
+            </div>
+            
+            <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
+              <EnvelopeIcon className="h-5 w-5 text-gray-500 flex-shrink-0" />
+              <span className="text-gray-900">{email || 'Not provided'}</span>
+            </div>
+            
+            <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg sm:col-span-2">
+              <MapPinIcon className="h-5 w-5 text-gray-500 flex-shrink-0" />
+              <span className="text-gray-900">{formatAddress(address)}</span>
+            </div>
+            
+            {website && (
+              <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
+                <GlobeAltIcon className="h-5 w-5 text-gray-500 flex-shrink-0" />
+                <span className="text-gray-900">{website}</span>
+              </div>
+            )}
+
+            {googleMapsLink && (
+              <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg sm:col-span-2">
+                <MapPinIcon className="h-5 w-5 text-blue-500 flex-shrink-0" />
+                <a 
+                  href={googleMapsLink} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-blue-600 hover:text-blue-800 truncate"
+                >
+                  View on Google Maps
+                </a>
+              </div>
+            )}
+          </div>
+        </div>
+      </Section>
+
+      {/* Operating Hours */}
+      <Section title="Operating Hours">
+        <div className="bg-gray-50 rounded-lg p-4">
+          <div className="flex items-center space-x-2 text-gray-600">
+            <ClockIcon className="h-5 w-5" />
+            <span className="font-medium">Weekly Schedule</span>
+          </div>
+          <div className="mt-3 space-y-2">
+            {operatingHours ? (
+              Object.entries(operatingHours).map(([day, hours]) => (
+                <div key={day} className="flex justify-between items-center text-sm">
+                  <span className="font-medium text-gray-900 capitalize">{day}</span>
+                  <span className="text-gray-600">
+                    {hours.isOpen ? `${hours.openTime} - ${hours.closeTime}` : 'Closed'}
+                  </span>
+                </div>
+              ))
+            ) : (
+              <p className="text-gray-500 text-sm">No schedule set</p>
+            )}
+          </div>
+        </div>
+      </Section>
+
+      {/* Photos Section */}
+      <Section title="Clinic Photos" cta="Manage Photos" onCta={() => navigate('/admin/update-clinic')}>
+        <div className="bg-gray-50 rounded-lg p-4">
+          <div className="flex items-center space-x-2 text-gray-600 mb-3">
+            <PhotoIcon className="h-5 w-5" />
+            <span className="font-medium">Gallery</span>
+          </div>
+          
+          {photos && photos.length > 0 ? (
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+              {photos.map((photo, index) => (
+                <div key={index} className="relative">
+                  <img
+                    src={photo.url}
+                    alt={photo.caption || `Clinic photo ${index + 1}`}
+                    className="w-full h-24 object-cover rounded-lg border border-gray-200"
+                  />
+                  {photo.caption && (
+                    <p className="text-xs text-gray-600 mt-1 truncate">{photo.caption}</p>
+                  )}
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-8">
+              <PhotoIcon className="mx-auto h-12 w-12 text-gray-300 mb-3" />
+              <p className="text-gray-500 text-sm">No photos yet. Add photos to showcase your clinic.</p>
+            </div>
           )}
         </div>
       </Section>
 
-      {/* Opening Hours (restored) */}
-      <Section title="Opening Hours" cta="Edit" onCta={() => navigate('/admin/update-clinic')}>
-        <div className="bg-gray-50 rounded-2xl p-4 ring-1 ring-gray-100">
-          <div className="flex items-center gap-2 mb-3">
-            <ClockIcon className="h-5 w-5 text-gray-500" />
-            <p className="text-sm text-gray-600">Weekly schedule</p>
+      {/* Doctors Section */}
+      <Section title="Doctors" cta="Manage Doctors" onCta={() => navigate('/admin/doctors')}>
+        <div className="bg-gray-50 rounded-lg p-4">
+          <div className="flex items-center space-x-2 text-gray-600 mb-3">
+            <UserGroupIcon className="h-5 w-5" />
+            <span className="font-medium">Medical Staff</span>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            {['monday','tuesday','wednesday','thursday','friday','saturday','sunday'].map((d) => (
-              <div key={d} className="bg-white rounded-xl p-3 ring-1 ring-gray-200">
-                <DayRow day={d} data={openingHours[d]} />
-              </div>
-            ))}
-          </div>
+          
+          {doctors && doctors.length > 0 ? (
+            <div className="space-y-3">
+              {doctors.map((doctor, index) => (
+                <div key={index} className="flex items-center space-x-3 p-3 bg-white rounded-lg border border-gray-200">
+                  <div className="flex-shrink-0">
+                    {doctor.profileImage ? (
+                      <img
+                        src={doctor.profileImage}
+                        alt={`Dr. ${doctor.firstName} ${doctor.lastName}`}
+                        className="w-10 h-10 rounded-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
+                        <UserGroupIcon className="h-5 w-5 text-gray-500" />
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-gray-900">
+                      Dr. {doctor.firstName} {doctor.lastName}
+                    </p>
+                    <p className="text-sm text-gray-500">
+                      {doctor.specialization || 'General Practice'}
+                    </p>
+                  </div>
+                  {doctor.isVerified && (
+                    <CheckBadgeIcon className="h-5 w-5 text-green-500 flex-shrink-0" />
+                  )}
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-8">
+              <UserGroupIcon className="mx-auto h-12 w-12 text-gray-300 mb-3" />
+              <p className="text-gray-500 text-sm">No doctors added yet.</p>
+            </div>
+          )}
         </div>
       </Section>
 
-      {/* Photos */}
-      <Section title="Clinic Photos" cta="Manage" onCta={() => navigate('/admin/update-clinic')}>
-        {photos.length > 0 ? (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
-            {photos.map((p, i) => (
-              <img key={i} src={p} alt={`Clinic ${i + 1}`} className="h-28 w-full object-cover rounded-lg ring-1 ring-gray-200" />
-            ))}
-          </div>
-        ) : (
-          <p className="text-sm text-gray-500">No photos yet. Add photos to showcase your clinic.</p>
-        )}
-      </Section>
-
-      {/* Doctors */}
-      <Section title="Doctors" cta="Manage doctors" onCta={() => navigate('/admin/manage-doctor')}>
-        {doctors?.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {doctors.map((d) => (
-              
-              <div key={d._id} className="bg-gray-50 p-4 rounded-2xl flex items-center gap-3 ring-1 ring-gray-200">
-                {console.log('Doctor data:', d)}
-                <img
-                  src={d.profilePicture }
-                  alt={d.name}
-                  className="h-12 w-12 rounded-full object-cover"
-                />
-                <div>
-                  <p className="font-semibold text-gray-900">{d.firstName + ' ' + d.lastName}</p>
-                  <p className="text-xs text-gray-600">{d.specialization || 'General Practice'}</p>
+      {/* Facilities Section */}
+      <Section title="Facilities & Services" cta="Update Facilities" onCta={() => navigate('/admin/update-clinic')}>
+        <div className="bg-gray-50 rounded-lg p-4">
+          {formattedFacilities.length > 0 ? (
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+              {formattedFacilities.map((facility, index) => (
+                <div key={index} className="flex items-center space-x-2 p-2 bg-white rounded border border-gray-200">
+                  <CheckBadgeIcon className="h-4 w-4 text-green-500 flex-shrink-0" />
+                  <span className="text-sm text-gray-700">{facility}</span>
                 </div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="flex items-center justify-between bg-indigo-50 border border-indigo-100 p-4 rounded-xl">
-            <p className="text-sm text-indigo-800">No doctors added yet.</p>
-            <button
-              onClick={() => navigate('/admin/manage-doctor')}
-              className="inline-flex items-center gap-1.5 rounded-md bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-indigo-500"
-            >
-              <UserGroupIcon className="h-4 w-4" /> Add & Manage
-            </button>
-          </div>
-        )}
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-8">
+              <BuildingOfficeIcon className="mx-auto h-12 w-12 text-gray-300 mb-3" />
+              <p className="text-gray-500 text-sm">No facilities listed. Add facilities to improve discovery.</p>
+            </div>
+          )}
+        </div>
       </Section>
 
-      {/* Facilities */}
-      <Section title="Facilities & Amenities" cta="Edit" onCta={() => navigate('/admin/update-clinic')}>
-        {facilities.length > 0 ? (
-          <div className="flex flex-wrap gap-2">
-            {facilities.map((f, i) => (
-              <span key={i} className="bg-indigo-50 text-indigo-800 text-xs font-medium px-2.5 py-1 rounded-full ring-1 ring-indigo-200">{f}</span>
-            ))}
+      {/* GST Information */}
+      <Section title="GST Information" cta="Update GST" onCta={() => navigate('/admin/update-clinic')}>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="bg-gray-50 rounded-lg p-4">
+            <h4 className="text-sm font-medium text-gray-700 mb-2">GST Number</h4>
+            <p className="text-gray-900">{gstNumber || 'Not added'}</p>
           </div>
-        ) : (
-          <p className="text-sm text-gray-500">No facilities listed. Add facilities to improve discovery.</p>
-        )}
-      </Section>
-
-      {/* GST */}
-      <Section title="GST Details" cta="Edit" onCta={() => navigate('/admin/update-clinic')}>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm text-gray-700">
-          <div>
-            <p className="text-gray-500">GST Number</p>
-            <p className="font-medium">{gstNumber || 'Not added'}</p>
-          </div>
-          <div>
-            <p className="text-gray-500">GST Name</p>
-            <p className="font-medium">{gstName || 'Not added'}</p>
+          <div className="bg-gray-50 rounded-lg p-4">
+            <h4 className="text-sm font-medium text-gray-700 mb-2">GST Name</h4>
+            <p className="text-gray-900">{gstName || 'Not added'}</p>
           </div>
         </div>
       </Section>
