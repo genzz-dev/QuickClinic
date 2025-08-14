@@ -323,7 +323,7 @@ const handleClinicHover = async (clinicId) => {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div className="px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex items-center space-x-2">
             <MapPin className="h-6 w-6 text-blue-600" />
             <h1 className="text-2xl font-bold text-gray-900">Nearby Clinics</h1>
@@ -334,7 +334,7 @@ const handleClinicHover = async (clinicId) => {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex flex-col md:flex-row gap-6">
           <ClinicFilters 
             specializations={availableFilters.specializations}

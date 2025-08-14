@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Search, MapPin, Star, DollarSign, Filter, X, User, Building, ArrowLeft, Clock } from 'lucide-react';
 import { searchDoctors, searchClinics } from '../../service/publicapi';
-import Loading from '../ui/Loading';
 
 const SearchResultsPage = () => {
   const [searchParams] = useSearchParams();
@@ -277,9 +276,9 @@ const ClinicCard = ({ clinic }) => (
     onClick={() => handleClinicClick(clinic)}
   >
     <div className="flex items-start space-x-4">
-      <div className="flex-shrink-0">
-        <div className="w-16 h-16 bg-gradient-to-br from-green-50 to-green-100 rounded-full flex items-center justify-center border-2 border-green-100">
-          <Building className="w-8 h-8 text-green-600" />
+      <div className="flex">
+        <div className="w-16 h-16 bg-gradient-to-br from-green-50 to-green-100  flex items-center justify-center border-2 border-green-100">
+          <img src={clinic.logo} alt={clinic.name} />
         </div>
       </div>
       
@@ -420,7 +419,12 @@ const ClinicCard = ({ clinic }) => (
 
         {/* Loading State */}
         {isLoading && (
-          <Loading/>
+          <div className="flex justify-center items-center py-16">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-600 border-t-transparent mx-auto mb-4"></div>
+              <p className="text-gray-500">Searching...</p>
+            </div>
+          </div>
         )}
 
         {/* Empty State */}

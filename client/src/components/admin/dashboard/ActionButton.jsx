@@ -1,40 +1,40 @@
 import React from 'react';
 import { ArrowRightIcon } from '@heroicons/react/24/outline';
 
-const ActionButton = ({ title, description, icon: Icon, onClick, variant = 'primary' }) => {
+const ActionButton = ({ icon: Icon, title, description, onClick, variant = "secondary", loading = false }) => {
   const variants = {
-    primary: 'bg-gradient-to-r from-gray-900 to-gray-800 hover:from-gray-800 hover:to-gray-700 text-white border-gray-700',
-    secondary: 'bg-white hover:bg-gray-50 text-gray-900 border-gray-200 shadow-sm',
-    success: 'bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white border-emerald-600'
+    primary: "bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-lg hover:shadow-xl",
+    secondary: "bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 hover:border-slate-300 shadow-sm hover:shadow-md",
+    accent: "bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white shadow-lg hover:shadow-xl"
   };
 
   return (
     <button
       onClick={onClick}
-      className={`
-        group relative w-full p-6 rounded-xl border-2 transition-all duration-300 
-        hover:scale-[1.02] hover:shadow-xl active:scale-[0.98]
-        ${variants[variant]}
-      `}
+      disabled={loading}
+      className={`w-full p-4 rounded-xl transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] ${variants[variant]} disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none group`}
     >
-      <div className="flex items-center justify-between">
-        <div className="flex items-start space-x-4">
-          {Icon && (
-            <div className="flex-shrink-0">
-              <div className="p-3 rounded-lg bg-white/10 backdrop-blur-sm">
-                <Icon className="h-6 w-6" />
-              </div>
-            </div>
+      <div className="flex items-center space-x-4">
+        <div className={`p-2 rounded-lg ${variant === 'primary' || variant === 'accent' ? 'bg-white bg-opacity-20' : 'bg-slate-100'}`}>
+          {loading ? (
+            <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
+          ) : (
+            <Icon className={`h-5 w-5 ${variant === 'primary' || variant === 'accent' ? 'text-white' : 'text-slate-600'} group-hover:scale-110 transition-transform duration-200`} />
           )}
-          <div className="text-left">
-            <h3 className="font-semibold text-lg mb-1">{title}</h3>
-            <p className="text-sm opacity-80 leading-relaxed">{description}</p>
-          </div>
         </div>
-        <ArrowRightIcon className="h-5 w-5 opacity-60 group-hover:opacity-100 group-hover:translate-x-1 transition-all duration-200" />
+        <div className="flex-1 text-left">
+          <h3 className="font-semibold text-sm mb-1 group-hover:translate-x-1 transition-transform duration-200">
+            {title}
+          </h3>
+          <p className={`text-xs opacity-80 ${variant === 'primary' || variant === 'accent' ? 'text-white' : 'text-slate-500'}`}>
+            {description}
+          </p>
+        </div>
+        <ArrowRightIcon className={`h-4 w-4 opacity-60 group-hover:opacity-100 group-hover:translate-x-1 transition-all duration-200 ${variant === 'primary' || variant === 'accent' ? 'text-white' : 'text-slate-400'}`} />
       </div>
     </button>
   );
 };
+
 
 export default ActionButton;

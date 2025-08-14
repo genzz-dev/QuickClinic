@@ -4,7 +4,7 @@ import { Star, CheckCircle, Activity } from 'lucide-react';
 const FeaturedDoctors = ({ doctors, navigate }) => {
   return (
     <section className="py-16 bg-white">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="px-4 sm:px-6 lg:px-8">
         <div className="text-center space-y-4 mb-12">
           <h2 className="text-3xl font-bold text-gray-900">Featured Healthcare Professionals</h2>
           <p className="text-gray-600">Experienced and verified medical practitioners</p>
