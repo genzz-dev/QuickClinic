@@ -12,7 +12,7 @@ const FiltersPanel = ({
   return (
     showFilters && (
       <div className="bg-white/80 backdrop-blur-sm border-b border-blue-100 shadow-lg">
-        <div className="max-w-7xl mx-auto p-6">
+        <div className="p-6">
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-xl font-bold text-gray-900">Refine Your Search</h3>
             <div className="flex items-center gap-4">
