@@ -1,194 +1,221 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom'; 
+import { useNavigate } from 'react-router-dom';
 import {
-  PhoneIcon, MapPinIcon, GlobeAltIcon, EnvelopeIcon, ClockIcon,
-  BuildingStorefrontIcon, PhotoIcon, UserGroupIcon, CheckBadgeIcon,
-  ExclamationTriangleIcon, PencilSquareIcon
+  PhoneIcon, MapPinIcon, GlobeAltIcon, EnvelopeIcon,
+  PhotoIcon, UserGroupIcon, CheckBadgeIcon, PencilSquareIcon, BuildingOfficeIcon, ClockIcon
 } from '@heroicons/react/24/outline';
 
+const Section = ({ title, cta, onCta, children }) => (
+  <div className="p-6">
+    <div className="flex items-center justify-between mb-3">
+      <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
+      {cta && (
+        <button
+          onClick={onCta}
+          className="inline-flex items-center gap-1.5 text-sm font-semibold text-indigo-600 hover:text-indigo-800"
+        >
+          <PencilSquareIcon className="h-4 w-4" /> {cta}
+        </button>
+      )}
+    </div>
+    {children}
+  </div>
+);
+
+const TimePill = ({ label }) => (
+  <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800 ring-1 ring-gray-200">
+    {label}
+  </span>
+);
+
+const DayRow = ({ day, data }) => {
+  const cap = day.charAt(0).toUpperCase() + day.slice(1);
+  return (
+    <div className="flex items-center justify-between text-sm">
+      <span className="text-gray-700">{cap}</span>
+      {data?.isClosed ? (
+        <span className="text-gray-400">Closed</span>
+      ) : (
+        <div className="flex items-center gap-2">
+          <TimePill label={data?.open || '--:--'} />
+          <span className="text-gray-400">to</span>
+          <TimePill label={data?.close || '--:--'} />
+        </div>
+      )}
+    </div>
+  );
+};
+
 const ClinicProfile = ({ clinicData, doctors }) => {
-  const navigate = useNavigate(); 
+  const navigate = useNavigate();
 
   if (!clinicData) {
     return (
-      <div className="flex items-center justify-center p-10 bg-gray-50 rounded-lg">
-        <p className="text-gray-500">No clinic data available to display.</p>
+      <div className="p-10 text-center">
+        <BuildingOfficeIcon className="h-16 w-16 mx-auto text-gray-300" />
+        <h3 className="mt-3 text-lg font-semibold text-gray-900">No clinic profile yet</h3>
+        <p className="text-gray-600 mt-1">Create your clinic to start managing details.</p>
+        <button
+          onClick={() => navigate('/admin/update-clinic')}
+          className="mt-5 inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-500"
+        >
+          <PencilSquareIcon className="h-4 w-4" /> Setup Clinic
+        </button>
       </div>
     );
   }
 
   const {
-    name, description, logo, photos, contact, address, openingHours,
-    facilities, isVerified, googleMapsLink, gstNumber, gstName
+    name, description, logo, photos = [], googleMapsLink, isVerified,
+    gstNumber, gstName, address, contact, facilities = [], openingHours = {}
   } = clinicData;
 
-  const handleUpdateClick = () => {
-    navigate('/admin/update-clinic'); // Step 3: Navigate on click
-  };
-  
-  const VerificationBadge = () => {
-    if (isVerified) {
-      return (
-        <span className="flex items-center gap-1 px-3 py-1 text-sm font-medium text-green-800 bg-green-100 rounded-full">
-          <CheckBadgeIcon className="w-5 h-5" />
-          Verified
-        </span>
-      );
-    }
-    return (
-      <span className="flex items-center gap-1 px-3 py-1 text-sm font-medium text-yellow-800 bg-yellow-100 rounded-full">
-        <ExclamationTriangleIcon className="w-5 h-5" />
-        Verification Required
-      </span>
-    );
-  };
-
-  const renderOpeningHours = () => {
-    const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
-    return days.map(day => {
-      const hours = openingHours?.[day];
-      const displayDay = day.charAt(0).toUpperCase() + day.slice(1);
-      
-      return (
-        <li key={day} className="flex justify-between items-center py-2 border-b border-gray-100 last:border-b-0">
-          <span className="text-gray-600">{displayDay}</span>
-          {hours?.isClosed || !hours?.open ? (
-            <span className="font-semibold text-red-500">Closed</span>
-          ) : (
-            <span className="font-semibold text-gray-800">{hours.open} – {hours.close}</span>
-          )}
-        </li>
-      );
-    });
-  };
+  const days = ['monday','tuesday','wednesday','thursday','friday','saturday','sunday'];
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 bg-gray-50 font-sans">
-      <div className="max-w-7xl mx-auto">
-        {/* Header Section */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8 p-6 bg-white rounded-xl shadow-md">
-          <div className="flex items-center gap-6">
-            <img
-              className="w-24 h-24 sm:w-28 sm:h-28 rounded-full object-cover border-4 border-white shadow-lg"
-              src={logo || 'https://via.placeholder.com/150'}
-              alt={`${name} Logo`}
-            />
-            <div>
-              <h1 className="text-3xl sm:text-4xl font-bold text-gray-800">{name}</h1>
-              <p className="text-gray-500 mt-1">{description || 'No description provided.'}</p>
-            </div>
+    <div className="divide-y divide-gray-100">
+      {/* Header */}
+      <div className="p-6 flex flex-col md:flex-row md:items-center gap-4">
+        <img
+          src={logo || 'https://via.placeholder.com/96'}
+          alt="Clinic Logo"
+          className="h-20 w-20 rounded-xl object-cover ring-1 ring-gray-200"
+        />
+        <div className="flex-1">
+          <div className="flex items-center gap-2">
+            <h2 className="text-2xl font-bold text-gray-900">{name || 'Clinic name'}</h2>
+            {isVerified && <CheckBadgeIcon className="h-6 w-6 text-green-600" />}
           </div>
-          {/* --- MODIFICATION START --- */}
-          <div className="flex-shrink-0 flex items-center gap-4">
-             <VerificationBadge />
-             <button 
-                onClick={handleUpdateClick}
-                className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-indigo-600 rounded-lg shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
-             >
-                <PencilSquareIcon className="w-5 h-5" />
-                Update Clinic
-             </button>
-          </div>
-          {/* --- MODIFICATION END --- */}
+          <p className="text-gray-600 mt-1">{description || 'Add a brief clinic description for patients.'}</p>
         </div>
+        <button
+          onClick={() => navigate('/admin/update-clinic')}
+          className="inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-200 hover:bg-gray-50"
+        >
+          <PencilSquareIcon className="h-4 w-4" />
+          Edit Clinic
+        </button>
+      </div>
 
-        {/* Main Content Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2 space-y-8">
-            {/* Contact & Address Card */}
-            <div className="bg-white p-6 rounded-xl shadow-md">
-              <h2 className="text-2xl font-bold text-gray-800 mb-4">Contact & Location</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      {/* Contact & Location */}
+      <Section title="Contact & Location" cta="Edit" onCta={() => navigate('/admin/update-clinic')}>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-700">
+          <p className="flex items-start">
+            <MapPinIcon className="h-4 w-4 mr-2 text-gray-400 mt-0.5" />
+            {address?.formattedAddress || 'Add full address'}
+          </p>
+          <p className="flex items-center">
+            <PhoneIcon className="h-4 w-4 mr-2 text-gray-400" />
+            {contact?.phone || 'Add phone number'}
+          </p>
+          <p className="flex items-center">
+            <EnvelopeIcon className="h-4 w-4 mr-2 text-gray-400" />
+            {contact?.email || 'Add email'}
+          </p>
+          <p className="flex items-center">
+            <GlobeAltIcon className="h-4 w-4 mr-2 text-gray-400" />
+            {contact?.website ? (
+              <span className="text-indigo-600">{contact.website}</span>
+            ) : 'Add website'}
+          </p>
+          {googleMapsLink && (
+            <p className="flex items-center col-span-full">
+              <MapPinIcon className="h-4 w-4 mr-2 text-gray-400" />
+              <span className="text-indigo-600">Google Maps added</span>
+            </p>
+          )}
+        </div>
+      </Section>
+
+      {/* Opening Hours (restored) */}
+      <Section title="Opening Hours" cta="Edit" onCta={() => navigate('/admin/update-clinic')}>
+        <div className="bg-gray-50 rounded-2xl p-4 ring-1 ring-gray-100">
+          <div className="flex items-center gap-2 mb-3">
+            <ClockIcon className="h-5 w-5 text-gray-500" />
+            <p className="text-sm text-gray-600">Weekly schedule</p>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {['monday','tuesday','wednesday','thursday','friday','saturday','sunday'].map((d) => (
+              <div key={d} className="bg-white rounded-xl p-3 ring-1 ring-gray-200">
+                <DayRow day={d} data={openingHours[d]} />
+              </div>
+            ))}
+          </div>
+        </div>
+      </Section>
+
+      {/* Photos */}
+      <Section title="Clinic Photos" cta="Manage" onCta={() => navigate('/admin/update-clinic')}>
+        {photos.length > 0 ? (
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+            {photos.map((p, i) => (
+              <img key={i} src={p} alt={`Clinic ${i + 1}`} className="h-28 w-full object-cover rounded-lg ring-1 ring-gray-200" />
+            ))}
+          </div>
+        ) : (
+          <p className="text-sm text-gray-500">No photos yet. Add photos to showcase your clinic.</p>
+        )}
+      </Section>
+
+      {/* Doctors */}
+      <Section title="Doctors" cta="Manage doctors" onCta={() => navigate('/admin/manage-doctor')}>
+        {doctors?.length > 0 ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {doctors.map((d) => (
+              
+              <div key={d._id} className="bg-gray-50 p-4 rounded-2xl flex items-center gap-3 ring-1 ring-gray-200">
+                {console.log('Doctor data:', d)}
+                <img
+                  src={d.profilePicture }
+                  alt={d.name}
+                  className="h-12 w-12 rounded-full object-cover"
+                />
                 <div>
-                  <h3 className="font-semibold text-gray-500 mb-2">Contact Details</h3>
-                  <ul className="space-y-3 text-gray-700">
-                    <li className="flex items-center gap-3">
-                      <PhoneIcon className="w-5 h-5 text-indigo-500" />
-                      <span>{contact?.phone || 'Not available'}</span>
-                    </li>
-                    <li className="flex items-center gap-3">
-                      <EnvelopeIcon className="w-5 h-5 text-indigo-500" />
-                      <span>{contact?.email || 'Not available'}</span>
-                    </li>
-                    <li className="flex items-center gap-3">
-                      <GlobeAltIcon className="w-5 h-5 text-indigo-500" />
-                      {contact?.website ? (
-                        <a href={contact.website} target="_blank" rel="noopener noreferrer" className="text-indigo-600 hover:underline">{contact.website}</a>
-                      ) : 'Not available'}
-                    </li>
-                  </ul>
-                </div>
-                <div>
-                  <h3 className="font-semibold text-gray-500 mb-2">Address</h3>
-                  <div className="flex items-start gap-3 text-gray-700">
-                    <MapPinIcon className="w-5 h-5 text-indigo-500 flex-shrink-0 mt-1" />
-                    <div>
-                      <p>{address?.formattedAddress || 'Address not provided'}</p>
-                      {googleMapsLink && (
-                        <a href={googleMapsLink} target="_blank" rel="noopener noreferrer" className="text-sm text-indigo-600 hover:underline font-semibold mt-1 inline-block">
-                          View on Google Maps
-                        </a>
-                      )}
-                    </div>
-                  </div>
-                   <div className="mt-4 pt-4 border-t border-gray-200">
-                     <h3 className="font-semibold text-gray-500 mb-2">GST Information</h3>
-                     <p className="text-gray-700"><span className="font-medium">Number:</span> {gstNumber || 'N/A'}</p>
-                     <p className="text-gray-700"><span className="font-medium">Name:</span> {gstName || 'N/A'}</p>
-                   </div>
+                  <p className="font-semibold text-gray-900">{d.firstName + ' ' + d.lastName}</p>
+                  <p className="text-xs text-gray-600">{d.specialization || 'General Practice'}</p>
                 </div>
               </div>
-            </div>
-
-            {/* Photo Gallery */}
-            <div className="bg-white p-6 rounded-xl shadow-md">
-              <h2 className="text-2xl font-bold text-gray-800 mb-4 flex items-center gap-3"><PhotoIcon className="w-6 h-6" /> Gallery</h2>
-              {photos && photos.length > 0 ? (
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-                  {photos.map((photo, index) => (
-                    <img key={index} src={photo} alt={`Clinic Photo ${index + 1}`} className="w-full h-32 object-cover rounded-lg shadow-sm hover:scale-105 transition-transform duration-300" />
-                  ))}
-                </div>
-              ) : <p className="text-gray-500">No photos have been uploaded.</p>}
-            </div>
-
-             {/* Doctors Section */}
-            <div className="bg-white p-6 rounded-xl shadow-md">
-                <h2 className="text-2xl font-bold text-gray-800 mb-4 flex items-center gap-3"><UserGroupIcon className="w-6 h-6" /> Our Doctors</h2>
-                {doctors && doctors.length > 0 ? (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                        {doctors.map(doctor => (
-                            <div key={doctor._id} className="bg-gray-50 p-4 rounded-lg text-center shadow-sm">
-                                <h4 className="font-bold text-gray-800">{`Dr. ${doctor.firstName} ${doctor.lastName}`}</h4>
-                                <p className="text-sm text-indigo-600">{doctor.specialization || 'General Practice'}</p>
-                            </div>
-                        ))}
-                    </div>
-                ) : <p className="text-gray-500">No doctors are associated with this clinic yet.</p>}
-            </div>
+            ))}
           </div>
+        ) : (
+          <div className="flex items-center justify-between bg-indigo-50 border border-indigo-100 p-4 rounded-xl">
+            <p className="text-sm text-indigo-800">No doctors added yet.</p>
+            <button
+              onClick={() => navigate('/admin/manage-doctor')}
+              className="inline-flex items-center gap-1.5 rounded-md bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-indigo-500"
+            >
+              <UserGroupIcon className="h-4 w-4" /> Add & Manage
+            </button>
+          </div>
+        )}
+      </Section>
 
-          <div className="space-y-8">
-            {/* Opening Hours Card */}
-            <div className="bg-white p-6 rounded-xl shadow-md">
-              <h2 className="text-2xl font-bold text-gray-800 mb-4 flex items-center gap-3"><ClockIcon className="w-6 h-6" /> Opening Hours</h2>
-              <ul className="space-y-1">
-                {renderOpeningHours()}
-              </ul>
-            </div>
+      {/* Facilities */}
+      <Section title="Facilities & Amenities" cta="Edit" onCta={() => navigate('/admin/update-clinic')}>
+        {facilities.length > 0 ? (
+          <div className="flex flex-wrap gap-2">
+            {facilities.map((f, i) => (
+              <span key={i} className="bg-indigo-50 text-indigo-800 text-xs font-medium px-2.5 py-1 rounded-full ring-1 ring-indigo-200">{f}</span>
+            ))}
+          </div>
+        ) : (
+          <p className="text-sm text-gray-500">No facilities listed. Add facilities to improve discovery.</p>
+        )}
+      </Section>
 
-            {/* Facilities Card */}
-            <div className="bg-white p-6 rounded-xl shadow-md">
-              <h2 className="text-2xl font-bold text-gray-800 mb-4 flex items-center gap-3"><BuildingStorefrontIcon className="w-6 h-6" /> Facilities</h2>
-              {facilities && facilities.length > 0 ? (
-                <ul className="space-y-2 list-disc list-inside text-gray-700">
-                  {facilities.map((facility, index) => <li key={index}>{facility}</li>)}
-                </ul>
-              ) : <p className="text-gray-500">No facilities listed.</p>}
-            </div>
+      {/* GST */}
+      <Section title="GST Details" cta="Edit" onCta={() => navigate('/admin/update-clinic')}>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm text-gray-700">
+          <div>
+            <p className="text-gray-500">GST Number</p>
+            <p className="font-medium">{gstNumber || 'Not added'}</p>
+          </div>
+          <div>
+            <p className="text-gray-500">GST Name</p>
+            <p className="font-medium">{gstName || 'Not added'}</p>
           </div>
         </div>
-      </div>
+      </Section>
     </div>
   );
 };
