@@ -1,371 +1,557 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { FiPlus, FiTrash2, FiCalendar, FiX, FiLoader, FiAlertCircle } from 'react-icons/fi';
+import React, { useEffect, useState, useCallback, useMemo } from "react";
+import { FiPlus, FiTrash2, FiCalendar, FiX, FiLoader, FiAlertCircle } from "react-icons/fi";
 import {
-    getClinicDoctors,
-    addDoctor,
-    deleteDoctorFromClinic,
-    setDoctorSchedule,
-    getDoctorSchedule
-} from '../../service/adminApiService'
+  getClinicDoctors,
+  addDoctor,
+  deleteDoctorFromClinic,
+  setDoctorSchedule,
+  getDoctorSchedule
+} from "../../service/adminApiService"
 
-// Sub-component for the Schedule Modal
-const ScheduleModal = ({ isOpen, onClose, doctor, onSave }) => {
-    const [schedule, setSchedule] = useState({
-        workingDays: [],
-        appointmentDuration: 30
+const DAYS = ["monday","tuesday","wednesday","thursday","friday","saturday","sunday"];
+
+// Helpers
+const emptyWorkingWeek = () =>
+  DAYS.map(day => ({ day, isWorking: false, startTime: "09:00", endTime: "17:00" }));
+
+const defaultSchedule = () => ({
+  workingDays: emptyWorkingWeek(),
+  breaks: [], // { day, startTime, endTime, reason }
+  vacations: [], // { startDate, endDate, reason }
+  appointmentDuration: 30
+});
+
+function classNames(...c) { return c.filter(Boolean).join(" "); }
+
+// Tabs
+const Tabs = ({ tabs, current, onChange }) => (
+  <div className="border-b border-gray-200">
+    <nav className="-mb-px flex space-x-6" aria-label="Tabs">
+      {tabs.map(t => (
+        <button
+          key={t.key}
+          onClick={() => onChange(t.key)}
+          className={classNames(
+            current === t.key
+              ? "border-blue-600 text-blue-600"
+              : "border-transparent text-gray-600 hover:text-gray-800 hover:border-gray-300",
+            "whitespace-nowrap py-3 px-1 border-b-2 text-sm font-medium"
+          )}
+        >
+          {t.label}
+        </button>
+      ))}
+    </nav>
+  </div>
+);
+
+// Modal
+const ScheduleModal = ({ open, onClose, doctor, onSave }) => {
+  const [loading, setLoading] = useState(false);
+  const [schedule, setSchedule] = useState(defaultSchedule());
+  const [tab, setTab] = useState("days"); // 'days' | 'breaks' | 'vacations' | 'settings'
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    if (!open || !doctor) return;
+    setError("");
+    setLoading(true);
+    (async () => {
+      try {
+        const res = await getDoctorSchedule(doctor._id);
+        const data = res?.schedule || res; // support either shape
+        const existingDays = data?.workingDays || [];
+        const fullWeek = DAYS.map(day => {
+          const found = existingDays.find(d => d.day === day);
+          return found || { day, isWorking: false, startTime: "09:00", endTime: "17:00" };
+        });
+        setSchedule({
+          workingDays: fullWeek,
+          breaks: data?.breaks || [],
+          vacations: data?.vacations || [],
+          appointmentDuration: data?.appointmentDuration || 30
+        });
+      } catch (e) {
+        // If not found (404) or any issue, initialize empty schedule
+        setSchedule(defaultSchedule());
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, [open, doctor]);
+
+  const onToggleDay = (day) => {
+    setSchedule(prev => ({
+      ...prev,
+      workingDays: prev.workingDays.map(d => d.day === day ? { ...d, isWorking: !d.isWorking } : d)
+    }));
+  };
+
+  const onTimeChange = (day, field, value) => {
+    setSchedule(prev => ({
+      ...prev,
+      workingDays: prev.workingDays.map(d => d.day === day ? { ...d, [field]: value } : d)
+    }));
+  };
+
+  const addBreak = () => {
+    setSchedule(prev => ({
+      ...prev,
+      breaks: [...prev.breaks, { day: "monday", startTime: "13:00", endTime: "13:30", reason: "" }]
+    }));
+  };
+
+  const updateBreak = (idx, field, value) => {
+    setSchedule(prev => {
+      const next = [...prev.breaks];
+      next[idx] = { ...next[idx], [field]: value };
+      return { ...prev, breaks: next };
     });
-    const [isLoading, setIsLoading] = useState(true);
-    const [error, setError] = useState('');
+  };
 
-    const daysOfWeek = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+  const removeBreak = (idx) => {
+    setSchedule(prev => ({ ...prev, breaks: prev.breaks.filter((_, i) => i !== idx) }));
+  };
 
-    useEffect(() => {
-        if (isOpen && doctor) {
-            setIsLoading(true);
-            setError('');
-            const fetchSchedule = async () => {
-                try {
-                    const existingSchedule = await getDoctorSchedule(doctor._id);
-                    // Initialize full week schedule from fetched data or create new
-                    const fullWeekSchedule = daysOfWeek.map(dayName => {
-                        const dayData = existingSchedule.workingDays.find(d => d.day === dayName);
-                        return dayData || { day: dayName, isWorking: false, startTime: '09:00', endTime: '17:00' };
-                    });
-                    setSchedule({
-                        workingDays: fullWeekSchedule,
-                        appointmentDuration: existingSchedule.appointmentDuration || 30,
-                    });
-                } catch (e) {
-                     // If no schedule exists (404), create a default one
-                    if (e.response && e.response.status === 404) {
-                        setSchedule({
-                           workingDays: daysOfWeek.map(day => ({ day, isWorking: false, startTime: '09:00', endTime: '17:00' })),
-                           appointmentDuration: 30
-                        });
-                    } else {
-                        setError('Failed to load schedule. Please try again.');
-                        console.error("Error fetching schedule:", e);
-                    }
-                } finally {
-                    setIsLoading(false);
-                }
-            };
-            fetchSchedule();
-        }
-    }, [isOpen, doctor]);
+  const addVacation = () => {
+    setSchedule(prev => ({
+      ...prev,
+      vacations: [...prev.vacations, { startDate: "", endDate: "", reason: "" }]
+    }));
+  };
 
-    const handleDayChange = (day, field, value) => {
-        setSchedule(prev => ({
-            ...prev,
-            workingDays: prev.workingDays.map(d =>
-                d.day === day ? { ...d, [field]: value } : d
-            )
-        }));
-    };
+  const updateVacation = (idx, field, value) => {
+    setSchedule(prev => {
+      const next = [...prev.vacations];
+      next[idx] = { ...next[idx], [field]: value };
+      return { ...prev, vacations: next };
+    });
+  };
 
-    const handleDurationChange = (e) => {
-        setSchedule(prev => ({ ...prev, appointmentDuration: parseInt(e.target.value, 10) }));
-    };
+  const removeVacation = (idx) => {
+    setSchedule(prev => ({ ...prev, vacations: prev.vacations.filter((_, i) => i !== idx) }));
+  };
 
-    const handleSave = async () => {
-        // Filter out the days the doctor is not working before saving
-        const scheduleToSave = {
-            ...schedule,
-            workingDays: schedule.workingDays.filter(d => d.isWorking)
-        };
-        await onSave(doctor._id, scheduleToSave);
-    };
+  const validate = useCallback(() => {
+    // Working days
+    for (const d of schedule.workingDays) {
+      if (d.isWorking) {
+        if (!d.startTime || !d.endTime) return "All working days must have start and end times.";
+        if (d.startTime >= d.endTime) return "Start time must be before end time for working days.";
+      }
+    }
+    // Breaks
+    for (const b of schedule.breaks) {
+      if (!b.day || !b.startTime || !b.endTime) return "All breaks must have day, start, and end times.";
+      if (b.startTime >= b.endTime) return "Break start time must be before end time.";
+    }
+    // Vacations
+    for (const v of schedule.vacations) {
+      if (!v.startDate || !v.endDate) return "Vacations must have start and end dates.";
+      if (new Date(v.startDate) > new Date(v.endDate)) return "Vacation start must be before end date.";
+    }
+    // Duration
+    if (!schedule.appointmentDuration || schedule.appointmentDuration <= 0) {
+      return "Appointment duration must be a positive number.";
+    }
+    return "";
+  }, [schedule]);
 
-    return (
-        <AnimatePresence>
-            {isOpen && (
-                <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4"
-                >
-                    <motion.div
-                        initial={{ scale: 0.9, y: 20 }}
-                        animate={{ scale: 1, y: 0 }}
-                        exit={{ scale: 0.9, y: 20 }}
-                        className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col"
-                    >
-                        <header className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
-                            <h2 className="text-2xl font-bold text-gray-800 dark:text-white">
-                                Schedule for Dr. {doctor.firstName} {doctor.lastName}
-                            </h2>
-                            <button onClick={onClose} className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
-                                <FiX className="h-6 w-6 text-gray-600 dark:text-gray-300" />
-                            </button>
-                        </header>
+ const handleSave = async () => {
+  const msg = validate();
+  if (msg) {
+    setError(msg);
+    return;
+  }
+  setError("");
 
-                        <div className="p-6 overflow-y-auto">
-                            {isLoading ? (
-                                <div className="flex justify-center items-center h-40">
-                                    <FiLoader className="animate-spin h-8 w-8 text-blue-500" />
-                                </div>
-                            ) : error ? (
-                                <div className="text-red-500 bg-red-100 dark:bg-red-900/20 p-4 rounded-lg">{error}</div>
-                            ) : (
-                                <div className="space-y-6">
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                        {schedule.workingDays.map(({ day, isWorking, startTime, endTime }) => (
-                                            <div key={day} className={`p-4 rounded-lg transition-all ${isWorking ? 'bg-blue-50 dark:bg-blue-900/30' : 'bg-gray-100 dark:bg-gray-700/50'}`}>
-                                                <div className="flex items-center justify-between">
-                                                    <label htmlFor={`working-${day}`} className="text-lg font-semibold capitalize text-gray-700 dark:text-gray-200">{day}</label>
-                                                    <input
-                                                        type="checkbox"
-                                                        id={`working-${day}`}
-                                                        checked={isWorking}
-                                                        onChange={(e) => handleDayChange(day, 'isWorking', e.target.checked)}
-                                                        className="form-checkbox h-5 w-5 text-blue-600 rounded"
-                                                    />
-                                                </div>
-                                                <motion.div
-                                                    initial={false}
-                                                    animate={{ height: isWorking ? 'auto' : 0, opacity: isWorking ? 1 : 0 }}
-                                                    className="overflow-hidden"
-                                                >
-                                                    <div className="flex items-center space-x-2 mt-4">
-                                                        <input type="time" value={startTime} onChange={e => handleDayChange(day, 'startTime', e.target.value)} className="form-input w-full bg-white dark:bg-gray-600 border-gray-300 dark:border-gray-500 rounded-md" />
-                                                        <span>-</span>
-                                                        <input type="time" value={endTime} onChange={e => handleDayChange(day, 'endTime', e.target.value)} className="form-input w-full bg-white dark:bg-gray-600 border-gray-300 dark:border-gray-500 rounded-md" />
-                                                    </div>
-                                                </motion.div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                    <div>
-                                        <label htmlFor="duration" className="block text-lg font-semibold text-gray-700 dark:text-gray-200 mb-2">Appointment Duration (minutes)</label>
-                                        <input
-                                            id="duration"
-                                            type="number"
-                                            min="5"
-                                            step="5"
-                                            value={schedule.appointmentDuration}
-                                            onChange={handleDurationChange}
-                                            className="form-input w-full max-w-xs bg-white dark:bg-gray-600 border-gray-300 dark:border-gray-500 rounded-md"
-                                        />
-                                    </div>
-                                </div>
-                            )}
-                        </div>
+  const payload = {
+    workingDays: schedule.workingDays.filter(d => d.isWorking),
+    breaks: schedule.breaks,
+    vacations: schedule.vacations,
+    appointmentDuration: schedule.appointmentDuration
+  };
 
-                        <footer className="flex justify-end p-6 border-t border-gray-200 dark:border-gray-700 mt-auto">
-                            <button onClick={onClose} className="px-6 py-2 mr-4 text-gray-700 dark:text-gray-200 bg-transparent rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">Cancel</button>
-                            <button onClick={handleSave} className="px-6 py-2 text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors shadow-md flex items-center">
-                                <FiLoader className={`animate-spin mr-2 ${!isLoading ? 'hidden' : ''}`} />
-                                Save Changes
-                            </button>
-                        </footer>
-                    </motion.div>
-                </motion.div>
-            )}
-        </AnimatePresence>
-    );
+  try {
+    await onSave(doctor._id, payload); // pass raw object
+    onClose();
+  } catch (e) {
+    setError(e?.response?.data?.message || "Failed to save schedule.");
+  }
 };
 
-// Main Component
-const ManageDoctors = () => {
-    const [doctors, setDoctors] = useState([]);
-    const [isLoading, setIsLoading] = useState(true);
-    const [error, setError] = useState('');
-    const [newDoctorId, setNewDoctorId] = useState('');
-    const [isSubmitting, setIsSubmitting] = useState(false);
-    
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [selectedDoctor, setSelectedDoctor] = useState(null);
+  const tabs = useMemo(() => ([
+    { key: "days", label: "Working Days" },
+    { key: "breaks", label: "Breaks" },
+    { key: "vacations", label: "Vacations" },
+    { key: "settings", label: "Settings" }
+  ]), []);
 
-    const fetchDoctors = useCallback(async () => {
-        try {
-            setIsLoading(true);
-            const response = await getClinicDoctors();
-            setDoctors(response.doctors || []);
-            setError('');
-        } catch (err) {
-            console.error("Failed to fetch doctors:", err);
-            setError(err.response?.data?.message || 'Could not fetch doctors. The admin may not be associated with a clinic.');
-        } finally {
-            setIsLoading(false);
-        }
-    }, []);
+  if (!open || !doctor) return null;
 
-    useEffect(() => {
-        fetchDoctors();
-    }, [fetchDoctors]);
-
-    const handleAddDoctor = async (e) => {
-        e.preventDefault();
-        if (!newDoctorId.trim()) return;
-
-        setIsSubmitting(true);
-        setError('');
-        try {
-            await addDoctor(newDoctorId);
-            setNewDoctorId('');
-            await fetchDoctors(); // Refresh list
-        } catch (err) {
-            console.error("Failed to add doctor:", err);
-            setError(err.response?.data?.message || 'Failed to add doctor.');
-        } finally {
-            setIsSubmitting(false);
-        }
-    };
-
-    const handleDeleteDoctor = async (doctorId) => {
-        if (window.confirm('Are you sure you want to remove this doctor from the clinic?')) {
-            try {
-                await deleteDoctorFromClinic(doctorId);
-                await fetchDoctors(); // Refresh list
-            } catch (err) {
-                console.error("Failed to delete doctor:", err);
-                setError(err.response?.data?.message || 'Failed to delete doctor.');
-            }
-        }
-    };
-
-    const handleOpenScheduleModal = (doctor) => {
-        setSelectedDoctor(doctor);
-        setIsModalOpen(true);
-    };
-
-    const handleCloseModal = () => {
-        setIsModalOpen(false);
-        setSelectedDoctor(null);
-    };
-
-    const handleSaveSchedule = async (doctorId, scheduleData) => {
-        try {
-            await setDoctorSchedule(doctorId, scheduleData);
-            handleCloseModal();
-        } catch(err) {
-            console.error("Failed to save schedule", err);
-            alert(err.response?.data?.message || "Could not save schedule.");
-        }
-    };
-
-    const containerVariants = {
-        hidden: { opacity: 0 },
-        visible: {
-            opacity: 1,
-            transition: { staggerChildren: 0.05 }
-        }
-    };
-
-    const itemVariants = {
-        hidden: { y: 20, opacity: 0 },
-        visible: { y: 0, opacity: 1 }
-    };
-
-    return (
-        <div className="p-4 sm:p-6 md:p-8 bg-gray-50 dark:bg-gray-900 min-h-screen">
-            <motion.div
-                initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5 }}
-                className="max-w-7xl mx-auto"
-            >
-                <header className="mb-8">
-                    <h1 className="text-4xl font-extrabold text-gray-800 dark:text-white tracking-tight">Manage Doctors</h1>
-                    <p className="mt-2 text-lg text-gray-500 dark:text-gray-400">Add, remove, and configure schedules for doctors in your clinic.</p>
-                </header>
-
-                {error && (
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded-md mb-6 dark:bg-red-900/20 dark:text-red-300 flex items-center"
-                        role="alert"
-                    >
-                        <FiAlertCircle className="mr-3 h-5 w-5"/>
-                        <p>{error}</p>
-                    </motion.div>
-                )}
-
-                {/* Add Doctor Form */}
-                <motion.div variants={itemVariants} className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-lg mb-8">
-                    <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-4">Add a New Doctor</h2>
-                    <form onSubmit={handleAddDoctor} className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-                        <input
-                            type="text"
-                            value={newDoctorId}
-                            onChange={(e) => setNewDoctorId(e.target.value)}
-                            placeholder="Enter Doctor's Unique ID"
-                            className="form-input flex-grow w-full text-lg px-4 py-3 rounded-lg border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-blue-500 focus:border-blue-500"
-                        />
-                        <button
-                            type="submit"
-                            disabled={isSubmitting || !newDoctorId.trim()}
-                            className="w-full sm:w-auto flex items-center justify-center px-6 py-3 text-lg font-semibold text-white bg-blue-600 rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:bg-blue-300 disabled:cursor-not-allowed transition-all duration-300"
-                        >
-                            {isSubmitting ? (
-                                <FiLoader className="animate-spin h-5 w-5 mr-3" />
-                            ) : (
-                                <FiPlus className="h-5 w-5 mr-2" />
-                            )}
-                            {isSubmitting ? 'Adding...' : 'Add Doctor'}
-                        </button>
-                    </form>
-                </motion.div>
-
-                {/* Doctors List */}
-                <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-lg">
-                    <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-6">Current Doctors</h2>
-                    {isLoading ? (
-                         <div className="flex justify-center items-center py-10">
-                            <FiLoader className="animate-spin h-12 w-12 text-blue-500" />
-                        </div>
-                    ) : doctors.length === 0 ? (
-                        <div className="text-center py-10">
-                            <p className="text-gray-500 dark:text-gray-400">No doctors have been added to this clinic yet.</p>
-                        </div>
-                    ) : (
-                        <motion.ul
-                            variants={containerVariants}
-                            initial="hidden"
-                            animate="visible"
-                            className="space-y-4"
-                        >
-                            {doctors.map(doctor => (
-                                <motion.li
-                                    key={doctor._id}
-                                    variants={itemVariants}
-                                    layout
-                                    className="flex flex-col sm:flex-row items-center justify-between p-4 bg-gray-50 dark:bg-gray-700/50 rounded-xl border border-gray-200 dark:border-gray-700"
-                                >
-                                    <div className="flex items-center mb-4 sm:mb-0">
-                                        <img src={doctor.profilePicture || `https://ui-avatars.com/api/?name=${doctor.firstName}+${doctor.lastName}`} alt="Doctor" className="h-14 w-14 rounded-full object-cover mr-4 border-2 border-white dark:border-gray-600 shadow-sm" />
-                                        <div>
-                                            <p className="font-bold text-lg text-gray-800 dark:text-white">{doctor.firstName} {doctor.lastName}</p>
-                                            <p className="text-sm text-gray-500 dark:text-gray-400">{doctor.specialization || 'General'}</p>
-                                        </div>
-                                    </div>
-                                    <div className="flex items-center space-x-3">
-                                        <button onClick={() => handleOpenScheduleModal(doctor)} className="flex items-center px-4 py-2 text-sm font-medium text-blue-700 bg-blue-100 rounded-lg hover:bg-blue-200 dark:bg-blue-900/50 dark:text-blue-300 dark:hover:bg-blue-900 transition-colors">
-                                            <FiCalendar className="mr-2" />
-                                            Schedule
-                                        </button>
-                                        <button onClick={() => handleDeleteDoctor(doctor._id)} className="flex items-center p-2 text-sm font-medium text-red-700 bg-red-100 rounded-full hover:bg-red-200 dark:bg-red-900/50 dark:text-red-300 dark:hover:bg-red-900 transition-colors">
-                                            <FiTrash2 />
-                                        </button>
-                                    </div>
-                                </motion.li>
-                            ))}
-                        </motion.ul>
-                    )}
-                </div>
-            </motion.div>
-
-            <ScheduleModal
-                isOpen={isModalOpen}
-                onClose={handleCloseModal}
-                doctor={selectedDoctor}
-                onSave={handleSaveSchedule}
-            />
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40">
+      <div className="w-full max-w-3xl bg-white rounded-2xl shadow-xl overflow-hidden">
+        {/* Header */}
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
+          <h2 className="text-lg font-semibold text-gray-900">
+            Schedule — Dr. {doctor.firstName} {doctor.lastName}
+          </h2>
+          <button onClick={onClose} className="p-2 rounded hover:bg-gray-100">
+            <FiX className="w-5 h-5 text-gray-600" />
+          </button>
         </div>
-    );
+
+        {/* Tabs */}
+        <div className="px-6 pt-4">
+          <Tabs tabs={tabs} current={tab} onChange={setTab} />
+        </div>
+
+        {/* Body */}
+        <div className="px-6 py-4 max-h-[70vh] overflow-y-auto">
+          {loading ? (
+            <div className="flex items-center justify-center py-16">
+              <FiLoader className="animate-spin w-8 h-8 text-blue-600" />
+            </div>
+          ) : (
+            <>
+              {error && (
+                <div className="mb-4 flex items-center text-red-700 bg-red-100 px-3 py-2 rounded">
+                  <FiAlertCircle className="mr-2" /> {error}
+                </div>
+              )}
+
+              {tab === "days" && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {schedule.workingDays.map(({ day, isWorking, startTime, endTime }) => (
+                    <div key={day} className="border border-gray-200 rounded-lg p-4">
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="capitalize font-medium text-gray-900">{day}</div>
+                        <label className="inline-flex items-center cursor-pointer">
+                          <input type="checkbox" className="sr-only peer" checked={isWorking} onChange={() => onToggleDay(day)} />
+                          <div className="w-10 h-5 bg-gray-200 peer-checked:bg-blue-600 rounded-full relative transition">
+                            <span className={classNames(
+                              "absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full transition",
+                              isWorking ? "translate-x-5" : "translate-x-0"
+                            )} />
+                          </div>
+                        </label>
+                      </div>
+                      {isWorking && (
+                        <div className="flex items-center space-x-2">
+                          <input
+                            type="time"
+                            value={startTime}
+                            onChange={e => onTimeChange(day, "startTime", e.target.value)}
+                            className="w-1/2 border border-gray-300 rounded px-2 py-1 text-gray-900"
+                          />
+                          <span className="text-gray-500">to</span>
+                          <input
+                            type="time"
+                            value={endTime}
+                            onChange={e => onTimeChange(day, "endTime", e.target.value)}
+                            className="w-1/2 border border-gray-300 rounded px-2 py-1 text-gray-900"
+                          />
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {tab === "breaks" && (
+                <div>
+                  <div className="flex justify-between items-center mb-3">
+                    <h3 className="font-medium text-gray-900">Breaks</h3>
+                    <button onClick={addBreak} className="flex items-center px-3 py-1.5 rounded bg-blue-600 text-white text-sm hover:bg-blue-700">
+                      <FiPlus className="mr-1" /> Add Break
+                    </button>
+                  </div>
+                  {schedule.breaks.length === 0 ? (
+                    <p className="text-gray-500">No breaks added.</p>
+                  ) : (
+                    <div className="space-y-3">
+                      {schedule.breaks.map((b, idx) => (
+                        <div key={idx} className="border border-gray-200 rounded-lg p-3">
+                          <div className="grid grid-cols-1 sm:grid-cols-5 gap-2">
+                            <select
+                              value={b.day}
+                              onChange={e => updateBreak(idx, "day", e.target.value)}
+                              className="border border-gray-300 rounded px-2 py-1 text-gray-900"
+                            >
+                              {DAYS.map(d => <option key={d} value={d}>{d}</option>)}
+                            </select>
+                            <input
+                              type="time"
+                              value={b.startTime}
+                              onChange={e => updateBreak(idx, "startTime", e.target.value)}
+                              className="border border-gray-300 rounded px-2 py-1 text-gray-900"
+                            />
+                            <input
+                              type="time"
+                              value={b.endTime}
+                              onChange={e => updateBreak(idx, "endTime", e.target.value)}
+                              className="border border-gray-300 rounded px-2 py-1 text-gray-900"
+                            />
+                            <input
+                              type="text"
+                              placeholder="Reason (optional)"
+                              value={b.reason || ""}
+                              onChange={e => updateBreak(idx, "reason", e.target.value)}
+                              className="border border-gray-300 rounded px-2 py-1 text-gray-900"
+                            />
+                            <div className="flex justify-end">
+                              <button
+                                onClick={() => removeBreak(idx)}
+                                className="p-2 rounded bg-red-100 text-red-600 hover:bg-red-200"
+                                title="Remove"
+                              >
+                                <FiTrash2 />
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {tab === "vacations" && (
+                <div>
+                  <div className="flex justify-between items-center mb-3">
+                    <h3 className="font-medium text-gray-900">Vacations</h3>
+                    <button onClick={addVacation} className="flex items-center px-3 py-1.5 rounded bg-blue-600 text-white text-sm hover:bg-blue-700">
+                      <FiPlus className="mr-1" /> Add Vacation
+                    </button>
+                  </div>
+                  {schedule.vacations.length === 0 ? (
+                    <p className="text-gray-500">No vacations added.</p>
+                  ) : (
+                    <div className="space-y-3">
+                      {schedule.vacations.map((v, idx) => (
+                        <div key={idx} className="border border-gray-200 rounded-lg p-3">
+                          <div className="grid grid-cols-1 sm:grid-cols-5 gap-2">
+                            <input
+                              type="date"
+                              value={v.startDate ? String(v.startDate).slice(0,10) : ""}
+                              onChange={e => updateVacation(idx, "startDate", e.target.value)}
+                              className="border border-gray-300 rounded px-2 py-1 text-gray-900"
+                            />
+                            <input
+                              type="date"
+                              value={v.endDate ? String(v.endDate).slice(0,10) : ""}
+                              onChange={e => updateVacation(idx, "endDate", e.target.value)}
+                              className="border border-gray-300 rounded px-2 py-1 text-gray-900"
+                            />
+                            <div className="sm:col-span-3">
+                              <input
+                                type="text"
+                                placeholder="Reason (optional)"
+                                value={v.reason || ""}
+                                onChange={e => updateVacation(idx, "reason", e.target.value)}
+                                className="w-full border border-gray-300 rounded px-2 py-1 text-gray-900"
+                              />
+                            </div>
+                          </div>
+                          <div className="mt-2 flex justify-end">
+                            <button
+                              onClick={() => removeVacation(idx)}
+                              className="px-3 py-1.5 rounded bg-red-100 text-red-600 hover:bg-red-200 text-sm"
+                            >
+                              Remove
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {tab === "settings" && (
+                <div className="max-w-md">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Appointment duration (minutes)</label>
+                  <input
+                    type="number"
+                    min={5}
+                    step={5}
+                    value={schedule.appointmentDuration}
+                    onChange={e => setSchedule(prev => ({ ...prev, appointmentDuration: +e.target.value }))}
+                    className="border border-gray-300 rounded px-3 py-2 w-40 text-gray-900"
+                  />
+                </div>
+              )}
+            </>
+          )}
+        </div>
+
+        {/* Footer */}
+        <div className="px-6 py-4 border-t border-gray-200 flex justify-end gap-3">
+          <button onClick={onClose} className="px-4 py-2 rounded border border-gray-300 text-gray-700 hover:bg-gray-50">
+            Cancel
+          </button>
+          <button onClick={handleSave} className="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700">
+            Save Schedule
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const ManageDoctors = () => {
+  const [doctors, setDoctors] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [adding, setAdding] = useState(false);
+  const [newDoctorId, setNewDoctorId] = useState("");
+  const [error, setError] = useState("");
+  const [modalDoctor, setModalDoctor] = useState(null);
+
+  const fetchDoctors = useCallback(async () => {
+    setLoading(true);
+    setError("");
+    try {
+      const res = await getClinicDoctors();
+      setDoctors(res?.doctors || []);
+    } catch (e) {
+      setError(e?.response?.data?.message || "Failed to fetch doctors.");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => { fetchDoctors(); }, [fetchDoctors]);
+
+  const handleAdd = async (e) => {
+    e.preventDefault();
+    if (!newDoctorId.trim()) return;
+    setAdding(true);
+    setError("");
+    try {
+      await addDoctor(newDoctorId.trim());
+      setNewDoctorId("");
+      await fetchDoctors();
+    } catch (e) {
+      setError(e?.response?.data?.message || "Failed to add doctor.");
+    } finally {
+      setAdding(false);
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm("Remove this doctor from clinic?")) return;
+    try {
+      await deleteDoctorFromClinic(id);
+      await fetchDoctors();
+    } catch (e) {
+      setError(e?.response?.data?.message || "Failed to delete doctor.");
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-white">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <header className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900">Manage Doctors</h1>
+          <p className="text-gray-600 mt-1">Add, remove, and configure schedules for clinic doctors.</p>
+        </header>
+
+        {error && (
+          <div className="mb-6 flex items-center text-red-700 bg-red-100 px-3 py-2 rounded">
+            <FiAlertCircle className="mr-2" /> {error}
+          </div>
+        )}
+
+        {/* Add Doctor */}
+        <section className="mb-8 bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
+          <h2 className="text-lg font-semibold text-gray-900 mb-3">Add Doctor by ID</h2>
+          <form onSubmit={handleAdd} className="flex flex-col sm:flex-row gap-3">
+            <input
+              type="text"
+              value={newDoctorId}
+              onChange={(e) => setNewDoctorId(e.target.value)}
+              placeholder="Enter Doctor ID"
+              className="flex-1 border border-gray-300 rounded px-3 py-2 text-gray-900"
+            />
+            <button
+              type="submit"
+              disabled={adding || !newDoctorId.trim()}
+              className="inline-flex items-center justify-center px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-60"
+            >
+              {adding ? <FiLoader className="animate-spin mr-2" /> : <FiPlus className="mr-2" />}
+              {adding ? "Adding..." : "Add Doctor"}
+            </button>
+          </form>
+        </section>
+
+        {/* Doctors List */}
+        <section className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">Doctors</h2>
+          {loading ? (
+            <div className="flex justify-center py-10">
+              <FiLoader className="animate-spin w-8 h-8 text-blue-600" />
+            </div>
+          ) : doctors.length === 0 ? (
+            <p className="text-gray-600">No doctors added yet.</p>
+          ) : (
+            <ul className="space-y-4">
+              {doctors.map(doc => (
+                <li key={doc._id} className="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <img
+                      src={doc.profilePicture || `https://ui-avatars.com/api/?name=${doc.firstName}+${doc.lastName}`}
+                      alt=""
+                      className="w-12 h-12 rounded-full object-cover"
+                    />
+                    <div>
+                      <p className="font-semibold text-gray-900">
+                        {doc.firstName} {doc.lastName}
+                      </p>
+                      <p className="text-sm text-gray-600">{doc.specialization || "General"}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setModalDoctor(doc)}
+                      className="inline-flex items-center px-3 py-2 rounded bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200"
+                    >
+                      <FiCalendar className="mr-2" /> Schedule
+                    </button>
+                    <button
+                      onClick={() => handleDelete(doc._id)}
+                      className="p-2 rounded bg-red-50 text-red-600 hover:bg-red-100 border border-red-200"
+                      title="Remove"
+                    >
+                      <FiTrash2 />
+                    </button>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      </div>
+
+      {/* Schedule Modal */}
+      <ScheduleModal
+        open={!!modalDoctor}
+        onClose={() => setModalDoctor(null)}
+        doctor={modalDoctor}
+        onSave={async (id, dataAsStrings) => {
+          // The api service appends raw values; ensure correct string/JSON payload
+          // Build a FormData-compatible object for the service:
+          const payload = {
+            workingDays: dataAsStrings.workingDays,
+            breaks: dataAsStrings.breaks,
+            vacations: dataAsStrings.vacations,
+            appointmentDuration: dataAsStrings.appointmentDuration
+          };
+          await setDoctorSchedule(id, payload);
+        }}
+      />
+    </div>
+  );
 };
 
 export default ManageDoctors;
