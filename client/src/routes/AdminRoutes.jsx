@@ -9,6 +9,7 @@ import AdminDashboard from '../pages/admin/AdminDashboard';
 import AdminProfileComplete from '../pages/admin/AdminProfileComplete';
 import AdminClinicAdd from '../pages/admin/AdminClinicAdd';
 import UpdateClinic from '../pages/admin/UpdateClinic';
+import ManageDoctors from '../pages/admin/ManageDoctors';
 
 export default function AdminRoutes() {
   return (
@@ -20,6 +21,16 @@ export default function AdminRoutes() {
           <ProtectedRoute allowedRoles={['admin']}>
             <AdminSetupGuard requireProfile={true} requireClinic={true}>
               <AdminDashboard />
+            </AdminSetupGuard>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/doctors"
+        element={
+          <ProtectedRoute allowedRoles={['admin']}>
+            <AdminSetupGuard requireProfile={true} requireClinic={true}>
+              <ManageDoctors />
             </AdminSetupGuard>
           </ProtectedRoute>
         }
