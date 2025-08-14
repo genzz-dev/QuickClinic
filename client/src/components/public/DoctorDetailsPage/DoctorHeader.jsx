@@ -1,5 +1,5 @@
 import React from 'react';
-import { Stethoscope, Award, Phone, Calendar } from 'lucide-react';
+import { Stethoscope, Award, Phone, Calendar,User } from 'lucide-react';
 
 const DoctorHeader = ({ doctor }) => {
   const renderStars = (rating) => {

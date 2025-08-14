@@ -436,7 +436,7 @@ export const setDoctorSchedule = async (req, res) => {
         const { clinicId } = req.user;
     const { doctorId } = req.params;
     const { workingDays, breaks, vacations, appointmentDuration } = req.body;
-
+    console.log(req.body);
     if (!mongoose.Types.ObjectId.isValid(doctorId)) {
       return res.status(400).json({ message: 'Invalid doctor ID format' });
     }

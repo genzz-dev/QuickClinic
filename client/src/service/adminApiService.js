@@ -69,9 +69,15 @@ export const deleteDoctorFromClinic = async (doctorId) => {
  * Set Doctor Schedule 
  */
 export const setDoctorSchedule = async (doctorId, scheduleData) => {
-  const formData = new FormData();
-  Object.entries(scheduleData).forEach(([key, value]) => { formData.append(key, value) });
-  return await apiService.post(`/admin/doctors/${doctorId}/schedule`, formData);
+  return await apiService.post(
+    `/admin/doctors/${doctorId}/schedule`,
+    scheduleData, // send plain JSON
+    {
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    }
+  );
 };
 
 /**
