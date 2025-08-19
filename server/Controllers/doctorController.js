@@ -1,6 +1,8 @@
 import Doctor from '../models/Users/Doctor.js';
 import { uploadToCloudinary } from '../services/uploadService.js';
 import mongoose from 'mongoose';
+import Clinic from '../models/Clinic/Clinic.js';
+import { checkDoctorName } from '../services/nmsService.js';
 
 // Create a doctor profile
 export const createDoctorProfile = async (req, res) => {
@@ -71,7 +73,7 @@ export const createDoctorProfile = async (req, res) => {
 // Update a doctor profile
 export const updateDoctorProfile = async (req, res) => {
   try {
-    const { userId } = req.user;
+    const { profileId } = req.user;
     const updates = req.body;
 
     if (!updates || Object.keys(updates).length === 0 && !req.file) {
@@ -89,8 +91,8 @@ export const updateDoctorProfile = async (req, res) => {
       }
     }
 
-    const doctor = await Doctor.findOneAndUpdate(
-      { userId },
+    const doctor = await Doctor.findByIdAndUpdate(
+      profileId,
       updates,
       { 
         new: true,
@@ -124,16 +126,16 @@ export const updateDoctorProfile = async (req, res) => {
 // Get doctor profile
 export const getDoctorProfile = async (req, res) => {
   try {
-    const { userId } = req.user;
+    const { profileId } = req.user;
     
     // First check if doctor exists without populating
-    const doctorExists = await Doctor.exists({ userId });
+    const doctorExists = await Doctor.exists({ _id: profileId });
     if (!doctorExists) {
       return res.status(404).json({ message: 'Doctor profile not found' });
     }
 
     // Only populate fields that have data
-    const doctor = await Doctor.findOne({ userId }).lean();
+    const doctor = await Doctor.findById(profileId).lean();
     
     const populateOptions = [];
     
@@ -154,7 +156,7 @@ export const getDoctorProfile = async (req, res) => {
     
     let populatedDoctor = doctor;
     if (populateOptions.length > 0) {
-      populatedDoctor = await Doctor.findOne({ userId })
+      populatedDoctor = await Doctor.findById(profileId)
         .populate(populateOptions)
         .lean();
     }
@@ -202,6 +204,122 @@ export const getDoctorsByClinic = async (req, res) => {
     console.error('Error fetching doctors by clinic:', error);
     res.status(500).json({ 
       message: 'Failed to fetch doctors',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};
+// Remove doctor from their current clinic (self-initiated)
+export const leaveCurrentClinic = async (req, res) => {
+  try {
+    const { profileId } = req.user; // Doctor's profile ID from auth middleware
+
+    // Find the doctor with their current clinic
+    const doctor = await Doctor.findById(profileId).populate('clinicId', 'name');
+    
+    if (!doctor) {
+      return res.status(404).json({ message: 'Doctor profile not found' });
+    }
+
+    // Check if doctor is associated with any clinic
+    if (!doctor.clinicId) {
+      return res.status(400).json({ 
+        message: 'Doctor is not currently associated with any clinic'
+      });
+    }
+
+    const clinicId = doctor.clinicId._id;
+
+    // Remove doctor from clinic's doctors array
+    await Clinic.findByIdAndUpdate(
+      clinicId,
+      { $pull: { doctors: profileId } },
+      { new: true }
+    );
+
+    // Remove clinic reference from doctor
+    const updatedDoctor = await Doctor.findByIdAndUpdate(
+      profileId,
+      { $unset: { clinicId: 1 } },
+      { new: true }
+    ).select('-__v -appointments -ratings');
+
+    res.json({
+      message: `Successfully left ${doctor.clinicId.name} clinic`,
+      doctor: updatedDoctor
+    });
+  } catch (error) {
+    console.error('Error leaving clinic:', error);
+    res.status(500).json({ 
+      message: 'Failed to leave clinic',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};
+// Verify doctor credentials with NMS
+export const verifyDoctorCredentials = async (req, res) => {
+  try {
+    const { profileId } = req.user;
+    const { registrationNumber, registrationYear, stateCouncil } = req.body;
+
+    // Validate input
+    if (!registrationNumber || !registrationYear || !stateCouncil) {
+      return res.status(400).json({ 
+        message: 'Registration number, year, and state council are required',
+        errors: {
+          registrationNumber: !registrationNumber ? 'Registration number is required' : undefined,
+          registrationYear: !registrationYear ? 'Registration year is required' : undefined,
+          stateCouncil: !stateCouncil ? 'State council is required' : undefined
+        }
+      });
+    }
+
+    // Get doctor's current name
+    const doctor = await Doctor.findById(profileId);
+    if (!doctor) {
+      return res.status(404).json({ message: 'Doctor profile not found' });
+    }
+
+    // Call NMS service
+    const inputName = `${doctor.firstName} ${doctor.lastName}`;
+    const verificationResult = await checkDoctorName(
+      inputName,
+      registrationNumber,
+      registrationYear,
+      stateCouncil
+    );
+
+    if (!verificationResult.match) {
+      return res.status(400).json({ 
+        message: 'Verification failed',
+        details: {
+          inputName,
+          fetchedName: verificationResult.fetchedName,
+          suggestion: 'Names do not match. Please check your registration details.'
+        }
+      });
+    }
+
+    // Update doctor's verification status
+    doctor.isVerified = true;
+    doctor.verificationData = {
+      registrationNumber,
+      registrationYear,
+      stateCouncil,
+      verifiedName: verificationResult.fetchedName,
+      verificationDate: new Date()
+    };
+
+    await doctor.save();
+
+    res.json({
+      message: 'Doctor verified successfully',
+      doctor: doctor.toObject({ getters: true }),
+      verificationDetails: verificationResult.doctorInfo
+    });
+  } catch (error) {
+    console.error('Error verifying doctor:', error);
+    res.status(500).json({ 
+      message: 'Failed to verify doctor',
       error: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }

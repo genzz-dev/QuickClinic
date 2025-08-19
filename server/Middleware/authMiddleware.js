@@ -1,5 +1,5 @@
 import { verifyAccessToken } from '../services/tokenService.js';
-import  User  from '../models/Users/User.js'
+import User from '../models/Users/User.js';
 import Patient from '../models/Users/Patient.js';
 import Admin from '../models/Users/Admin.js';
 import Doctor from '../models/Users/Doctor.js';
@@ -20,8 +20,8 @@ export const authenticate = async (req, res, next) => {
     }
 
     // Get profile based on role
-    let profile;
-    switch(user.role) {
+    let profile = null;
+    switch (user.role) {
       case 'admin':
         profile = await Admin.findOne({ userId: user._id });
         break;
@@ -33,22 +33,20 @@ export const authenticate = async (req, res, next) => {
         break;
     }
 
-    if (!profile) {
-      return res.status(404).json({ message: 'Profile not found' });
-    }
-
     req.user = {
       ...user.toObject(),
       userId: user._id,
-      profileId: profile._id, // Add the profile ID
-      role: user.role
+      profileId: profile ? profile._id : null,
+      role: user.role,
+      clinicId: profile?.clinicId || null // Add clinicId to req.user
     };
+    
     next();
   } catch (error) {
+    console.log(error);
     res.status(403).json({ message: 'Invalid or expired token' });
   }
 };
-
 export const authorize = (...roles) => {
   return (req, res, next) => {
     if (!roles.includes(req.user.role)) {

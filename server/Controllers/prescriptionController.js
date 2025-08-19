@@ -5,7 +5,7 @@ import mongoose from 'mongoose';
 // Create prescription for an appointment
 export const createPrescription = async (req, res) => {
   try {
-    const { userId } = req.user;
+    const { profileId } = req.user; // Doctor's profile ID
     const { appointmentId } = req.params;
     const { diagnosis, medications, tests, notes, followUpDate } = req.body;
 
@@ -23,7 +23,7 @@ export const createPrescription = async (req, res) => {
     // Validate appointment exists and belongs to this doctor
     const appointment = await Appointment.findOne({
       _id: appointmentId,
-      doctorId: userId
+      doctorId: profileId
     });
 
     if (!appointment) {
@@ -48,7 +48,7 @@ export const createPrescription = async (req, res) => {
     // Create prescription
     const prescription = new Prescription({
       appointmentId,
-      doctorId: userId,
+      doctorId: profileId,
       patientId: appointment.patientId,
       diagnosis,
       medications,
@@ -86,9 +86,9 @@ export const createPrescription = async (req, res) => {
 // Get prescriptions for patient
 export const getPatientPrescriptions = async (req, res) => {
   try {
-    const { userId } = req.user;
+    const { profileId } = req.user; // Patient's profile ID
 
-    const prescriptions = await Prescription.find({ patientId: userId })
+    const prescriptions = await Prescription.find({ patientId: profileId })
       .populate('doctorId', 'name specialization')
       .populate('appointmentId', 'date')
       .sort({ date: -1 })
@@ -110,10 +110,10 @@ export const getPatientPrescriptions = async (req, res) => {
 // Get prescriptions created by doctor
 export const getDoctorPrescriptions = async (req, res) => {
   try {
-    const { userId } = req.user;
+    const { profileId } = req.user; // Doctor's profile ID
     const { patientId } = req.query;
 
-    const query = { doctorId: userId };
+    const query = { doctorId: profileId };
     if (patientId) {
       query.patientId = patientId;
     }

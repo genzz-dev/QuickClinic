@@ -55,20 +55,18 @@ class AuthService {
         email,
         password
       });
-
       // Store access token after successful login
       if (response.accessToken) {
         this.apiService.setAccessToken(response.accessToken);
       }
-
       return {
-        success: true,
         user: {
           userId: response.userId,
           role: response.role
         },
         token: response.accessToken,
-        expiresIn: response.expiresIn
+        expiresIn: response.expiresIn,
+        success: true
       };
     } catch (error) {
       return {

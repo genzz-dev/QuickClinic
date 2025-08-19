@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import authService from '../services/authService.js';
+import authService from '../service/authservice'
 
 const AuthContext = createContext();
 
@@ -17,49 +17,69 @@ export const AuthProvider = ({ children }) => {
   const [isLoading, setIsLoading] = useState(true);
 
   // Check authentication status on mount
-  useEffect(() => {
-    const checkAuth = () => {
-      try {
-        if (authService.isAuthenticated()) {
-          const currentUser = authService.getCurrentUser();
-          if (currentUser && !authService.isTokenExpired()) {
-            setUser(currentUser);
+useEffect(() => {
+  let isMounted = true; // Prevent state updates if component unmounts
+
+  const checkAuth = async () => {
+    try {
+      if (authService.isAuthenticated() && !authService.isTokenExpired()) {
+        // Access token present and valid
+        const currentUser = authService.getCurrentUser();
+        if (isMounted) {
+          setUser(currentUser);
+          setIsAuthenticated(true);
+        }
+      } else {
+        // Access token missing or expired; try to refresh
+        const resp = await authService.refreshToken();
+        if (resp.success) {
+          // Token refreshed, set user with new data
+          const newUser = authService.getCurrentUser();
+          if (isMounted) {
+            setUser(newUser);
             setIsAuthenticated(true);
-          } else {
-            // Token expired or invalid
-            authService.clearAuth();
+          }
+        } else {
+          // Refresh failed (refresh token expired/invalid)
+          authService.clearAuth();
+          if (isMounted) {
             setUser(null);
             setIsAuthenticated(false);
           }
-        } else {
-          setUser(null);
-          setIsAuthenticated(false);
         }
-      } catch (error) {
-        console.error('Auth check failed:', error);
+      }
+    } catch (error) {
+      console.error('Auth check failed:', error);
+      if (isMounted) {
         setUser(null);
         setIsAuthenticated(false);
-      } finally {
-        setIsLoading(false);
       }
-    };
+    } finally {
+      if (isMounted) setIsLoading(false);
+    }
+  };
 
-    checkAuth();
-  }, []);
+  checkAuth();
+
+  // Cleanup function (avoids state updates if unmounted)
+  return () => { isMounted = false };
+}, []);
+
 
   const login = async (credentials) => {
     setIsLoading(true);
+
     try {
       const result = await authService.login(credentials);
-      
       if (result.success) {
         setUser(result.user);
         setIsAuthenticated(true);
-        return { success: true };
+        return result;
       } else {
         return { success: false, error: result.error };
       }
     } catch (error) {
+      console.log(error);
       return { success: false, error: 'Login failed' };
     } finally {
       setIsLoading(false);
@@ -74,7 +94,7 @@ export const AuthProvider = ({ children }) => {
       if (result.success) {
         setUser(result.user);
         setIsAuthenticated(true);
-        return { success: true };
+        return result;
       } else {
         return { success: false, error: result.error };
       }

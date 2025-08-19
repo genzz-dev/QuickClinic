@@ -6,7 +6,12 @@ const adminSchema = new mongoose.Schema({
   firstName: { type: String, required: true },
   lastName: { type: String, required: true },
   phoneNumber: { type: String },
-  clinicId: { type: mongoose.Schema.Types.ObjectId, ref: 'Clinic'},
+  clinicId: { 
+    type: mongoose.Schema.Types.ObjectId, 
+    ref: 'Clinic',
+    unique: true,
+     sparse: true 
+  },
   permissions: {
     manageDoctors: { type: Boolean, default: true },
     manageAppointments: { type: Boolean, default: true },

@@ -63,7 +63,7 @@ export const createPatientProfile = async (req, res) => {
 
 export const updatePatientProfile = async (req, res) => {
   try {
-    const { userId } = req.user;
+    const { profileId } = req.user;
     const updates = req.body;
 
     if (!updates || Object.keys(updates).length === 0 && !req.file) {
@@ -81,8 +81,8 @@ export const updatePatientProfile = async (req, res) => {
       }
     }
 
-    const patient = await Patient.findOneAndUpdate(
-      { userId },
+    const patient = await Patient.findByIdAndUpdate(
+      profileId,
       updates,
       { new: true, runValidators: true }
     );
@@ -112,16 +112,16 @@ export const updatePatientProfile = async (req, res) => {
 
 export const getPatientProfile = async (req, res) => {
   try {
-    const { userId } = req.user;
+    const { profileId } = req.user;
     
     // First check if patient exists without populating
-    const patientExists = await Patient.exists({ userId });
+    const patientExists = await Patient.exists({ _id: profileId });
     if (!patientExists) {
       return res.status(404).json({ message: 'Patient profile not found' });
     }
 
     // Only populate fields that have data
-    const patient = await Patient.findOne({ userId }).lean();
+    const patient = await Patient.findById(profileId).lean();
     
     const populateOptions = [];
     
@@ -142,7 +142,7 @@ export const getPatientProfile = async (req, res) => {
     
     let populatedPatient = patient;
     if (populateOptions.length > 0) {
-      populatedPatient = await Patient.findOne({ userId })
+      populatedPatient = await Patient.findById(profileId)
         .populate(populateOptions)
         .lean();
     }
@@ -162,7 +162,7 @@ export const getPatientProfile = async (req, res) => {
 
 export const uploadHealthRecord = async (req, res) => {
   try {
-    const { userId } = req.user;
+    const { profileId } = req.user;
     const { recordType, title, date, description } = req.body;
 
     // Validate required fields
@@ -185,7 +185,7 @@ export const uploadHealthRecord = async (req, res) => {
       return res.status(400).json({ message: 'Invalid date format' });
     }
 
-    const patient = await Patient.findOne({ userId });
+    const patient = await Patient.findById(profileId);
     if (!patient) {
       return res.status(404).json({ message: 'Patient not found' });
     }
@@ -199,7 +199,7 @@ export const uploadHealthRecord = async (req, res) => {
     }
 
     const healthRecord = new HealthRecord({
-      patientId: patient._id,
+      patientId: profileId,
       recordType,
       title,
       date: date ? new Date(date) : new Date(),

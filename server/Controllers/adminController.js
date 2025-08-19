@@ -4,6 +4,8 @@ import Doctor from '../models/Users/Doctor.js';
 import Schedule from '../models/Clinic/Schedule.js';
 import { uploadToCloudinary } from '../services/uploadService.js';
 import {sendDoctorAddedToClinicEmail} from '../services/emailService.js';
+import { fetchPlacePhone } from '../services/googleMapsService.js';
+import { sendOTP, verifyOTP } from '../services/otpService.js';
 import mongoose from 'mongoose';
 import { 
   extractPlaceIdFromUrl, 
@@ -13,24 +15,75 @@ import {
   withRateLimit,
   cleanFormattedAddress
 } from '../services/googleMapsService.js';
+
+// Helper validation functions
+const isValidEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+const isValidPhone = (phone) => /^\+?[\d\s-()]{7,}$/.test(phone);
+// check if admin profile is created or not 
+export const checkAdminProfileExists = async (req, res) => {
+  try {
+    const { userId } = req.user;
+
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({ message: 'Invalid user ID format' });
+    }
+
+    const existingAdmin = await Admin.findOne({ userId });
+
+    if (existingAdmin) {
+      return res.status(200).json({ 
+        exists: true,
+        message: 'Admin profile already exists for this user' 
+      });
+    } else {
+      return res.status(200).json({ 
+        exists: false,
+        message: 'Admin profile does not exist' 
+      });
+    }
+  } catch (error) {
+    return res.status(500).json({ message: 'Internal server error', error: error.message });
+  }
+};
+
+// check if admin has added a clinic or not
+export const checkClinicExists = async (req, res) => {
+  try {
+    const { userId, clinicId } = req.user;
+
+    if (clinicId) {
+      return res.status(200).json({ 
+        exists: true,
+        message: 'Admin has a clinic',
+        clinicId: clinicId
+      });
+    } else {
+      return res.status(200).json({ 
+        exists: false,
+        message: 'Admin does not have a clinic' 
+      });
+    }
+  } catch (error) {
+    return res.status(500).json({ message: 'Internal server error', error: error.message });
+  }
+};
+
+
 // Create admin profile
 export const createAdminProfile = async (req, res) => {
   try {
     const { userId } = req.user;
     const adminData = req.body;
 
-    // Validate user ID
     if (!mongoose.Types.ObjectId.isValid(userId)) {
       return res.status(400).json({ message: 'Invalid user ID format' });
     }
 
-    // Check if admin profile already exists
     const existingAdmin = await Admin.findOne({ userId });
     if (existingAdmin) {
       return res.status(409).json({ message: 'Admin profile already exists for this user' });
     }
 
-    // Basic validation
     if (!adminData || Object.keys(adminData).length === 0) {
       return res.status(400).json({ message: 'Admin data is required' });
     }
@@ -61,13 +114,23 @@ export const createAdminProfile = async (req, res) => {
   }
 };
 
-// Add new clinic
+// Add new clinic (one per admin)
 export const addClinic = async (req, res) => {
   try {
-    const { userId } = req.user;
+    const { userId, clinicId } = req.user;
+    // Check if admin already has a clinic
+    if (clinicId) {
+      return res.status(400).json({ 
+        message: 'Admin can only be associated with one clinic',
+        clinicId: clinicId
+      });
+    }
+    if (req.body.contact && typeof req.body.contact === 'string') {
+    req.body.contact = JSON.parse(req.body.contact);
+  }
     const clinicData = req.body;
-
-    // Validate required clinic fields
+    console.log(clinicData);
+    console.log(req.body);
     if (!clinicData.name) {
       return res.status(400).json({ 
         message: 'Clinic name is required',
@@ -75,43 +138,39 @@ export const addClinic = async (req, res) => {
       });
     }
 
-    // Check if admin exists
     const admin = await Admin.findOne({ userId });
     if (!admin) {
       return res.status(404).json({ message: 'Admin profile not found' });
     }
 
-    // If Google Maps link is provided, fetch details
-if (clinicData.googleMapsLink) {
-  try {
-    const placeId = await extractPlaceIdFromUrl(clinicData.googleMapsLink);
-    const placeDetails = await withRateLimit(() => fetchPlaceDetails(placeId));
-    
-    // Store the complete formatted address
-    clinicData.address = {
-      formattedAddress: cleanFormattedAddress(placeDetails.adr_address) || '',
-      ...parseAddressComponents(placeDetails.address_components)
-    };
-    
-    // Set coordinates if available
-    if (placeDetails.geometry?.location) {
-      clinicData.address.coordinates = {
-        lat: placeDetails.geometry.location.lat,
-        lng: placeDetails.geometry.location.lng
-      };
+    // Google Maps integration
+    if (clinicData.googleMapsLink) {
+      try {
+        const placeId = await extractPlaceIdFromUrl(clinicData.googleMapsLink);
+        const placeDetails = await withRateLimit(() => fetchPlaceDetails(placeId));
+        
+        clinicData.address = {
+          formattedAddress: cleanFormattedAddress(placeDetails.adr_address) || '',
+          ...parseAddressComponents(placeDetails.address_components)
+        };
+        
+        if (placeDetails.geometry?.location) {
+          clinicData.address.coordinates = {
+            lat: placeDetails.geometry.location.lat,
+            lng: placeDetails.geometry.location.lng
+          };
+        }
+        
+        const googlePhotos = await withRateLimit(() => fetchPlacePhotos(placeId));
+        if (googlePhotos.length > 0) {
+          clinicData.photos = googlePhotos;
+        }
+      } catch (googleError) {
+        console.error('Google Maps integration error:', googleError);
+      }
     }
-    
-    // Fetch photos (max 3)
-    const googlePhotos = await withRateLimit(() => fetchPlacePhotos(placeId));
-    if (googlePhotos.length > 0) {
-      clinicData.photos = googlePhotos;
-    }
-  } catch (googleError) {
-    console.error('Google Maps integration error:', googleError);
-  }
-}
 
-    // Handle manual logo upload (takes precedence over Google photos)
+    // Handle file uploads
     if (req.files?.logo) {
       try {
         const result = await uploadToCloudinary(req.files.logo[0].path);
@@ -122,7 +181,6 @@ if (clinicData.googleMapsLink) {
       }
     }
 
-    // Handle manual photos upload (will be added alongside Google photos)
     if (req.files?.photos) {
       try {
         const newPhotos = await Promise.all(
@@ -135,26 +193,30 @@ if (clinicData.googleMapsLink) {
             };
           })
         );
-        updates.$push = { photos: { $each: newPhotos } };
+        if (!clinicData.photos) clinicData.photos = [];
+        clinicData.photos.push(...newPhotos);
       } catch (uploadError) {
         console.error('Photos upload error:', uploadError);
         return res.status(500).json({ message: 'Failed to upload new photos' });
       }
     }
-    // Create new clinic
+
+    // Create clinic and update admin
     const clinic = new Clinic(clinicData);
     await clinic.save();
 
-    // Update admin's clinic reference
     await Admin.findOneAndUpdate(
       { userId },
-      { $addToSet: { clinics: clinic._id } },
+      { clinicId: clinic._id },
       { new: true }
     );
 
     res.status(201).json({
       message: 'Clinic added successfully',
       clinic: clinic.toObject({ getters: true, versionKey: false })
+    });
+        res.status(201).json({
+      message: 'Clinic added successfully',
     });
   } catch (error) {
     console.error('Error adding clinic:', error);
@@ -172,91 +234,73 @@ if (clinicData.googleMapsLink) {
 };
 
 // Update clinic information
+const unflatten = (data) => {
+  if (Object.prototype.toString.call(data) !== '[object Object]') {
+    return data;
+  }
+  const result = {};
+  for (const i in data) {
+    const keys = i.split('.');
+    keys.reduce((r, e, j) => {
+      return r[e] || (r[e] = isNaN(Number(keys[j + 1])) ? (keys.length - 1 === j ? data[i] : {}) : []);
+    }, result);
+  }
+  return result;
+};
+
+
 export const updateClinic = async (req, res) => {
   try {
-    const { clinicId } = req.params;
-    const { userId } = req.user;
+    const { clinicId } = req.user;
+    if (!clinicId) {
+      return res.status(400).json({ message: 'Admin is not associated with any clinic' });
+    }
+
     const updates = req.body;
-
-    if (!mongoose.Types.ObjectId.isValid(clinicId)) {
-      return res.status(400).json({ message: 'Invalid clinic ID format' });
-    }
-
-    if (!updates || (Object.keys(updates).length === 0 && !req.files?.logo && !req.files?.photos)) {
+    
+    if (Object.keys(updates).length === 0 && !req.files?.logo && !req.files?.photos) {
       return res.status(400).json({ message: 'No updates provided' });
-    }
-
-    const admin = await Admin.findOne({ userId });
-    if (!admin) {
-      return res.status(404).json({ message: 'Admin profile not found' });
     }
 
     const existingClinic = await Clinic.findById(clinicId);
     if (!existingClinic) {
       return res.status(404).json({ message: 'Clinic not found' });
     }
-
-    // Prepare update object using $set with dot notation
-    const updateObj = { $set: {} };
     
-    // Handle basic field updates
-    if (updates.name !== undefined) updateObj.$set.name = updates.name;
-    if (updates.description !== undefined) updateObj.$set.description = updates.description;
+    // We will build the final update object with only a $set operator for most fields.
+    const updateObj = { $set: {} };
 
-    // Handle Google Maps link update
-    if (updates.googleMapsLink !== undefined) {
-      updateObj.$set.googleMapsLink = updates.googleMapsLink;
-      
-      if (updates.googleMapsLink) {
-        try {
-          const placeId = await extractPlaceIdFromUrl(updates.googleMapsLink);
-          const placeDetails = await withRateLimit(() => fetchPlaceDetails(placeId));
+    // Unflatten the updates to handle nested objects and arrays correctly.
+    const unflattenedUpdates = unflatten(updates);
 
-          // Update address fields individually using dot notation
-          updateObj.$set['address.formattedAddress'] = cleanFormattedAddress(placeDetails.adr_address) || '';
-          
-          const addressComponents = parseAddressComponents(placeDetails.address_components);
-          if (addressComponents.country) updateObj.$set['address.country'] = addressComponents.country;
-          if (addressComponents.zipCode) updateObj.$set['address.zipCode'] = addressComponents.zipCode;
-          if (addressComponents.state) updateObj.$set['address.state'] = addressComponents.state;
-          if (addressComponents.city) updateObj.$set['address.city'] = addressComponents.city;
+    // This will hold the final, combined list of photo URLs.
+    // Start with the photos sent from the form (which handles deletions/reordering).
+    let finalPhotoArray = [];
+    if (unflattenedUpdates.photos) {
+        finalPhotoArray = Array.isArray(unflattenedUpdates.photos) 
+            ? unflattenedUpdates.photos 
+            : [unflattenedUpdates.photos];
+        finalPhotoArray = finalPhotoArray.filter(p => p); // Clean up any null/empty values
+    } else {
+        // If no photos array is sent, start with the existing photos from the DB.
+        finalPhotoArray = existingClinic.photos || [];
+    }
+    
+    // Process all non-file fields from the form.
+    for (const key in unflattenedUpdates) {
+      // We are handling 'photos' separately, so we skip it here.
+      if (key === 'photos') continue;
 
-          if (placeDetails.geometry?.location) {
-            updateObj.$set['address.coordinates'] = {
-              lat: placeDetails.geometry.location.lat,
-              lng: placeDetails.geometry.location.lng,
-            };
-          }
-
-          const googlePhotos = await withRateLimit(() => fetchPlacePhotos(placeId));
-          if (googlePhotos.length > 0) {
-            updateObj.$set.photos = googlePhotos;
-          }
-        } catch (googleError) {
-          console.error('Google Maps integration error:', googleError);
-        }
+      if (key === 'facilities') {
+          const facilities = Array.isArray(unflattenedUpdates.facilities) ? unflattenedUpdates.facilities : [unflattenedUpdates.facilities];
+          updateObj.$set.facilities = facilities.filter(f => f); // Filter out empty values
+      } else {
+        // This correctly sets all other fields, including nested ones like 'openingHours.monday.open'
+        updateObj.$set[key] = unflattenedUpdates[key];
       }
     }
 
-    // Handle manual address update (only when Google Maps isn't being updated)
-    if (!updates.googleMapsLink && updates.address) {
-      Object.keys(updates.address).forEach(key => {
-        if (updates.address[key] !== undefined) {
-          updateObj.$set[`address.${key}`] = updates.address[key];
-        }
-      });
-    }
-
-    // Handle manual contact update
-    if (updates.contact) {
-      Object.keys(updates.contact).forEach(key => {
-        if (updates.contact[key] !== undefined) {
-          updateObj.$set[`contact.${key}`] = updates.contact[key];
-        }
-      });
-    }
-
-    // Handle manual logo upload
+    // Handle logo upload.
     if (req.files?.logo) {
       try {
         const result = await uploadToCloudinary(req.files.logo[0].path);
@@ -267,75 +311,53 @@ export const updateClinic = async (req, res) => {
       }
     }
 
-    // Handle manual photos upload
+    // Handle NEW photo uploads.
     if (req.files?.photos) {
       try {
-        const newPhotos = await Promise.all(
+        const newPhotoUrls = await Promise.all(
           req.files.photos.map(async (file) => {
             const result = await uploadToCloudinary(file.path);
-            return {
-              url: result.url,
-              uploadedAt: new Date(),
-              originalName: file.originalname,
-            };
+            return result.url; // The schema expects an array of strings.
           })
         );
-        
-        // Use $push for photos to add to array without replacing
-        updateObj.$push = { photos: { $each: newPhotos } };
+        // Add the newly uploaded photo URLs to our final array.
+        finalPhotoArray.push(...newPhotoUrls);
       } catch (uploadError) {
         console.error('Photos upload error:', uploadError);
         return res.status(500).json({ message: 'Failed to upload new photos' });
       }
     }
+     
+    // Now, set the 'photos' field with the final, combined array using a single $set operation.
+    // This avoids the conflict entirely.
+    updateObj.$set.photos = finalPhotoArray;
 
-    // Custom validation for the fields being updated
-    const validationErrors = [];
-    
+    // Final validation.
     if (updateObj.$set.name !== undefined && updateObj.$set.name?.trim() === '') {
-      validationErrors.push('Clinic name cannot be empty');
+        return res.status(400).json({ message: 'Validation error', errors: ['Clinic name cannot be empty'] });
     }
-
-    // Validate email if being updated
-    if (updateObj.$set['contact.email'] && !isValidEmail(updateObj.$set['contact.email'])) {
-      validationErrors.push('Invalid email format');
-    }
-
-    // Validate phone if being updated
-    if (updateObj.$set['contact.phone'] && !isValidPhone(updateObj.$set['contact.phone'])) {
-      validationErrors.push('Invalid phone format');
-    }
-
-    if (validationErrors.length > 0) {
-      return res.status(400).json({ message: 'Validation error', errors: validationErrors });
-    }
-
-    // Update clinic with only the fields that need to be updated
-    const clinic = await Clinic.findByIdAndUpdate(
-      clinicId, 
-      updateObj, 
-      {
-        new: true,
-        runValidators: false // We're handling validation manually
-      }
+    
+    const updatedClinic = await Clinic.findByIdAndUpdate(
+      clinicId,
+      updateObj,
+      { new: true, runValidators: true }
     ).select('-__v');
-
-    if (!clinic) {
-      return res.status(404).json({ message: 'Clinic not found' });
-    }
 
     res.json({
       message: 'Clinic updated successfully',
-      clinic: clinic.toObject({ getters: true })
+      clinic: updatedClinic.toObject({ getters: true })
     });
+
   } catch (error) {
     console.error('Error updating clinic:', error);
-
     if (error.name === 'ValidationError') {
       const errors = Object.values(error.errors).map((err) => err.message);
       return res.status(400).json({ message: 'Validation error', errors });
     }
-
+    // Catch the specific conflict error just in case, though the logic should prevent it.
+    if (error.codeName === 'ConflictingUpdateOperators') {
+      return res.status(400).json({ message: `A conflict occurred while trying to update fields. Details: ${error.errmsg}`});
+    }
     res.status(500).json({
       message: 'Failed to update clinic',
       error: process.env.NODE_ENV === 'development' ? error.message : undefined,
@@ -346,32 +368,29 @@ export const updateClinic = async (req, res) => {
 // Add doctor to clinic
 export const addDoctorToClinic = async (req, res) => {
   try {
-    const { clinicId, doctorId } = req.body;
+    const { clinicId } = req.user;
+    const { doctorId } = req.body;
 
-    // Validate IDs
-    if (!mongoose.Types.ObjectId.isValid(clinicId) || !mongoose.Types.ObjectId.isValid(doctorId)) {
-      return res.status(400).json({ 
-        message: 'Invalid ID format',
-        errors: {
-          clinicId: !mongoose.Types.ObjectId.isValid(clinicId) ? 'Invalid clinic ID' : undefined,
-          doctorId: !mongoose.Types.ObjectId.isValid(doctorId) ? 'Invalid doctor ID' : undefined
-        }
-      });
+    if (!clinicId) {
+      return res.status(400).json({ message: 'Admin is not associated with any clinic' });
     }
 
-    // Check if clinic exists
+    if (!mongoose.Types.ObjectId.isValid(doctorId)) {
+      return res.status(400).json({ message: 'Invalid doctor ID format' });
+    }
+
+
+
     const clinicExists = await Clinic.exists({ _id: clinicId });
     if (!clinicExists) {
       return res.status(404).json({ message: 'Clinic not found' });
     }
-    console.log("doctor id",doctorId);
-    // Check if doctor exists
+
     const doctorExists = await Doctor.exists({ _id: doctorId });
     if (!doctorExists) {
       return res.status(404).json({ message: 'Doctor not found' });
     }
 
-    // Check if doctor is already in this clinic
     const doctorInClinic = await Clinic.findOne({ 
       _id: clinicId, 
       doctors: { $in: [doctorId] } 
@@ -380,14 +399,12 @@ export const addDoctorToClinic = async (req, res) => {
       return res.status(409).json({ message: 'Doctor is already associated with this clinic' });
     }
 
-    // Add doctor to clinic
     const clinic = await Clinic.findByIdAndUpdate(
       clinicId,
       { $addToSet: { doctors: doctorId } },
       { new: true }
     ).select('-__v');
 
-    // Add clinic to doctor
     await Doctor.findByIdAndUpdate(
       doctorId, 
       { clinicId },
@@ -412,24 +429,34 @@ export const addDoctorToClinic = async (req, res) => {
     });
   }
 };
+
+// Set doctor schedule
 export const setDoctorSchedule = async (req, res) => {
   try {
+        const { clinicId } = req.user;
     const { doctorId } = req.params;
-    console.log(doctorId);
     const { workingDays, breaks, vacations, appointmentDuration } = req.body;
-
-    // Validate doctor ID
+    console.log(req.body);
     if (!mongoose.Types.ObjectId.isValid(doctorId)) {
       return res.status(400).json({ message: 'Invalid doctor ID format' });
     }
 
-    // Check if doctor exists
     const doctorExists = await Doctor.exists({ _id: doctorId });
     if (!doctorExists) {
       return res.status(404).json({ message: 'Doctor not found' });
     }
+            // Check if doctor exists in this clinic
+    const doctorInClinic = await Clinic.findOne({ 
+      _id: clinicId, 
+      doctors: { $in: [doctorId] } 
+    });
 
-    // Validate working days structure if provided
+    if (!doctorInClinic) {
+      return res.status(403).json({ 
+        message: 'Doctor is not associated with your clinic' 
+      });
+    }
+    // Validate working days
     if (workingDays) {
       const dayErrors = [];
       workingDays.forEach(day => {
@@ -449,7 +476,7 @@ export const setDoctorSchedule = async (req, res) => {
       }
     }
 
-    // Validate breaks if provided
+    // Validate breaks
     if (breaks) {
       const breakErrors = [];
       breaks.forEach(brk => {
@@ -466,7 +493,7 @@ export const setDoctorSchedule = async (req, res) => {
       }
     }
 
-    // Validate vacations if provided
+    // Validate vacations
     if (vacations) {
       const vacationErrors = [];
       vacations.forEach(vacation => {
@@ -491,7 +518,6 @@ export const setDoctorSchedule = async (req, res) => {
       return res.status(400).json({ message: 'Appointment duration must be a positive number' });
     }
 
-    // Update or create schedule
     const schedule = await Schedule.findOneAndUpdate(
       { doctorId },
       {
@@ -500,18 +526,13 @@ export const setDoctorSchedule = async (req, res) => {
         vacations: vacations || [],
         appointmentDuration: appointmentDuration || 30
       },
-      { 
-        new: true,
-        upsert: true,
-        runValidators: true 
-      }
+      { new: true, upsert: true, runValidators: true }
     );
 
     res.json({
       message: 'Doctor schedule updated successfully',
       schedule: schedule.toObject({ getters: true })
     });
-
   } catch (error) {
     console.error('Error setting doctor schedule:', error);
     
@@ -531,15 +552,26 @@ export const setDoctorSchedule = async (req, res) => {
 export const getDoctorSchedule = async (req, res) => {
   try {
     const { doctorId } = req.params;
+    const { clinicId } = req.user;
 
-    // Validate doctor ID
     if (!mongoose.Types.ObjectId.isValid(doctorId)) {
       return res.status(400).json({ message: 'Invalid doctor ID format' });
     }
+    // Check if doctor exists in this clinic
+    const doctorInClinic = await Clinic.findOne({ 
+      _id: clinicId, 
+      doctors: { $in: [doctorId] } 
+    });
+
+    if (!doctorInClinic) {
+      return res.status(403).json({ 
+        message: 'Doctor is not associated with your clinic' 
+      });
+    }
 
     const schedule = await Schedule.findOne({ doctorId })
-      .populate('doctorId', 'name specialization')
-      .lean();
+      .populate('doctorId');
+
 
     if (!schedule) {
       return res.status(404).json({ message: 'Schedule not found for this doctor' });
@@ -550,6 +582,277 @@ export const getDoctorSchedule = async (req, res) => {
     console.error('Error fetching doctor schedule:', error);
     res.status(500).json({ 
       message: 'Failed to fetch doctor schedule',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};
+//get all doctor for clinic 
+export const getClinicDoctors = async (req, res) => {
+  try {
+    const { clinicId } = req.user;
+
+    if (!clinicId) {
+      return res.status(400).json({ message: 'Admin is not associated with any clinic' });
+    }
+
+    const clinic = await Clinic.findById(clinicId)
+      .populate('doctors');
+    if (!clinic) {
+      return res.status(404).json({ message: 'Clinic not found' });
+    }
+
+    res.json({
+      message: 'Doctors retrieved successfully',
+      doctors: clinic.doctors
+    });
+  } catch (error) {
+    console.error('Error fetching clinic doctors:', error);
+    res.status(500).json({ 
+      message: 'Failed to fetch clinic doctors',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};
+
+// Remove doctor from clinic
+export const removeDoctorFromClinic = async (req, res) => {
+  try {
+    const { clinicId } = req.user;
+    const { doctorId } = req.params;
+
+    if (!clinicId) {
+      return res.status(400).json({ message: 'Admin is not associated with any clinic' });
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(doctorId)) {
+      return res.status(400).json({ message: 'Invalid doctor ID format' });
+    }
+
+    // Check if doctor exists in this clinic
+    const clinic = await Clinic.findOne({ 
+      _id: clinicId, 
+      doctors: { $in: [doctorId] } 
+    });
+
+    if (!clinic) {
+      return res.status(404).json({ 
+        message: 'Doctor not found in this clinic' 
+      });
+    }
+
+    // Remove doctor from clinic
+    const updatedClinic = await Clinic.findByIdAndUpdate(
+      clinicId,
+      { $pull: { doctors: doctorId } },
+      { new: true }
+    );
+
+    // Remove clinic reference from doctor
+    await Doctor.findByIdAndUpdate(
+      doctorId,
+      { $unset: { clinicId: 1 } },
+      { new: true }
+    );
+
+    res.json({
+      message: 'Doctor removed from clinic successfully',
+      clinic: updatedClinic
+    });
+  } catch (error) {
+    console.error('Error removing doctor from clinic:', error);
+    res.status(500).json({ 
+      message: 'Failed to remove doctor from clinic',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};
+// Get clinic information (for admin's own clinic)
+export const getClinicInfo = async (req, res) => {
+  try {
+    const { clinicId } = req.user;
+
+    if (!clinicId) {
+      return res.status(400).json({ message: 'Admin is not associated with any clinic' });
+    }
+
+    const clinic = await Clinic.findById(clinicId)
+      .populate({
+        path: 'doctors',
+        select: 'firstName lastName specialization profilePicture',
+        options: { lean: true }
+      })
+      .populate({
+        path: 'admins',
+        select: 'firstName lastName',
+        options: { lean: true }
+      })
+      .lean();
+
+    if (!clinic) {
+      return res.status(404).json({ message: 'Clinic not found' });
+    }
+
+    // Just add fullName to doctors and admins, keep everything else as is
+    const enhancedClinic = {
+      ...clinic, // Spread all clinic properties
+      doctors: clinic.doctors.map(doctor => ({
+        ...doctor,
+        fullName: `${doctor.firstName} ${doctor.lastName}`
+      })),
+      admins: clinic.admins.map(admin => ({
+        ...admin,
+        fullName: `${admin.firstName} ${admin.lastName}`
+      }))
+    };
+
+    res.json({
+      message: 'Clinic information retrieved successfully',
+      clinic: enhancedClinic
+    });
+  } catch (error) {
+    console.error('Error fetching clinic information:', error);
+    res.status(500).json({ 
+      message: 'Failed to fetch clinic information',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};
+
+// Send verification OTP
+export const sendVerificationOTP = async (req, res) => {
+  try {
+    const { clinicId } = req.user;
+
+    if (!clinicId) {
+      return res.status(400).json({ message: 'Admin is not associated with any clinic' });
+    }
+
+    const clinic = await Clinic.findById(clinicId);
+    if (!clinic) {
+      return res.status(404).json({ message: 'Clinic not found' });
+    }
+
+    if (clinic.isVerified) {
+      return res.status(400).json({ message: 'Clinic is already verified' });
+    }
+
+    // Check permanent max attempts (3 total, forever)
+    if (clinic.verificationAttempts >= 3) {
+      return res.status(429).json({
+        message: 'Maximum verification attempts reached. Verification is no longer possible.'
+      });
+    }
+
+    // Get phone from Google Maps if not already fetched
+    let phoneNumber = clinic.googleMapsPhone;
+    if (!phoneNumber && clinic.googleMapsLink) {
+      try {
+        const placeId = await extractPlaceIdFromUrl(clinic.googleMapsLink);
+        const phoneData = await withRateLimit(() => fetchPlacePhone(placeId));
+        phoneNumber = phoneData.internationalPhone || phoneData.formattedPhone;
+
+        if (phoneNumber) {
+          await Clinic.findByIdAndUpdate(clinicId, {
+            googleMapsPhone: phoneNumber
+          });
+        }
+      } catch (error) {
+        console.error('Error fetching phone from Google Maps:', error);
+      }
+    }
+
+    if (!phoneNumber) {
+      return res.status(400).json({
+        message:
+          'No phone number found for this clinic. Please add a Google Maps link with phone number.'
+      });
+    }
+
+    // Increment attempt BEFORE sending OTP (so failures still count)
+    const updatedClinic = await Clinic.findByIdAndUpdate(
+      clinicId,
+      {
+        $inc: { verificationAttempts: 1 },
+        $set: { lastVerificationAttempt: new Date() }
+      },
+      { new: true }
+    );
+
+    // Send OTP
+    const otpResult = await sendOTP(phoneNumber);
+    console.log('OTP sent result:', otpResult);
+
+    if (!otpResult.success) {
+      return res.status(500).json({
+        message: otpResult.message,
+        attemptsLeft: Math.max(0, 3 - updatedClinic.verificationAttempts)
+      });
+    }
+
+    res.json({
+      message: 'OTP sent successfully',
+      phone: phoneNumber.replace(/(\d{3})\d{4}(\d{4})/, '$1****$2'),
+      attemptsLeft: Math.max(0, 3 - updatedClinic.verificationAttempts)
+    });
+  } catch (error) {
+    console.error('Error sending verification OTP:', error);
+    res.status(500).json({
+      message: 'Failed to send verification OTP',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};
+
+
+// Verify OTP and mark clinic as verified
+export const verifyClinicOTP = async (req, res) => {
+  try {
+    const { clinicId } = req.user;
+    const { code } = req.body;
+
+    if (!clinicId) {
+      return res.status(400).json({ message: 'Admin is not associated with any clinic' });
+    }
+
+    if (!code) {
+      return res.status(400).json({ message: 'OTP code is required' });
+    }
+
+    const clinic = await Clinic.findById(clinicId);
+    if (!clinic) {
+      return res.status(404).json({ message: 'Clinic not found' });
+    }
+
+    if (clinic.isVerified) {
+      return res.status(400).json({ message: 'Clinic is already verified' });
+    }
+
+    if (!clinic.googleMapsPhone) {
+      return res.status(400).json({ message: 'No phone number found for verification' });
+    }
+
+    // Verify OTP
+    const verificationResult = await verifyOTP(clinic.googleMapsPhone, code);
+    
+    if (!verificationResult.success) {
+      return res.status(400).json({ message: verificationResult.message });
+    }
+
+    // Mark clinic as verified
+    await Clinic.findByIdAndUpdate(clinicId, {
+      isVerified: true,
+      verificationAttempts: 0
+    });
+
+    res.json({
+      message: 'Clinic verified successfully',
+      verified: true
+    });
+
+  } catch (error) {
+    console.error('Error verifying clinic OTP:', error);
+    res.status(500).json({ 
+      message: 'Failed to verify OTP',
       error: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
