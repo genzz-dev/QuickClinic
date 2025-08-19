@@ -160,8 +160,3 @@ node index.js
 
 ---
 
-## 📜 License
-
-MIT © [Your Name or GitHub Username]
-
----
