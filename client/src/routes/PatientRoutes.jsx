@@ -7,6 +7,7 @@ import PatientDashboard from '../pages/patient/PatientDashboard';
 export default function PatientRoutes() {
   return (
     <Routes>
+      <Route path="*" element={<NotFoundPage />} />
       <Route
         path="/patient/dashboard"
         element={

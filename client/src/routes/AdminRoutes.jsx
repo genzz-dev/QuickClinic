@@ -11,7 +11,7 @@ import AdminClinicAdd from '../pages/admin/AdminClinicAdd';
 import UpdateClinic from '../pages/admin/UpdateClinic';
 import ManageDoctors from '../pages/admin/ManageDoctors';
 import AdminNavbar from '../components/admin/AdminNavbar';
-
+import NotFoundPage from '../components/ui/NotFoundPage';
 export default function AdminRoutes() {
   return (
     <>
@@ -28,6 +28,7 @@ export default function AdminRoutes() {
           </ProtectedRoute>
         }
       />
+      <Route path="*" element={<NotFoundPage />} />
       <Route
         path="/admin/doctors"
         element={
