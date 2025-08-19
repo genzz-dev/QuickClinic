@@ -10,9 +10,12 @@ import AdminProfileComplete from '../pages/admin/AdminProfileComplete';
 import AdminClinicAdd from '../pages/admin/AdminClinicAdd';
 import UpdateClinic from '../pages/admin/UpdateClinic';
 import ManageDoctors from '../pages/admin/ManageDoctors';
+import AdminNavbar from '../components/admin/AdminNavbar';
 
 export default function AdminRoutes() {
   return (
+    <>
+    <AdminNavbar/>
     <Routes>
       {/* Admin Dashboard - Requires BOTH profile AND clinic */}
       <Route
@@ -71,5 +74,6 @@ export default function AdminRoutes() {
         }
       />
     </Routes>
+    </>
   );
 }
