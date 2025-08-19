@@ -44,7 +44,7 @@ const AdminDesktopNavbar = () => {
             </button>
 
             <button
-              onClick={() => navigate("/admin/manage-doctors")}
+              onClick={() => navigate("/admin/doctors")}
               className="flex items-center text-gray-600 hover:text-blue-600 transition-colors font-medium"
             >
               <FiUsers className="w-4 h-4 mr-2" />
@@ -52,7 +52,7 @@ const AdminDesktopNavbar = () => {
             </button>
 
             <button
-              onClick={() => navigate("/admin/add-clinic")}
+              onClick={() => navigate("/admin/update-clinic")}
               className="flex items-center text-gray-600 hover:text-blue-600 transition-colors font-medium"
             >
               <FiMapPin className="w-4 h-4 mr-2" />

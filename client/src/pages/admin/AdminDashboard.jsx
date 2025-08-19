@@ -131,7 +131,7 @@ return (
         <VerificationBanner 
           clinicData={clinicData}
           onVerify={handleVerificationProcessStart}
-          onSetup={() => navigate('/admin/clinic-setup')}
+          onSetup={() => navigate('/admin/update-clinic')}
         />
       </div>
       <div className="mb-12">
@@ -142,7 +142,7 @@ return (
               title="Manage Clinic Profile"
               description="Update clinic information, contact details, and settings"
               icon={BuildingOfficeIcon}
-              onClick={() => navigate('/admin/clinic-setup')}
+              onClick={() => navigate('/admin/update-clinic')}
               variant="secondary"
             />
           </div>
@@ -162,7 +162,7 @@ return (
               title="Edit Profile"
               description="Modify clinic details and preferences"
               icon={PencilSquareIcon}
-              onClick={() => navigate('/admin/clinic-setup')}
+              onClick={() => navigate('/admin/update-clinic')}
               variant="secondary"
             />
           </div>
