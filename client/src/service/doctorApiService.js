@@ -91,6 +91,17 @@ export const verifyDoctorCredentials = async (verificationData) => {
     headers: { 'Content-Type': 'application/json' }
   });
 };
+export const checkDoctorProfileStatus = async () => {
+  return await apiService.get('/doctors/profile-status');
+};
+
+/**
+ * Check Doctor Clinic Status
+ */
+export const checkDoctorClinicStatus = async () => {
+  return await apiService.get('/doctors/clinic-status');
+};
+
 
 // Export all functions as default object for convenience
 export default {
@@ -99,5 +110,7 @@ export default {
   getDoctorProfile,
   getDoctorsByClinic,
   leaveCurrentClinic,
-  verifyDoctorCredentials
+  verifyDoctorCredentials,
+  checkDoctorProfileStatus,  
+  checkDoctorClinicStatus    
 };

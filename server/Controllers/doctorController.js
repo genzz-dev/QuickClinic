@@ -324,3 +324,92 @@ export const verifyDoctorCredentials = async (req, res) => {
     });
   }
 };
+// Check doctor profile completion status
+export const checkProfileStatus = async (req, res) => {
+  try {
+    const { profileId } = req.user;
+
+    const doctor = await Doctor.findById(profileId).lean();
+    
+    if (!doctor) {
+      return res.json({
+        profileExists: false,
+        isProfileComplete: false,
+        hasClinic: false,
+        message: 'No profile found'
+      });
+    }
+
+    // Check if profile is complete
+    const isProfileComplete = doctor && 
+      doctor.firstName && 
+      doctor.lastName && 
+      doctor.specialization && 
+      doctor.qualifications?.length > 0 &&
+      doctor.consultationFee;
+
+    // Check if doctor has clinic
+    const hasClinic = !!doctor.clinicId;
+
+    return res.json({
+      profileExists: true,
+      isProfileComplete,
+      hasClinic,
+      doctor: {
+        id: doctor._id,
+        firstName: doctor.firstName,
+        lastName: doctor.lastName,
+        specialization: doctor.specialization,
+        clinicId: doctor.clinicId
+      }
+    });
+
+  } catch (error) {
+    console.error('Error checking profile status:', error);
+    res.status(500).json({
+      message: 'Failed to check profile status',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};
+
+// Check doctor clinic association status
+export const checkClinicStatus = async (req, res) => {
+  try {
+    const { profileId } = req.user;
+
+    const doctor = await Doctor.findById(profileId)
+      .populate('clinicId', 'name address contactInfo')
+      .lean();
+    
+    if (!doctor) {
+      return res.status(404).json({
+        hasClinic: false,
+        message: 'Doctor profile not found'
+      });
+    }
+
+    const hasClinic = !!doctor.clinicId;
+
+    return res.json({
+      hasClinic,
+      clinic: hasClinic ? {
+        id: doctor.clinicId._id,
+        name: doctor.clinicId.name,
+        address: doctor.clinicId.address
+      } : null,
+      doctor: {
+        id: doctor._id,
+        firstName: doctor.firstName,
+        lastName: doctor.lastName
+      }
+    });
+
+  } catch (error) {
+    console.error('Error checking clinic status:', error);
+    res.status(500).json({
+      message: 'Failed to check clinic status',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};
