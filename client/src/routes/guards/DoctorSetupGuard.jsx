@@ -1,8 +1,8 @@
 // src/routes/guards/DoctorSetupGuard.jsx
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import { getDoctorProfile } from "../../service/doctorApiService";
+import { checkDoctorProfileStatus } from "../../service/doctorApiService";
 import { useAuth } from "../../context/authContext";
 import Loading from "../../components/ui/Loading";
 
@@ -10,94 +10,52 @@ const DoctorSetupGuard = ({ requireProfile = true, requireClinic = true, childre
   const { isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
-  const [hasRun, setHasRun] = useState(false);
+  const hasShownToast = useRef(false); // Add this ref
 
   useEffect(() => {
-    // Prevent multiple runs with a more robust check
-    if (hasRun || !isAuthenticated || user?.role !== "doctor") {
+    const checkAccess = async () => {
       if (!isAuthenticated || user?.role !== "doctor") {
         navigate("/", { replace: true });
+        return;
       }
-      return;
-    }
 
-    let mounted = true;
-    setHasRun(true); // Set this immediately to prevent re-runs
-
-    const runChecks = async () => {
       try {
-        const profileRes = await getDoctorProfile();
-        
-        if (!mounted) return;
+        const response = await checkDoctorProfileStatus();
+        const { profileExists, isProfileComplete, hasClinic } = response;
 
-        const doctorProfile = profileRes.data;
-
-        // Check if profile is complete
-        const isProfileComplete = doctorProfile && 
-          doctorProfile.name && 
-          doctorProfile.email && 
-          doctorProfile.phone && 
-          doctorProfile.specialization && 
-          doctorProfile.qualifications?.length > 0;
-
-        // Check if doctor has clinic
-        const hasClinic = doctorProfile?.clinicId || 
-          (doctorProfile?.clinics && doctorProfile.clinics.length > 0);
-
-        // Handle requirements
-        if (requireProfile && !isProfileComplete) {
-          toast.warning("Please complete your profile first.");
-          navigate("/doctor/profile", { replace: true });
+        if (requireProfile && (!profileExists || !isProfileComplete)) {
+          if (!hasShownToast.current) { // Check before showing toast
+            toast.warning("Please complete your profile first.");
+            hasShownToast.current = true;
+          }
+          navigate("/doctor/complete-profile", { replace: true });
           return;
         }
 
         if (requireClinic && !hasClinic) {
-          toast.warning("You need to be added to a clinic to access this page.");
+          if (!hasShownToast.current) { // Check before showing toast
+            toast.warning("You need to be added to a clinic to access this page.");
+            hasShownToast.current = true;
+          }
           navigate("/doctor/share-id", { replace: true });
           return;
         }
 
-        // If all checks pass, allow access
-        if (mounted) {
-          setLoading(false);
-        }
-
-      } catch (err) {
-        console.error("DoctorSetupGuard check failed:", err);
-        
-        if (!mounted) return;
-
-        // Handle 404 - profile doesn't exist
-        if (err.response?.status === 404) {
-          if (requireProfile) {
-            toast.info("Please complete your profile first.");
-            navigate("/doctor/profile", { replace: true });
-          } else {
-            setLoading(false);
-          }
-        } else {
-          // Handle other errors
+        setLoading(false);
+      } catch (error) {
+        console.error("DoctorSetupGuard error:", error);
+        if (!hasShownToast.current) { // Check before showing toast
           toast.error("Something went wrong. Please try again.");
-          navigate("/", { replace: true });
+          hasShownToast.current = true;
         }
+        navigate("/", { replace: true });
       }
     };
 
-    runChecks();
-
-    return () => {
-      mounted = false;
-    };
-  }, [isAuthenticated, user?.role]); // Keep minimal dependencies
-
-  // Reset hasRun when auth state changes
-  useEffect(() => {
-    setHasRun(false);
-    setLoading(true);
-  }, [isAuthenticated, user?.role]);
+    checkAccess();
+  }, [isAuthenticated, user?.role, navigate, requireProfile, requireClinic]);
 
   if (loading) return <Loading />;
-
   return children;
 };
 

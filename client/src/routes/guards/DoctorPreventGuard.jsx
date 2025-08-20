@@ -1,8 +1,8 @@
 // src/routes/guards/DoctorPreventGuard.jsx
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import { getDoctorProfile } from "../../service/doctorApiService";
+import { checkDoctorProfileStatus } from "../../service/doctorApiService";
 import { useAuth } from "../../context/authContext";
 import Loading from "../../components/ui/Loading";
 
@@ -10,43 +10,24 @@ const DoctorPreventGuard = ({ preventProfile = false, preventClinic = false, chi
   const { isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
-  const [hasRun, setHasRun] = useState(false);
+  const hasShownToast = useRef(false); // Add this ref
 
   useEffect(() => {
-    // Prevent multiple runs with a more robust check
-    if (hasRun || !isAuthenticated || user?.role !== "doctor") {
+    const checkAccess = async () => {
       if (!isAuthenticated || user?.role !== "doctor") {
         navigate("/", { replace: true });
+        return;
       }
-      return;
-    }
 
-    let mounted = true;
-    setHasRun(true); // Set this immediately to prevent re-runs
-
-    const runChecks = async () => {
       try {
-        const profileRes = await getDoctorProfile();
-        
-        if (!mounted) return;
+        const response = await checkDoctorProfileStatus();
+        const { profileExists, isProfileComplete, hasClinic } = response;
 
-        const doctorProfile = profileRes.data;
-
-        // Check if profile is complete
-        const isProfileComplete = doctorProfile && 
-          doctorProfile.name && 
-          doctorProfile.email && 
-          doctorProfile.phone && 
-          doctorProfile.specialization && 
-          doctorProfile.qualifications?.length > 0;
-
-        // Check if doctor has clinic
-        const hasClinic = doctorProfile?.clinicId || 
-          (doctorProfile?.clinics && doctorProfile.clinics.length > 0);
-
-        // Prevent access based on conditions
-        if (preventProfile && isProfileComplete) {
-          toast.info("Profile already completed.");
+        if (preventProfile && profileExists && isProfileComplete) {
+          if (!hasShownToast.current) { // Check before showing toast
+            toast.info("Profile already completed.");
+            hasShownToast.current = true;
+          }
           if (hasClinic) {
             navigate("/doctor/dashboard", { replace: true });
           } else {
@@ -56,48 +37,25 @@ const DoctorPreventGuard = ({ preventProfile = false, preventClinic = false, chi
         }
 
         if (preventClinic && hasClinic) {
-          toast.info("You are already part of a clinic.");
+          if (!hasShownToast.current) { // Check before showing toast
+            toast.info("You are already part of a clinic.");
+            hasShownToast.current = true;
+          }
           navigate("/doctor/dashboard", { replace: true });
           return;
         }
 
-        // If no prevention rules triggered, allow access
-        if (mounted) {
-          setLoading(false);
-        }
-
-      } catch (err) {
-        console.error("DoctorPreventGuard check failed:", err);
-        
-        if (!mounted) return;
-
-        // Handle 404 - profile doesn't exist
-        if (err.response?.status === 404) {
-          // Profile doesn't exist, allow access (this is what prevent guard wants)
-          setLoading(false);
-        } else {
-          // Handle other errors
-          toast.error("Something went wrong. Please try again.");
-          navigate("/", { replace: true });
-        }
+        setLoading(false);
+      } catch (error) {
+        console.error("DoctorPreventGuard error:", error);
+        setLoading(false);
       }
     };
 
-    runChecks();
-
-    return () => {
-      mounted = false;
-    };
-  }, [isAuthenticated, user?.role]); // Keep minimal dependencies
-
-  // Reset hasRun when auth state changes
-  useEffect(() => {
-    setHasRun(false);
-    setLoading(true);
-  }, [isAuthenticated, user?.role]);
+    checkAccess();
+  }, [isAuthenticated, user?.role, navigate, preventProfile, preventClinic]);
 
   if (loading) return <Loading />;
-
   return children;
 };
 
