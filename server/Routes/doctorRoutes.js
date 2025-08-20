@@ -6,7 +6,9 @@ import {
   getDoctorProfile,
   getDoctorsByClinic,
   leaveCurrentClinic,
-    verifyDoctorCredentials
+    verifyDoctorCredentials,
+    checkClinicStatus,
+    checkProfileStatus
 
 } from '../Controllers/doctorController.js';
 import upload from '../Middleware/upload.js';
@@ -22,5 +24,6 @@ router.get('/profile', getDoctorProfile);
 router.get('/clinic/:clinicId', getDoctorsByClinic);
 router.post('/leave-clinic', authenticate, authorize('doctor'), leaveCurrentClinic);
 router.post('/verify', verifyDoctorCredentials);
-
+router.get('/clinic-status', checkClinicStatus);  
+router.get('/profile-status', checkProfileStatus);
 export default router;
