@@ -413,3 +413,37 @@ export const checkClinicStatus = async (req, res) => {
     });
   }
 };
+// Get doctor clinic info
+
+
+export const getDoctorClinicInfo = async (req, res) => {
+  try {
+    const { profileId } = req.user;
+
+    // Step 1: Fetch doctor to get clinicId
+    const doctor = await Doctor.findById(profileId).lean();
+    if (!doctor) {
+      return res.status(404).json({ message: 'Doctor profile not found' });
+    }
+
+    if (!doctor.clinicId) {
+      return res.status(404).json({ message: 'No clinic associated with this doctor' });
+    }
+
+    // Step 2: Fetch clinic directly using Clinic model
+    const clinic = await Clinic.findById(doctor.clinicId);
+
+    if (!clinic) {
+      return res.status(404).json({ message: 'Clinic not found' });
+    }
+
+    res.json({ clinic });
+  } catch (error) {
+    console.error('Error fetching doctor clinic info:', error);
+    res.status(500).json({
+      message: 'Failed to fetch doctor clinic info',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};
+
