@@ -3,6 +3,7 @@ import Schedule from '../models/Clinic/Schedule.js';
 import mongoose from 'mongoose';
 import Doctor from '../models/Users/Doctor.js';
 import Patient from '../models/Users/Patient.js';
+import HealthRecord from '../models/HealthRecord/HealthRecord.js'
 
 // Book a new appointment
 export const bookAppointment = async (req, res) => {
@@ -580,5 +581,45 @@ export const cancelAppointment = async (req, res) => {
       message: 'Failed to cancel appointment',
       error: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
+  }
+};
+// Get patient info for appointment (Doctor only)
+export const getPatientInfoForAppointment = async (req, res) => {
+  try {
+    const { appointmentId } = req.params;
+    const { profileId, role } = req.user;
+
+    // Check appointment exists and doctor owns it
+    const appointment = await Appointment.findById(appointmentId);
+    if (!appointment) {
+      return res.status(404).json({ message: 'Appointment not found' });
+    }
+
+    if (role !== 'doctor' || appointment.doctorId.toString() !== profileId.toString()) {
+      return res.status(403).json({ message: 'Unauthorized' });
+    }
+
+    // Get patient info
+    const patient = await Patient.findById(appointment.patientId)
+      .populate('healthRecords')
+      .lean();
+
+    if (!patient) {
+      return res.status(404).json({ message: 'Patient not found' });
+    }
+
+    // Calculate age
+    const age = Math.floor((Date.now() - new Date(patient.dateOfBirth)) / (365.25 * 24 * 60 * 60 * 1000));
+
+    res.json({
+      patient: {
+        ...patient,
+        age
+      }
+    });
+
+  } catch (error) {
+    console.error('Error fetching patient info:', error);
+    res.status(500).json({ message: 'Failed to fetch patient info' });
   }
 };
