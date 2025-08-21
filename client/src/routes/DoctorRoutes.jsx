@@ -10,10 +10,13 @@ import NotFoundPage from '../components/ui/NotFoundPage';
 import DoctorAppointments from '../pages/doctor/DoctorAppointment';
 import AppointmentDetails from '../pages/doctor/AppointmentDetails';
 import DoctorProfilePage from '../pages/doctor/DoctorProfile';
+import DoctorNavbar from '../components/admin/Doctors/DoctorNavbar';
+import DoctorMobileBottomBar from '../components/admin/Doctors/DoctorMobileBottomBar';
 
 export default function DoctorRoutes() {
   return (
     <>
+    <DoctorNavbar/>
       <ProtectedRoute allowedRoles={['doctor']}>
         <Routes>
           {/* Doctor Dashboard - Requires BOTH profile AND clinic */}
@@ -87,6 +90,7 @@ export default function DoctorRoutes() {
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </ProtectedRoute>
+      <DoctorMobileBottomBar/>
     </>
   );
 }
