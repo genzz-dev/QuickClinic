@@ -9,6 +9,7 @@ import DoctorShareIdPage from '../pages/doctor/DoctorShareIdPage';
 import NotFoundPage from '../components/ui/NotFoundPage';
 import DoctorAppointments from '../pages/doctor/DoctorAppointment';
 import AppointmentDetails from '../pages/doctor/AppointmentDetails';
+import DoctorProfilePage from '../pages/doctor/DoctorProfile';
 
 export default function DoctorRoutes() {
   return (
@@ -31,6 +32,15 @@ export default function DoctorRoutes() {
               <DoctorSetupGuard requireProfile={true} requireClinic={true}>
                
                 <DoctorDashboard />
+              </DoctorSetupGuard>
+            }
+          />
+          <Route
+            path="doctor/profile"
+            element={
+              <DoctorSetupGuard requireProfile={true} requireClinic={true}>
+               
+                <DoctorProfilePage />
               </DoctorSetupGuard>
             }
           />
