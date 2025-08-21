@@ -104,7 +104,12 @@ export const checkDoctorClinicStatus = async () => {
 export const getDoctorClinicInfo=async()=>{
   return await apiService.get('/doctors/clinic');
 }
-
+/**
+ * Get Doctor Schedule
+ */
+export const getDoctorSchedule = async () => {
+  return await apiService.get('/doctors/schedule');
+};
 // Export all functions as default object for convenience
 export default {
   createDoctorProfile,
@@ -114,5 +119,6 @@ export default {
   leaveCurrentClinic,
   verifyDoctorCredentials,
   checkDoctorProfileStatus,  
-  checkDoctorClinicStatus    
+  checkDoctorClinicStatus,
+  getDoctorSchedule    
 };
