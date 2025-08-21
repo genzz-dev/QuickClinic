@@ -446,4 +446,46 @@ export const getDoctorClinicInfo = async (req, res) => {
     });
   }
 };
+// Get doctor schedule
+export const getDoctorSchedule = async (req, res) => {
+  try {
+    const { profileId } = req.user; // Doctor's profile ID from auth middleware
+
+    // Find the doctor and populate schedule
+    const doctor = await Doctor.findById(profileId)
+      .populate('schedule')
+      .lean();
+
+    if (!doctor) {
+      return res.status(404).json({ message: 'Doctor profile not found' });
+    }
+
+    // Check if doctor has a schedule
+    if (!doctor.schedule) {
+      return res.status(404).json({ 
+        message: 'No schedule found for this doctor',
+        hasSchedule: false
+      });
+    }
+
+    res.json({
+      message: 'Doctor schedule retrieved successfully',
+      hasSchedule: true,
+      schedule: doctor.schedule,
+      doctorInfo: {
+        id: doctor._id,
+        firstName: doctor.firstName,
+        lastName: doctor.lastName,
+        specialization: doctor.specialization
+      }
+    });
+
+  } catch (error) {
+    console.error('Error fetching doctor schedule:', error);
+    res.status(500).json({
+      message: 'Failed to fetch doctor schedule',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};
 
