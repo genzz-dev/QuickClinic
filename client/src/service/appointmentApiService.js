@@ -67,6 +67,12 @@ export const getAppointmentDetails = async (appointmentId) => {
 export const cancelAppointment = async (appointmentId) => {
   return await apiService.put(`/appointments/${appointmentId}/cancel`);
 };
+/**
+ * Get patient info for appointment
+ */
+export const getPatientInfoForAppointment = async (appointmentId) => {
+  return await apiService.get(`/appointments/${appointmentId}/patient-info`);
+};
 
 // Export all functions as default object
 export default {
@@ -77,5 +83,6 @@ export default {
   updateAppointment,
   updateAppointmentStatus,
   getAppointmentDetails,
-  cancelAppointment
+  cancelAppointment,
+  getPatientInfoForAppointment 
 };
