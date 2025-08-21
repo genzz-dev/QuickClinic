@@ -1,8 +1,8 @@
 // components/doctor/DoctorNavbar.jsx
 import React, { useState, useEffect } from "react";
-import { FiCalendar, FiUser, FiGrid, FiLogOut, FiMenu, FiX } from "react-icons/fi";
+import { FiCalendar, FiUser, FiGrid, FiLogOut, FiMenu, FiX,FiClock } from "react-icons/fi";
 import { useNavigate, useLocation } from "react-router-dom";
-import { getDoctorProfile } from '../../../service/doctorApiService';
+import { getDoctorProfile } from '../../service/doctorApiService'
 
 const DoctorNavbar = () => {
   const navigate = useNavigate();
@@ -85,6 +85,17 @@ const DoctorNavbar = () => {
               >
                 <FiUser className="mr-2" />
                 Profile
+              </button>
+              <button
+                onClick={() => navigate("/doctor/schedule")}
+                className={`flex items-center px-4 py-2 rounded-lg transition-all ${
+                  isActive("/doctor/schedule")
+                    ? "text-blue-600 bg-blue-50 shadow-sm"
+                    : "text-gray-600 hover:text-blue-600 hover:bg-gray-50"
+                }`}
+              >
+                <FiClock className="mr-2" />
+                schedule
               </button>
             </div>
 

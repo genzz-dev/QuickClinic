@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { FiGrid, FiCalendar, FiUser, FiBell } from "react-icons/fi";
-import { getDoctorProfile } from '../../../service/doctorApiService'
+import { getDoctorProfile } from '../../service/doctorApiService'
 
 const DoctorMobileBottomBar = () => {
   const navigate = useNavigate();
