@@ -9,7 +9,8 @@ import {
     verifyDoctorCredentials,
     checkClinicStatus,
     checkProfileStatus,
-    getDoctorClinicInfo
+    getDoctorClinicInfo,
+    getDoctorSchedule
 
 } from '../Controllers/doctorController.js';
 import upload from '../Middleware/upload.js';
@@ -27,5 +28,6 @@ router.post('/leave-clinic', authenticate, authorize('doctor'), leaveCurrentClin
 router.post('/verify', verifyDoctorCredentials);
 router.get('/clinic-status', checkClinicStatus);  
 router.get('/profile-status', checkProfileStatus);
-router.get('/clinic',getDoctorClinicInfo)
+router.get('/clinic',getDoctorClinicInfo);
+router.get('/schedule', getDoctorSchedule);
 export default router;

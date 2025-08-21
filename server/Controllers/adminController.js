@@ -433,10 +433,11 @@ export const addDoctorToClinic = async (req, res) => {
 // Set doctor schedule
 export const setDoctorSchedule = async (req, res) => {
   try {
-        const { clinicId } = req.user;
+    const { clinicId } = req.user;
     const { doctorId } = req.params;
     const { workingDays, breaks, vacations, appointmentDuration } = req.body;
     console.log(req.body);
+    
     if (!mongoose.Types.ObjectId.isValid(doctorId)) {
       return res.status(400).json({ message: 'Invalid doctor ID format' });
     }
@@ -445,7 +446,8 @@ export const setDoctorSchedule = async (req, res) => {
     if (!doctorExists) {
       return res.status(404).json({ message: 'Doctor not found' });
     }
-            // Check if doctor exists in this clinic
+    
+    // Check if doctor exists in this clinic
     const doctorInClinic = await Clinic.findOne({ 
       _id: clinicId, 
       doctors: { $in: [doctorId] } 
@@ -456,6 +458,7 @@ export const setDoctorSchedule = async (req, res) => {
         message: 'Doctor is not associated with your clinic' 
       });
     }
+    
     // Validate working days
     if (workingDays) {
       const dayErrors = [];
@@ -518,15 +521,24 @@ export const setDoctorSchedule = async (req, res) => {
       return res.status(400).json({ message: 'Appointment duration must be a positive number' });
     }
 
+    // Create/update the schedule
     const schedule = await Schedule.findOneAndUpdate(
       { doctorId },
       {
+        doctorId, // Ensure doctorId is set
         workingDays: workingDays || [],
         breaks: breaks || [],
         vacations: vacations || [],
         appointmentDuration: appointmentDuration || 30
       },
       { new: true, upsert: true, runValidators: true }
+    );
+
+    // **FIX: Update the Doctor model to reference the schedule**
+    await Doctor.findByIdAndUpdate(
+      doctorId,
+      { schedule: schedule._id },
+      { new: true }
     );
 
     res.json({

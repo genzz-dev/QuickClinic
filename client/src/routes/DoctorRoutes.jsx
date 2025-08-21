@@ -10,8 +10,9 @@ import NotFoundPage from '../components/ui/NotFoundPage';
 import DoctorAppointments from '../pages/doctor/DoctorAppointment';
 import AppointmentDetails from '../pages/doctor/AppointmentDetails';
 import DoctorProfilePage from '../pages/doctor/DoctorProfile';
-import DoctorNavbar from '../components/admin/Doctors/DoctorNavbar';
-import DoctorMobileBottomBar from '../components/admin/Doctors/DoctorMobileBottomBar';
+import DoctorNavbar from '../components/Doctors/DoctorNavbar';
+import DoctorMobileBottomBar from '../components/Doctors/DoctorMobileBottomBar';
+import DoctorSchedule from '../pages/doctor/DoctorSchedule';
 
 export default function DoctorRoutes() {
   return (
@@ -86,7 +87,14 @@ export default function DoctorRoutes() {
               </DoctorPreventGuard>
             }
           />
-
+          <Route
+            path="doctor/schedule"
+            element={
+              <DoctorPreventGuard preventProfile={false}>
+                <DoctorSchedule />
+              </DoctorPreventGuard>
+            }
+          />
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </ProtectedRoute>

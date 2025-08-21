@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback, useMemo } from "react";
 import { FiX, FiLoader, FiAlertCircle } from "react-icons/fi";
-import { getDoctorSchedule } from "../../../../service/adminApiService";
+import { getDoctorSchedule } from '../../../service/adminApiService'
 import Tabs from "./Tabs";
 import WorkingDaysTab from "./WorkingDaysTab";
 import BreaksTab from "./BreaksTab";

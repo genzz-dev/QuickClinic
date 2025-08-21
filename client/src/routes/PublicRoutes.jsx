@@ -10,7 +10,7 @@ import SearchResultsPage from '../components/public/SearchResultsPage';
 import ClinicDetailPage from '../pages/public/ClinicDetailPage';
 import DoctorDetailsPage from '../pages/public/DoctorDetailsPage';
 import Doctors from '../pages/public/Doctors';
-
+import NotFoundPage from '../components/ui/NotFoundPage';
 export default function PublicRoutes() {
   return (
     <>

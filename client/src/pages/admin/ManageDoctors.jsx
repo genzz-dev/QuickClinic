@@ -1,9 +1,9 @@
 import React, { useEffect, useState, useCallback, useMemo } from "react";
 import { FiSearch, FiAlertCircle } from "react-icons/fi";
 import { getClinicDoctors, addDoctor, deleteDoctorFromClinic, setDoctorSchedule } from "../../service/adminApiService";
-import AddDoctorForm from '../../components/admin/Doctors/AddDoctorForm';
-import DoctorList from "../../components/admin/Doctors/DoctorList";
-import ScheduleModal from "../../components/admin/Doctors/ScheduleModal";
+import AddDoctorForm from '../../components/Doctors/AddDoctorForm';
+import DoctorList from "../../components/Doctors/DoctorList";
+import ScheduleModal from "../../components/Doctors/ScheduleModal";
 
 const ManageDoctors = () => {
   const [doctors, setDoctors] = useState([]);

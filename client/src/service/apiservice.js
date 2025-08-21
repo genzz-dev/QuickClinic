@@ -147,6 +147,7 @@ class ApiService {
   async get(endpoint, config = {}) {
     try {
       const response = await this.axiosInstance.get(endpoint, config);
+
       return response.data;
     } catch (error) {
       throw this.handleError(error);
