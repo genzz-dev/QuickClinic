@@ -7,6 +7,7 @@ import DoctorDashboard from '../pages/doctor/DoctorDashboard';
 import DoctorCompleteProfile from '../pages/doctor/DoctorProfileComplete';
 import DoctorShareIdPage from '../pages/doctor/DoctorShareIdPage';
 import NotFoundPage from '../components/ui/NotFoundPage';
+import DoctorAppointments from '../pages/doctor/DoctorAppointment';
 
 export default function DoctorRoutes() {
   return (
@@ -32,7 +33,15 @@ export default function DoctorRoutes() {
               </DoctorSetupGuard>
             }
           />
-
+          <Route
+            path="doctor/appointments"
+            element={
+              <DoctorSetupGuard requireProfile={true} requireClinic={true}>
+               
+                <DoctorAppointments />
+              </DoctorSetupGuard>
+            }
+          />
           {/* Share ID Page - Requires profile, prevents if clinic exists */}
           <Route
             path="doctor/share-id"
