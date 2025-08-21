@@ -16,7 +16,6 @@ export default function PublicRoutes() {
     <>
       <Navbar />
       <Routes>
-        <Route path="*" element={<NotFoundPage />} />
         <Route path="/" element={<QuickClinicHomepage />} />
         <Route path="/nearby" element={<Nearbyclinics />} />
         <Route path="/search" element={<SearchResultsPage />} />

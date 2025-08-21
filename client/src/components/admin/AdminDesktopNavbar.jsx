@@ -25,9 +25,12 @@ const AdminDesktopNavbar = () => {
             onClick={() => navigate("/admin/dashboard")}
             className="flex items-center cursor-pointer"
           >
-          <span className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-blue-700 bg-clip-text text-transparent">
-                QuickClinic
-              </span>
+            <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-2 rounded-lg mr-3">
+              <FiMapPin className="w-6 h-6" />
+            </div>
+            <span className="text-2xl font-bold text-gray-800">
+              QuickClinic <span className="text-sm text-blue-600">Admin</span>
+            </span>
           </div>
 
           {/* Navigation Links */}

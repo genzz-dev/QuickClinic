@@ -8,8 +8,7 @@ import {
   updateAppointment,
   updateAppointmentStatus,
   getAppointmentDetails,
-  cancelAppointment,
-    getPatientInfoForAppointment
+  cancelAppointment
 } from '../Controllers/appointmentController.js';
 
 const router = express.Router();
@@ -32,5 +31,5 @@ router.put('/:appointmentId/status', authorize('admin'), updateAppointmentStatus
 
 // Common routes (accessible by patient, doctor, admin with appropriate permissions)
 router.get('/:appointmentId', authorize('patient', 'doctor', 'admin'), getAppointmentDetails);
-router.get('/:appointmentId/patient-info', authorize('doctor'), getPatientInfoForAppointment);
+
 export default router;
