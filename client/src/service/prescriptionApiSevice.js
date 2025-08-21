@@ -8,7 +8,7 @@ import apiService from "./apiservice";
  * Create Prescription for an appointment
  */
 export const createPrescription = async (appointmentId, prescriptionData) => {
-  return await apiService.post(`/prescriptions/${appointmentId}`, prescriptionData, {
+  return await apiService.post(`/prescriptions/appointments/${appointmentId}`, prescriptionData, {
     headers: { 'Content-Type': 'application/json' }
   });
 };
@@ -35,9 +35,23 @@ export const getPrescription = async (prescriptionId) => {
   return await apiService.get(`/prescriptions/${prescriptionId}`);
 };
 
+// Fetch prescription for an appointment
+export const getAppointmentPrescription = async (appointmentId) => {
+  return await apiService.get(`/prescriptions/appointments/${appointmentId}`);
+};
+
+// Update prescription
+export const updatePrescription = async (prescriptionId, updateData) => {
+  return await apiService.put(`/prescriptions/${prescriptionId}`, updateData, {
+    headers: { 'Content-Type': 'application/json' }
+  });
+};
+
 export default {
   createPrescription,
   getPatientPrescriptions,
   getDoctorPrescriptions,
-  getPrescription
+  getPrescription,
+  getAppointmentPrescription,
+  updatePrescription
 };
