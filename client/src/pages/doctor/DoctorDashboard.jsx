@@ -105,7 +105,7 @@ const DoctorDashboard = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
-      <div className="container mx-auto px-4 py-8 max-w-7xl">
+      <div>
         
         {/* Header Section */}
         <div className="mb-8">
@@ -205,15 +205,6 @@ const DoctorDashboard = () => {
                 </div>
                 
                 <div className="flex space-x-3">
-                  <button
-                    onClick={() => navigate('/doctor/schedule')}
-                    className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-xl text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors duration-200 shadow-sm"
-                  >
-                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                    </svg>
-                    Set Availability
-                  </button>
                   <button
                     onClick={() => navigate('/doctor/appointments')}
                     className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-xl text-sm font-medium hover:bg-blue-700 transition-colors duration-200 shadow-sm"
