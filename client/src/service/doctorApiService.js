@@ -101,7 +101,9 @@ export const checkDoctorProfileStatus = async () => {
 export const checkDoctorClinicStatus = async () => {
   return await apiService.get('/doctors/clinic-status');
 };
-
+export const getDoctorClinicInfo=async()=>{
+  return await apiService.get('/doctors/clinic');
+}
 
 // Export all functions as default object for convenience
 export default {
