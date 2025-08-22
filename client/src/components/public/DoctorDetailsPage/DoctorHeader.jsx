@@ -84,10 +84,7 @@ const DoctorHeader = ({ doctor }) => {
         </div>
 
         <div className="flex-shrink-0">
-          <button className="w-full lg:w-auto bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-8 rounded-lg transition-colors duration-200 flex items-center justify-center gap-2">
-            <Calendar className="w-5 h-5" />
-            Book Appointment
-          </button>
+       
         </div>
       </div>
     </div>
