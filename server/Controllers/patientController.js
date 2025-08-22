@@ -114,43 +114,97 @@ export const getPatientProfile = async (req, res) => {
   try {
     const { profileId } = req.user;
     
-    // First check if patient exists without populating
+    // First check if patient exists
     const patientExists = await Patient.exists({ _id: profileId });
     if (!patientExists) {
       return res.status(404).json({ message: 'Patient profile not found' });
     }
 
-    // Only populate fields that have data
-    const patient = await Patient.findById(profileId).lean();
+    // Define the fields to select from Patient model
+    const selectFields = [
+      '_id',
+      'userId',
+      'firstName', 
+      'lastName',
+      'dateOfBirth',
+      'gender',
+      'phoneNumber',
+      'address.street',
+      'address.city', 
+      'address.state',
+      'address.zipCode',
+      'address.country',
+      'emergencyContact.name',
+      'emergencyContact.relationship', 
+      'emergencyContact.phoneNumber',
+      'profilePicture',
+      'healthRecords',
+      'appointments'
+    ].join(' ');
+
+    // Get patient with specific fields
+    let patient = await Patient.findById(profileId)
+      .select(selectFields)
+      .lean();
     
+    // Conditionally populate based on data existence
     const populateOptions = [];
     
     if (patient.healthRecords && patient.healthRecords.length > 0) {
-      populateOptions.push({ path: 'healthRecords', select: '-__v' });
+      populateOptions.push({ 
+        path: 'healthRecords',
+        select: 'recordType title date description files isShared doctorId clinicId',
+        options: { sort: { date: -1 } } // Sort by date descending
+      });
     }
     
     if (patient.appointments && patient.appointments.length > 0) {
       populateOptions.push({ 
         path: 'appointments',
-        select: '-__v',
+        select: 'date startTime endTime status doctorId clinicId notes',
         populate: {
           path: 'doctorId',
-          select: 'name specialization'
-        }
+          select: 'firstName lastName specialization'
+        },
+        options: { sort: { date: -1 } }
       });
     }
     
-    let populatedPatient = patient;
+    // Re-query with population if needed
     if (populateOptions.length > 0) {
-      populatedPatient = await Patient.findById(profileId)
+      patient = await Patient.findById(profileId)
+        .select(selectFields)
         .populate(populateOptions)
         .lean();
     }
 
-    // Remove sensitive or unnecessary fields
-    delete populatedPatient.__v;
+    // Structure the response with explicit field mapping
+    const profileResponse = {
+      _id: patient._id,
+      userId: patient.userId,
+      firstName: patient.firstName || '',
+      lastName: patient.lastName || '',
+      dateOfBirth: patient.dateOfBirth || null,
+      gender: patient.gender || '',
+      phoneNumber: patient.phoneNumber || '',
+      address: {
+        street: patient.address?.street || '',
+        city: patient.address?.city || '',
+        state: patient.address?.state || '', 
+        zipCode: patient.address?.zipCode || '',
+        country: patient.address?.country || ''
+      },
+      emergencyContact: {
+        name: patient.emergencyContact?.name || '',
+        relationship: patient.emergencyContact?.relationship || '',
+        phoneNumber: patient.emergencyContact?.phoneNumber || ''
+      },
+      profilePicture: patient.profilePicture || '',
+      healthRecords: patient.healthRecords || [],
+      appointments: patient.appointments || []
+    };
     
-    res.json(populatedPatient);
+    res.json(profileResponse);
   } catch (error) {
     console.error('Error fetching patient profile:', error);
     res.status(500).json({ 
@@ -159,6 +213,7 @@ export const getPatientProfile = async (req, res) => {
     });
   }
 };
+
 
 export const uploadHealthRecord = async (req, res) => {
   try {
@@ -279,3 +334,74 @@ export const checkPatientProfileExists = async (req, res) => {
   }
 };
 
+/**
+ * Delete Profile Picture
+ */
+export const deleteProfilePicture = async (req, res) => {
+  try {
+    const { profileId } = req.user;
+    
+    const patient = await Patient.findById(profileId);
+    if (!patient) {
+      return res.status(404).json({ message: 'Patient profile not found' });
+    }
+
+    // Remove profile picture URL
+    patient.profilePicture = '';
+    await patient.save();
+
+    res.json({
+      message: 'Profile picture deleted successfully',
+      patient: patient.toObject({ getters: true })
+    });
+  } catch (error) {
+    console.error('Error deleting profile picture:', error);
+    res.status(500).json({
+      message: 'Failed to delete profile picture',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};
+
+/**
+ * Upload Profile Picture Only
+ */
+export const uploadProfilePicture = async (req, res) => {
+  try {
+    const { profileId } = req.user;
+    
+    if (!req.file) {
+      return res.status(400).json({ message: 'No image file provided' });
+    }
+
+    const patient = await Patient.findById(profileId);
+    if (!patient) {
+      return res.status(404).json({ message: 'Patient profile not found' });
+    }
+
+    // Upload to cloudinary
+    let uploadResult;
+    try {
+      uploadResult = await uploadToCloudinary(req.file.path);
+    } catch (uploadError) {
+      console.error('Upload error:', uploadError);
+      return res.status(500).json({ message: 'Failed to upload profile picture' });
+    }
+
+    // Update profile picture
+    patient.profilePicture = uploadResult.url;
+    await patient.save();
+
+    res.json({
+      message: 'Profile picture uploaded successfully',
+      profilePicture: uploadResult.url,
+      patient: patient.toObject({ getters: true })
+    });
+  } catch (error) {
+    console.error('Error uploading profile picture:', error);
+    res.status(500).json({
+      message: 'Failed to upload profile picture',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};

@@ -115,7 +115,7 @@ const DoctorProfilePage = () => {
 
   const handleProfilePictureChange = (e) => {
     if (e.target.files[0]) {
-      setProfilePicture(e.target.files);
+       setProfilePicture(e.target.files[0]); 
     }
   };
 
