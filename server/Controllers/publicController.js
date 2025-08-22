@@ -23,39 +23,85 @@ const generateTimeSlots = (startTime, endTime, duration) => {
 // Search doctors with basic filters
 export const searchDoctors = async (req, res) => {
   try {
-    const { 
-      specialization, 
-      city, 
-      state, 
+    const {
+      specialization,
+      city,
+      state,
       name,
       minRating,
       maxFee,
-      sort = 'rating_desc', 
-      page = 1, 
-      limit = 10 
+      sort = 'rating_desc',
+      page = 1,
+      limit = 10,
+      latitude,  // Add these for proximity search
+      longitude,
+      radius = 10 // Default 10km radius
     } = req.query;
+
     const skip = (page - 1) * limit;
 
-    let query = {};
-    if (specialization) query.specialization = { $regex: specialization, $options: 'i' };
+    // First, find clinics that match location criteria
+    let clinicQuery = {};
+    
+    if (latitude && longitude) {
+      // Use geospatial query for nearby clinics
+      clinicQuery.location = {
+        $near: {
+          $geometry: {
+            type: "Point",
+            coordinates: [parseFloat(longitude), parseFloat(latitude)]
+          },
+          $maxDistance: radius * 1000 // Convert km to meters
+        }
+      };
+    } else if (city || state) {
+      // Fallback to city/state filtering
+      if (city) clinicQuery['address.city'] = { $regex: city, $options: 'i' };
+      if (state) clinicQuery['address.state'] = { $regex: state, $options: 'i' };
+    }
+
+    // Get nearby/matching clinics
+    const nearbyClinicIds = await Clinic.find(clinicQuery).select('_id');
+    
+    if (nearbyClinicIds.length === 0) {
+      return res.json({
+        success: true,
+        data: [],
+        pagination: {
+          page: parseInt(page),
+          limit: parseInt(limit),
+          total: 0,
+          pages: 0
+        }
+      });
+    }
+
+    // Build doctor query - only search doctors from nearby clinics
+    let doctorQuery = {
+      clinicId: { $in: nearbyClinicIds.map(c => c._id) }
+    };
+
+    // Add other filters
+    if (specialization) {
+      doctorQuery.specialization = { $regex: specialization, $options: 'i' };
+    }
+    
     if (name) {
-      query.$or = [
+      doctorQuery.$or = [
         { firstName: { $regex: name, $options: 'i' } },
         { lastName: { $regex: name, $options: 'i' } }
       ];
     }
-    if (minRating) query.averageRating = { $gte: parseFloat(minRating) };
-    if (maxFee) query.consultationFee = { $lte: parseFloat(maxFee) };
     
-    if (city || state) {
-      const clinicQuery = {};
-      if (city) clinicQuery['address.city'] = { $regex: city, $options: 'i' };
-      if (state) clinicQuery['address.state'] = { $regex: state, $options: 'i' };
-      
-      const clinics = await Clinic.find(clinicQuery).select('_id');
-      query.clinicId = { $in: clinics.map(c => c._id) };
+    if (minRating) {
+      doctorQuery.averageRating = { $gte: parseFloat(minRating) };
+    }
+    
+    if (maxFee) {
+      doctorQuery.consultationFee = { $lte: parseFloat(maxFee) };
     }
 
+    // Sort options
     let sortOption = {};
     switch(sort) {
       case 'rating_desc': sortOption = { averageRating: -1 }; break;
@@ -64,16 +110,23 @@ export const searchDoctors = async (req, res) => {
       case 'fee_asc': sortOption = { consultationFee: 1 }; break;
       case 'name_asc': sortOption = { lastName: 1, firstName: 1 }; break;
       case 'name_desc': sortOption = { lastName: -1, firstName: -1 }; break;
+      case 'distance': 
+        // Sort by clinic distance (requires aggregation)
+        sortOption = { 'clinicId.distance': 1 }; 
+        break;
       default: sortOption = { averageRating: -1 };
     }
 
     const [doctors, total] = await Promise.all([
-      Doctor.find(query)
+      Doctor.find(doctorQuery)
         .sort(sortOption)
         .skip(skip)
         .limit(parseInt(limit))
-        .populate('clinicId', 'name address.city address.state address.formattedAddress'),
-      Doctor.countDocuments(query)
+        .populate({
+          path: 'clinicId',
+          select: 'name address location contact'
+        }),
+      Doctor.countDocuments(doctorQuery)
     ]);
 
     res.json({
@@ -86,10 +139,12 @@ export const searchDoctors = async (req, res) => {
         pages: Math.ceil(total / limit)
       }
     });
+
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
   }
 };
+
 
 
 // Search clinics with basic filters
@@ -297,27 +352,52 @@ export const checkDoctorAvailability = async (req, res) => {
 };
 
 // Get doctor's schedule
+// In publicController.js - Update getDoctorSchedule function
 export const getDoctorSchedule = async (req, res) => {
   try {
     const doctor = await Doctor.findById(req.params.doctorId).populate('schedule');
-    if (!doctor) return res.status(404).json({ success: false, error: 'Doctor not found' });
-    const doctorID=doctor._id;
-    const schedule = await Schedule.findOne({ doctorId:doctorID })
-          .populate('doctorId');
-          console.log(doctorID);
-    res.json({ 
-      success: true, 
-      data:schedule || { 
-        workingDays: [], 
-        breaks: [], 
-        vacations: [], 
-        appointmentDuration: 30 
-      } 
+    
+    if (!doctor) {
+      return res.status(404).json({ success: false, error: 'Doctor not found' });
+    }
+
+    const doctorID = doctor._id;
+    const schedule = await Schedule.findOne({ doctorId: doctorID })
+      .populate('doctorId', 'firstName lastName');
+
+    // Filter out sensitive information for public API
+    const publicSchedule = schedule ? {
+      workingDays: schedule.workingDays,
+      breaks: schedule.breaks.map(breakTime => ({
+        day: breakTime.day,
+        startTime: breakTime.startTime,
+        endTime: breakTime.endTime
+        // Don't include reason for privacy
+      })),
+      vacations: schedule.vacations
+        .filter(vacation => new Date(vacation.endDate) >= new Date()) // Only future/current vacations
+        .map(vacation => ({
+          startDate: vacation.startDate,
+          endDate: vacation.endDate
+          // Don't include reason for privacy
+        })),
+      appointmentDuration: schedule.appointmentDuration
+    } : {
+      workingDays: [],
+      breaks: [],
+      vacations: [],
+      appointmentDuration: 30
+    };
+
+    res.json({
+      success: true,
+      data: publicSchedule
     });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
   }
 };
+
 export const getSearchSuggestions = async (req, res) => {
   try {
     const { query } = req.query;

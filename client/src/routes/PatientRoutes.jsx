@@ -16,6 +16,7 @@ import SearchResultsPage from '../components/public/SearchResultsPage';
 import ClinicDetailPage from '../pages/public/ClinicDetailPage';
 import DoctorDetailsPage from '../pages/public/DoctorDetailsPage';
 import PatientProfilePage from '../pages/patient/PatientProfilePage';
+import BookAppointment from '../pages/patient/BookAppointment';
 export default function PatientRoutes() {
   return (
     <>
@@ -52,6 +53,18 @@ export default function PatientRoutes() {
             <PatientSetupGuard requireProfile={true}>
               <PatientDesktopNavbar/>
               <AppointmentDetails/>
+              <PatientMobileNavigation/>
+            </PatientSetupGuard>
+          </ProtectedRoute>
+        } 
+      />
+            <Route 
+        path="/patient/book-appointment/:doctorId" 
+        element={
+          <ProtectedRoute role="patient">
+            <PatientSetupGuard requireProfile={true}>
+              <PatientDesktopNavbar/>
+              <BookAppointment/>
               <PatientMobileNavigation/>
             </PatientSetupGuard>
           </ProtectedRoute>
