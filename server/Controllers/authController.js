@@ -1,7 +1,6 @@
 import { registerUser, loginUser, refreshTokens, logoutUser } from '../services/authService.js';
 import { generateAccessToken, generateRefreshToken, verifyRefreshToken } from '../services/tokenService.js';
 import { config } from '../config/token.js';
-import {sendWelcomeEmail} from '../services/emailService.js';
 
 export const register = async (req, res) => {
   try {
@@ -34,7 +33,6 @@ export const register = async (req, res) => {
       sameSite: config.cookies.sameSite,
       maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
     });
-    sendWelcomeEmail(email,email,role);
     res.status(201).json({
       userId: user._id,
       role: user.role,
