@@ -240,3 +240,43 @@ export const uploadHealthRecord = async (req, res) => {
     });
   }
 };
+/**
+ * Check if Patient Profile Exists
+ */
+export const checkPatientProfileExists = async (req, res) => {
+  try {
+    const { userId } = req.user;
+
+    // Validate user ID
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({ 
+        message: 'Invalid user ID format',
+        hasProfile: false 
+      });
+    }
+
+    // Check if patient profile exists
+    const existingProfile = await Patient.findOne({ userId });
+    
+    if (existingProfile) {
+      return res.status(200).json({
+        message: 'Patient profile exists',
+        hasProfile: true,
+        profileId: existingProfile._id
+      });
+    } else {
+      return res.status(200).json({
+        message: 'Patient profile does not exist',
+        hasProfile: false
+      });
+    }
+
+  } catch (error) {
+    console.error('Error checking patient profile:', error);
+    res.status(500).json({
+      message: 'Failed to check patient profile',
+      hasProfile: false,
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};

@@ -4,7 +4,8 @@ import {
   createPatientProfile,
   updatePatientProfile,
   getPatientProfile,
-  uploadHealthRecord
+  uploadHealthRecord,
+  checkPatientProfileExists
 } from '../Controllers/patientController.js';
 import upload from '../Middleware/upload.js';
 
@@ -17,5 +18,5 @@ router.post('/profile', upload.single('profilePicture'), createPatientProfile);
 router.put('/profile', upload.single('profilePicture'), updatePatientProfile);
 router.get('/profile', getPatientProfile);
 router.post('/health-records', upload.single('file'), uploadHealthRecord);
-
+router.get('/profile/status', checkPatientProfileExists);
 export default router;
