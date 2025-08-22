@@ -12,6 +12,8 @@ import UpdateClinic from '../pages/admin/UpdateClinic';
 import ManageDoctors from '../pages/admin/ManageDoctors';
 import AdminNavbar from '../components/admin/AdminNavbar';
 import NotFoundPage from '../components/ui/NotFoundPage';
+import AdminAppointments from '../pages/admin/AdminAppointments';
+import AdminAppointmentDetails from '../pages/admin/AdminAppointmentDetails';
 export default function AdminRoutes() {
   return (
     <>
@@ -24,6 +26,26 @@ export default function AdminRoutes() {
           <ProtectedRoute allowedRoles={['admin']}>
             <AdminSetupGuard requireProfile={true} requireClinic={true}>
               <AdminDashboard />
+            </AdminSetupGuard>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/appointments"
+        element={
+          <ProtectedRoute allowedRoles={['admin']}>
+            <AdminSetupGuard requireProfile={true} requireClinic={true}>
+              <AdminAppointments/>
+            </AdminSetupGuard>
+          </ProtectedRoute>
+        }
+      />
+            <Route
+        path="/admin/appointments/:appointmentId"
+        element={
+          <ProtectedRoute allowedRoles={['admin']}>
+            <AdminSetupGuard requireProfile={true} requireClinic={true}>
+              <AdminAppointmentDetails/>
             </AdminSetupGuard>
           </ProtectedRoute>
         }
