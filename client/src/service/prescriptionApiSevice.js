@@ -47,11 +47,15 @@ export const updatePrescription = async (prescriptionId, updateData) => {
   });
 };
 
+export const getPatientAppointmentPrescription = async (appointmentId) => {
+  return await apiService.get(`/prescriptions/patient/appointments/${appointmentId}`);
+};
 export default {
   createPrescription,
   getPatientPrescriptions,
   getDoctorPrescriptions,
   getPrescription,
   getAppointmentPrescription,
-  updatePrescription
+  updatePrescription,
+  getPatientAppointmentPrescription
 };

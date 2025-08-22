@@ -10,6 +10,7 @@ import PatientDesktopNavbar from '../components/Patient/PatientDesktopNavbar';
 import PatientMobileNavigation from '../components/Patient/PatientMobileNavigation';
 import NearbyClinicsPage from '../pages/public/Nearbyclinics';
 import Doctors from '../pages/public/Doctors';
+import AppointmentDetails from '../pages/patient/AppointmentDetails';
 export default function PatientRoutes() {
   return (
     <>
@@ -34,6 +35,18 @@ export default function PatientRoutes() {
             <PatientSetupGuard requireProfile={true}>
               <PatientDesktopNavbar/>
               <NearbyClinicsPage/>
+              <PatientMobileNavigation/>
+            </PatientSetupGuard>
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/patient/appointment/:appointmentId" 
+        element={
+          <ProtectedRoute role="patient">
+            <PatientSetupGuard requireProfile={true}>
+              <PatientDesktopNavbar/>
+              <AppointmentDetails/>
               <PatientMobileNavigation/>
             </PatientSetupGuard>
           </ProtectedRoute>

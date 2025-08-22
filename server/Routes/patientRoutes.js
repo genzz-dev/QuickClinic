@@ -5,7 +5,7 @@ import {
   updatePatientProfile,
   getPatientProfile,
   uploadHealthRecord,
-  checkPatientProfileExists
+  checkPatientProfileExists, 
 } from '../Controllers/patientController.js';
 import upload from '../Middleware/upload.js';
 
