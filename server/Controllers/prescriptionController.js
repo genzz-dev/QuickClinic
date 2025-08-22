@@ -208,3 +208,56 @@ export const updatePrescription = async (req, res) => {
     res.status(500).json({ message: 'Failed to update prescription' });
   }
 };
+// Get prescription for an appointment (patient only)
+export const getPatientAppointmentPrescription = async (req, res) => {
+  try {
+    const { appointmentId } = req.params;
+    const { profileId, role } = req.user; // Patient's profile ID
+
+    // Validate appointment ID format
+    if (!mongoose.Types.ObjectId.isValid(appointmentId)) {
+      return res.status(400).json({ 
+        message: 'Invalid appointment ID format' 
+      });
+    }
+
+    // Check appointment ownership for patient
+    const appointment = await Appointment.findById(appointmentId);
+    if (!appointment) {
+      return res.status(404).json({ message: 'Appointment not found' });
+    }
+
+    // Verify the appointment belongs to this patient
+    if (role !== 'patient' || appointment.patientId.toString() !== profileId.toString()) {
+      return res.status(403).json({ message: 'Unauthorized - You can only view prescriptions for your own appointments' });
+    }
+
+    // Find prescription with populated data
+    const prescription = await Prescription.findOne({ appointmentId })
+      .populate('doctorId', 'name specialization licenseNumber')
+      .populate('patientId', 'name dateOfBirth gender')
+      .populate('appointmentId', 'date reason status')
+      .lean();
+
+    if (!prescription) {
+      return res.status(404).json({ 
+        message: 'No prescription found for this appointment',
+        appointmentId 
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'Prescription retrieved successfully',
+      prescription
+    });
+
+  } catch (error) {
+    console.error('Error fetching patient appointment prescription:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch prescription',
+      error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+    });
+  }
+};
