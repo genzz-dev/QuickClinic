@@ -6,7 +6,7 @@ import axios from 'axios';
  */
 class ApiService {
   constructor() {
-    this.baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api';
+    this.baseURL = import.meta.env.VITE_API_BASE_URL || 'https://quickclinic-fowt.onrender.com/api';
     this.tokenKey = 'accessToken';
     this.isRefreshing = false;
     this.failedQueue = [];

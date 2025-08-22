@@ -10,5 +10,5 @@ export const config = {
   // },
   from: process.env.EMAIL_FROM || 'no-reply@healthcare.local',
   appName: process.env.APP_NAME || 'QuickClinic',
-  baseUrl: process.env.BASE_URL || 'http://localhost:3000'
+  baseUrl: process.env.BASE_URL || 'https://quickclinic-fowt.onrender.com'
 };
