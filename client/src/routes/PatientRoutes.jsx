@@ -12,6 +12,10 @@ import NearbyClinicsPage from '../pages/public/Nearbyclinics';
 import Doctors from '../pages/public/Doctors';
 import AppointmentDetails from '../pages/patient/AppointmentDetails';
 import PatientAppointments from '../pages/patient/PatientAppointments';
+import SearchResultsPage from '../components/public/SearchResultsPage';
+import ClinicDetailPage from '../pages/public/ClinicDetailPage';
+import DoctorDetailsPage from '../pages/public/DoctorDetailsPage';
+import PatientProfilePage from '../pages/patient/PatientProfilePage';
 export default function PatientRoutes() {
   return (
     <>
@@ -53,13 +57,61 @@ export default function PatientRoutes() {
           </ProtectedRoute>
         } 
       />
-            <Route 
+      <Route 
         path="/patient/appointments" 
         element={
           <ProtectedRoute role="patient">
             <PatientSetupGuard requireProfile={true}>
               <PatientDesktopNavbar/>
               <PatientAppointments/>
+              <PatientMobileNavigation/>
+            </PatientSetupGuard>
+          </ProtectedRoute>
+        } 
+      />
+        <Route 
+        path="/search" 
+        element={
+          <ProtectedRoute role="patient">
+            <PatientSetupGuard requireProfile={true}>
+              <PatientDesktopNavbar/>
+              <SearchResultsPage/>
+              <PatientMobileNavigation/>
+            </PatientSetupGuard>
+          </ProtectedRoute>
+        } 
+      />
+        <Route 
+        path="/patient/profile" 
+        element={
+          <ProtectedRoute role="patient">
+            <PatientSetupGuard requireProfile={true}>
+              <PatientDesktopNavbar/>
+              <PatientProfilePage/>
+              <PatientMobileNavigation/>
+            </PatientSetupGuard>
+          </ProtectedRoute>
+        } 
+      />
+        <Route 
+        path="/clinic/:clinicId" 
+        element={
+          <ProtectedRoute role="patient">
+            <PatientSetupGuard requireProfile={true}>
+              <PatientDesktopNavbar/>
+              <ClinicDetailPage/>
+              <PatientMobileNavigation/>
+            </PatientSetupGuard>
+          </ProtectedRoute>
+        } 
+      />
+        <Route 
+        path="/doctor/:doctorId" 
+        element={
+          <ProtectedRoute role="patient">
+            <PatientSetupGuard requireProfile={true}>
+              <PatientDesktopNavbar/>
+              <DoctorDetailsPage />
               <PatientMobileNavigation/>
             </PatientSetupGuard>
           </ProtectedRoute>

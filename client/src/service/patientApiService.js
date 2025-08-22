@@ -163,3 +163,15 @@ export const getPrescriptionById = async (prescriptionId) => {
 export const checkPatientProfileExists = async () => {
   return await apiService.get('/patients/profile/status');
 };
+export const updateProfilePicture = async (file) => {
+  return await updatePatientProfile({}, file); // Empty data, just file
+};
+
+// For deleting profile picture, just use existing updatePatientProfile
+export const deleteProfilePicture = async () => {
+  const formData = new FormData();
+  formData.append('profilePicture', ''); // Set empty string
+  return await apiService.put('/patients/profile', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' }
+  });
+};
