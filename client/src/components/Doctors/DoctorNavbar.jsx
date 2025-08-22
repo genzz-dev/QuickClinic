@@ -3,13 +3,15 @@ import React, { useState, useEffect } from "react";
 import { FiCalendar, FiUser, FiGrid, FiLogOut, FiMenu, FiX,FiClock } from "react-icons/fi";
 import { useNavigate, useLocation } from "react-router-dom";
 import { getDoctorProfile } from '../../service/doctorApiService'
+import authservice from "../../service/authservice";
+import { useAuth } from "../../context/authContext";
 
 const DoctorNavbar = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [doctor, setDoctor] = useState(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-
+  const {logout}=useAuth();
   useEffect(() => {
     loadDoctorProfile();
   }, []);
@@ -23,11 +25,10 @@ const DoctorNavbar = () => {
     }
   };
 
-  const handleLogout = () => {
-    if (window.confirm('Are you sure you want to logout?')) {
-      localStorage.removeItem('token');
-      navigate('/login');
-    }
+  const handleLogout = async () => {
+    console.log("hey");
+    await logout();
+    navigate('/');
   };
 
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);

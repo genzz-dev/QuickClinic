@@ -247,7 +247,6 @@ export const checkPatientProfileExists = async (req, res) => {
   try {
     const { userId } = req.user;
 
-    // Validate user ID
     if (!mongoose.Types.ObjectId.isValid(userId)) {
       return res.status(400).json({ 
         message: 'Invalid user ID format',
@@ -255,7 +254,6 @@ export const checkPatientProfileExists = async (req, res) => {
       });
     }
 
-    // Check if patient profile exists
     const existingProfile = await Patient.findOne({ userId });
     
     if (existingProfile) {
@@ -280,3 +278,4 @@ export const checkPatientProfileExists = async (req, res) => {
     });
   }
 };
+
