@@ -12,6 +12,7 @@ import {
   CheckCircle,
   ClipboardList,
   HeartPulse,
+  ChevronRight,
 } from 'lucide-react';
 import { getPatientProfile } from '../../service/patientApiService';
 import { getPatientAppointments } from '../../service/appointmentApiService';
@@ -34,8 +35,8 @@ const PatientDashboard = () => {
         getPatientProfile(),
         getPatientAppointments(),
       ]);
-      setPatientData(profileResponse.data || profileResponse);
-      setAppointments(appointmentsResponse.appointments || appointmentsResponse.data || []);
+      setPatientData(profileResponse );
+      setAppointments(appointmentsResponse.appointments || []);
     } catch (err) {
       setError('Failed to load dashboard data');
       console.error('Dashboard data fetch error:', err);
@@ -72,19 +73,23 @@ const PatientDashboard = () => {
 
   const getStatusColor = (status) => {
     const colors = {
-      confirmed: 'text-green-600 bg-green-50',
-      pending: 'text-yellow-600 bg-yellow-50',
-      completed: 'text-blue-600 bg-blue-50',
-      cancelled: 'text-red-600 bg-red-50',
-      'no-show': 'text-gray-600 bg-gray-50',
+      confirmed: 'text-green-600 bg-green-50 border-green-200',
+      pending: 'text-yellow-600 bg-yellow-50 border-yellow-200',
+      completed: 'text-blue-600 bg-blue-50 border-blue-200',
+      cancelled: 'text-red-600 bg-red-50 border-red-200',
+      'no-show': 'text-gray-600 bg-gray-50 border-gray-200',
     };
-    return colors[status] || 'text-gray-600 bg-gray-50';
+    return colors[status] || 'text-gray-600 bg-gray-50 border-gray-200';
   };
 
   // Split appointments
   const now = new Date();
   const futureAppointments = appointments.filter(a => new Date(a.date) >= now);
   const pastAppointments = appointments.filter(a => new Date(a.date) < now);
+
+  const handleAppointmentClick = (appointmentId) => {
+    navigate(`/patient/appointment/${appointmentId}`);
+  };
 
   if (loading) {
     return (
@@ -207,24 +212,32 @@ const PatientDashboard = () => {
             ) : (
               <div className="space-y-4">
                 {futureAppointments.slice(0, 2).map((appointment) => (
-                  <div key={appointment._id} className="p-3 rounded-lg border bg-gray-50 flex items-center justify-between hover:bg-gray-100 transition">
+                  <div 
+                    key={appointment._id} 
+                    className="p-3 rounded-lg border bg-gray-50 flex items-center justify-between hover:bg-gray-100 transition cursor-pointer group"
+                    onClick={() => handleAppointmentClick(appointment._id)}
+                  >
                     <div>
                       <div className="font-semibold">
                         Dr. {appointment.doctorId?.firstName} {appointment.doctorId?.lastName}
                       </div>
                       <div className="text-xs text-gray-600">{appointment.doctorId?.specialization}</div>
                       <div className="text-sm text-gray-500">
-                        {formatDate(appointment.date)} &bull; {formatTime(appointment.startTime)}
+                        {formatDate(appointment.date)} • {formatTime(appointment.startTime)}
                       </div>
                     </div>
-                    <span className={`px-2 py-1 rounded text-xs font-bold ${getStatusColor(appointment.status)}`}>
-                      {appointment.status}
-                    </span>
+                    <div className="flex items-center space-x-2">
+                      <span className={`px-2 py-1 rounded text-xs font-bold border ${getStatusColor(appointment.status)}`}>
+                        {appointment.status}
+                      </span>
+                      <ChevronRight className="h-4 w-4 text-gray-400 group-hover:text-gray-600 transition" />
+                    </div>
                   </div>
                 ))}
               </div>
             )}
           </div>
+          
           {/* Past Appointments */}
           <div className="bg-white rounded-lg shadow-md border p-6">
             <div className="mb-3 flex gap-2 items-center">
@@ -236,20 +249,27 @@ const PatientDashboard = () => {
               <div className="text-gray-400 text-center py-4">No past appointments.</div>
             ) : (
               <div className="space-y-4">
-                {pastAppointments.slice(0, 2).map((appointment) => (
-                  <div key={appointment._id} className="p-3 rounded-lg border bg-gray-50 flex items-center justify-between hover:bg-gray-100 transition">
+                {pastAppointments.slice(0, 3).map((appointment) => (
+                  <div 
+                    key={appointment._id} 
+                    className="p-3 rounded-lg border bg-gray-50 flex items-center justify-between hover:bg-gray-100 transition cursor-pointer group"
+                    onClick={() => handleAppointmentClick(appointment._id)}
+                  >
                     <div>
                       <div className="font-semibold">
                         Dr. {appointment.doctorId?.firstName} {appointment.doctorId?.lastName}
                       </div>
                       <div className="text-xs text-gray-600">{appointment.doctorId?.specialization}</div>
                       <div className="text-sm text-gray-500">
-                        {formatDate(appointment.date)} &bull; {formatTime(appointment.startTime)}
+                        {formatDate(appointment.date)} • {formatTime(appointment.startTime)}
                       </div>
                     </div>
-                    <span className={`px-2 py-1 rounded text-xs font-bold ${getStatusColor(appointment.status)}`}>
-                      {appointment.status}
-                    </span>
+                    <div className="flex items-center space-x-2">
+                      <span className={`px-2 py-1 rounded text-xs font-bold border ${getStatusColor(appointment.status)}`}>
+                        {appointment.status}
+                      </span>
+                      <ChevronRight className="h-4 w-4 text-gray-400 group-hover:text-gray-600 transition" />
+                    </div>
                   </div>
                 ))}
               </div>
