@@ -1,5 +1,5 @@
 import dotenv from 'dotenv';
-dotenv.config({ path: '../.env' });
+dotenv.config();
 import express from 'express';
 import cors from 'cors';
 import doctorRoutes from './Routes/doctorRoutes.js';

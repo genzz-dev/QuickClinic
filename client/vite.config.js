@@ -4,7 +4,7 @@ import { resolve } from 'path'
 import tailwindcss from '@tailwindcss/vite'
 
 export default defineConfig({
-  root: resolve(__dirname), // makes Vite treat the `client/` folder as root
+  root: resolve(__dirname), 
   plugins: [react(),tailwindcss()],
   build: {
     outDir: resolve(__dirname, 'dist'),
