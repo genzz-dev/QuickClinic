@@ -4,7 +4,7 @@
 **QuickClinic** is a full-stack MERN-based platform designed to streamline clinic operations for **admins**, **doctors**, and **patients**. From appointment booking to prescription tracking, it ensures a smooth, modern healthcare experience.
 
 Built with **React + Vite + TailwindCSS** and powered by a **Node.js + Express + MongoDB** backend, the platform supports **JWT-based role-based authentication**, geolocation features, and Google Maps integration.
-
+live demo:https://quick-clinic-psi.vercel.app/
 ---
 
 ## 👥 User Roles
