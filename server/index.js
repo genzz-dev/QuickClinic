@@ -18,6 +18,7 @@ const PORT = process.env.PORT ;
 app.use(express.json());
 app.use(cookieParser());
 const frontendurl=process.env.Frontend_url;
+console.log(frontendurl);
 // CORS config
 app.use(cors({
   origin: frontendurl,
