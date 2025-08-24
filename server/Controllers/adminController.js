@@ -3,7 +3,6 @@ import Clinic from '../models/Clinic/Clinic.js';
 import Doctor from '../models/Users/Doctor.js';
 import Schedule from '../models/Clinic/Schedule.js';
 import { uploadToCloudinary } from '../services/uploadService.js';
-import {sendDoctorAddedToClinicEmail} from '../services/emailService.js';
 import { fetchPlacePhone } from '../services/googleMapsService.js';
 import { sendOTP, verifyOTP } from '../services/otpService.js';
 import mongoose from 'mongoose';

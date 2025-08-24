@@ -1,7 +1,7 @@
 // Base API service with axios configuration
 import axios from 'axios';
 
-const API_BASE_URL = 'https://quickclinic-fowt.onrender.com/api/public';
+const API_BASE_URL = `${import.meta.env.VITE_API_BASE_URL}/public`;
 
 const apiService = axios.create({
   baseURL: API_BASE_URL,

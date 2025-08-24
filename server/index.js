@@ -17,9 +17,10 @@ const app = express();
 const PORT = process.env.PORT ;
 app.use(express.json());
 app.use(cookieParser());
+const frontendurl=process.env.Frontend_url;
 // CORS config
 app.use(cors({
-  origin: "https://quick-clinic-m9k7.vercel.app",
+  origin: frontendurl,
   credentials: true
 }));
 connectDB();
