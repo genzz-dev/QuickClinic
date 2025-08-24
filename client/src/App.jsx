@@ -79,8 +79,11 @@ function AppInner() {
 
 export default function App() {
   return (
-  
-      <AppInner />
+      <>
+      {console.log(`${import.meta.env.VITE_API_BASE_URL}/public`)}
+       <AppInner />
+      </>
+     
     
   );
 }
