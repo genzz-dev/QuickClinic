@@ -158,10 +158,3 @@ node index.js
 - Ratings & feedback for doctors
 - Calendar integration
 
----
-
-## 📜 License
-
-MIT © [Your Name or GitHub Username]
-
----
