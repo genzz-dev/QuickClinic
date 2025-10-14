@@ -23,7 +23,6 @@ const ratingSchema = new mongoose.Schema({
     ref: 'Clinic' 
   },
   
-  // Rating must be between 1 and 5
   rating: { 
     type: Number, 
     required: true, 
