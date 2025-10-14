@@ -6,6 +6,8 @@ import {
   getClinicById
 } from "../../service/publicapi";
 import authService from "../../service/authservice"; // Import auth service
+import StarRating from '../../components/public/StarRating';
+
 import { Star, User, Calendar, Clock } from 'lucide-react';
 import DoctorHeader from '../../components/public/DoctorDetailsPage/DoctorHeader';
 import AboutSection from '../../components/public/DoctorDetailsPage/AboutSection';
@@ -157,6 +159,16 @@ const DoctorDetailsPage = () => {
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
             <DoctorHeader doctor={doctor} clinic={clinic} />
+            <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Patient Reviews</h3>
+          <StarRating 
+            type="doctor" 
+            id={doctorId} 
+            size="large" 
+            detailed={true}
+            inline={false}
+          />
+        </div>
             <AboutSection doctor={doctor} />
             <QualificationsSection doctor={doctor} />
             <ScheduleSection schedule={schedule} />
