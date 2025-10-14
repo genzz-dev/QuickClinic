@@ -72,8 +72,12 @@ openingHours: {
     open: { type: String },
     close: { type: String }
   }
-}
-,
+},
+  ratings: {
+      average: { type: Number, default: 0, min: 0, max: 5 },
+      count: { type: Number, default: 0 },
+      totalStars: { type: Number, default: 0 }
+    },
   logo: { type: String },
   photos: [String],
   createdAt: { type: Date, default: Date.now },
