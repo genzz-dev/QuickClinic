@@ -12,6 +12,7 @@ import cookieParser from 'cookie-parser';
 import appointmentRoutes from './Routes/appointmentRoutes.js';
 import prescriptionRoutes from './Routes/prescriptionRoutes.js';
 import publicRoutes from './Routes/publicRoutes.js';
+import ratingRoutes from './Routes/ratingRoutes.js';
 const app = express();
 
 const PORT = process.env.PORT ;
@@ -32,6 +33,8 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/appointments', appointmentRoutes);
 app.use('/api/prescriptions', prescriptionRoutes);
 app.use('/api/public',publicRoutes);
+app.use('/api/ratings', ratingRoutes);
+
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });

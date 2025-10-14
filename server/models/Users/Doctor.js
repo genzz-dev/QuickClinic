@@ -23,7 +23,12 @@ const doctorSchema = new mongoose.Schema({
     stateCouncil: { type: String },
     verifiedName: { type: String },
     verificationDate: { type: Date }
-  }
+  },
+  ratings: {
+        average: { type: Number, default: 0, min: 0, max: 5 },
+        count: { type: Number, default: 0 },
+        totalStars: { type: Number, default: 0 }
+    }
 });
 
 export default mongoose.model('Doctor', doctorSchema);
