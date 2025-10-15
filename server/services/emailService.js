@@ -1,34 +1,37 @@
 // services/emailService.js
-import nodemailer from 'nodemailer';
-import { config } from '../config/email.js';
+import nodemailer from "nodemailer";
+import { config } from "../config/email.js";
 
 const transporter = nodemailer.createTransport({
-  host: config.host,
-  port: config.port,
-  secure: config.secure,
-  // Only include auth if we have user/pass configured
-  ...(config.user && config.pass ? {
-    auth: {
-      user: config.user,
-      pass: config.pass
-    }
-  } : {})
+	host: config.host,
+	port: config.port,
+	secure: config.secure,
+	// Only include auth if we have user/pass configured
+	...(config.user && config.pass
+		? {
+				auth: {
+					user: config.user,
+					pass: config.pass,
+				},
+			}
+		: {}),
 });
 
 // Verify connection
 transporter.verify((error) => {
-  if (error) {
-    console.error('Error with email configuration:', error);
-  } else {
-    console.log(`Email server is ready to send messages via ${config.host}:${config.port}`);
-  }
+	if (error) {
+		console.error("Error with email configuration:", error);
+	} else {
+		console.log(
+			`Email server is ready to send messages via ${config.host}:${config.port}`,
+		);
+	}
 });
 
-
 export const sendWelcomeEmail = async (email, name, role) => {
-  try {
-    const subject = `Welcome to ${config.appName}!`;
-    const html = `
+	try {
+		const subject = `Welcome to ${config.appName}!`;
+		const html = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <h2 style="color: #2c3e50;">Welcome to ${config.appName}, ${name}!</h2>
         <p>Your ${role} account has been successfully created.</p>
@@ -40,23 +43,27 @@ export const sendWelcomeEmail = async (email, name, role) => {
       </div>
     `;
 
-    await transporter.sendMail({
-      from: `"${config.appName}" <${config.from}>`,
-      to: email,
-      subject,
-      html
-    });
-  } catch (error) {
-    console.error('Error sending welcome email:', error);
-    throw new Error('Failed to send welcome email');
-  }
+		await transporter.sendMail({
+			from: `"${config.appName}" <${config.from}>`,
+			to: email,
+			subject,
+			html,
+		});
+	} catch (error) {
+		console.error("Error sending welcome email:", error);
+		throw new Error("Failed to send welcome email");
+	}
 };
 
-
-export const sendDoctorAddedToClinicEmail = async (email, doctorName, clinicName, adminName) => {
-  try {
-    const subject = `You've been added to ${clinicName}`;
-    const html = `
+export const sendDoctorAddedToClinicEmail = async (
+	email,
+	doctorName,
+	clinicName,
+	adminName,
+) => {
+	try {
+		const subject = `You've been added to ${clinicName}`;
+		const html = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <h2 style="color: #2c3e50;">Hello Dr. ${doctorName},</h2>
         <p>You have been added to <strong>${clinicName}</strong> by ${adminName}.</p>
@@ -68,16 +75,16 @@ export const sendDoctorAddedToClinicEmail = async (email, doctorName, clinicName
       </div>
     `;
 
-    await transporter.sendMail({
-      from: `"${config.appName}" <${config.from}>`,
-      to: email,
-      subject,
-      html
-    });
-  } catch (error) {
-    console.error('Error sending doctor added to clinic email:', error);
-    throw new Error('Failed to send doctor added to clinic email');
-  }
+		await transporter.sendMail({
+			from: `"${config.appName}" <${config.from}>`,
+			to: email,
+			subject,
+			html,
+		});
+	} catch (error) {
+		console.error("Error sending doctor added to clinic email:", error);
+		throw new Error("Failed to send doctor added to clinic email");
+	}
 };
 
 /**
@@ -88,10 +95,16 @@ export const sendDoctorAddedToClinicEmail = async (email, doctorName, clinicName
  * @param {string} doctorName - Doctor's name
  * @param {string} clinicName - Clinic name
  */
-export const sendAppointmentConfirmation = async (email, patientName, appointment, doctorName, clinicName) => {
-  try {
-    const subject = `Your appointment with Dr. ${doctorName} is confirmed`;
-    const html = `
+export const sendAppointmentConfirmation = async (
+	email,
+	patientName,
+	appointment,
+	doctorName,
+	clinicName,
+) => {
+	try {
+		const subject = `Your appointment with Dr. ${doctorName} is confirmed`;
+		const html = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <h2 style="color: #2c3e50;">Appointment Confirmed</h2>
         <p>Dear ${patientName},</p>
@@ -101,7 +114,7 @@ export const sendAppointmentConfirmation = async (email, patientName, appointmen
           <li>Date: ${new Date(appointment.date).toLocaleDateString()}</li>
           <li>Time: ${appointment.startTime} - ${appointment.endTime}</li>
           <li>Status: ${appointment.status}</li>
-          ${appointment.isTeleconsultation ? `<li>Meeting Link: <a href="${appointment.meetingLink}">Join Teleconsultation</a></li>` : ''}
+          ${appointment.isTeleconsultation ? `<li>Meeting Link: <a href="${appointment.meetingLink}">Join Teleconsultation</a></li>` : ""}
         </ul>
         <p>You can view or manage this appointment in your account dashboard.</p>
         <br>
@@ -110,16 +123,16 @@ export const sendAppointmentConfirmation = async (email, patientName, appointmen
       </div>
     `;
 
-    await transporter.sendMail({
-      from: `"${config.appName}" <${config.from}>`,
-      to: email,
-      subject,
-      html
-    });
-  } catch (error) {
-    console.error('Error sending appointment confirmation email:', error);
-    throw new Error('Failed to send appointment confirmation email');
-  }
+		await transporter.sendMail({
+			from: `"${config.appName}" <${config.from}>`,
+			to: email,
+			subject,
+			html,
+		});
+	} catch (error) {
+		console.error("Error sending appointment confirmation email:", error);
+		throw new Error("Failed to send appointment confirmation email");
+	}
 };
 
 /**
@@ -131,10 +144,17 @@ export const sendAppointmentConfirmation = async (email, patientName, appointmen
  * @param {string} clinicName - Clinic name
  * @param {string} updateType - Type of update (rescheduled, cancelled, etc.)
  */
-export const sendAppointmentUpdate = async (email, name, appointment, doctorName, clinicName, updateType) => {
-  try {
-    const subject = `Your appointment with Dr. ${doctorName} has been ${updateType}`;
-    const html = `
+export const sendAppointmentUpdate = async (
+	email,
+	name,
+	appointment,
+	doctorName,
+	clinicName,
+	updateType,
+) => {
+	try {
+		const subject = `Your appointment with Dr. ${doctorName} has been ${updateType}`;
+		const html = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <h2 style="color: #2c3e50;">Appointment ${updateType.charAt(0).toUpperCase() + updateType.slice(1)}</h2>
         <p>Dear ${name},</p>
@@ -144,9 +164,9 @@ export const sendAppointmentUpdate = async (email, name, appointment, doctorName
           <li>Date: ${new Date(appointment.date).toLocaleDateString()}</li>
           <li>Time: ${appointment.startTime} - ${appointment.endTime}</li>
           <li>Status: ${appointment.status}</li>
-          ${appointment.isTeleconsultation ? `<li>Meeting Link: <a href="${appointment.meetingLink}">Join Teleconsultation</a></li>` : ''}
+          ${appointment.isTeleconsultation ? `<li>Meeting Link: <a href="${appointment.meetingLink}">Join Teleconsultation</a></li>` : ""}
         </ul>
-        ${updateType === 'cancelled' ? '<p>We apologize for any inconvenience this may cause.</p>' : ''}
+        ${updateType === "cancelled" ? "<p>We apologize for any inconvenience this may cause.</p>" : ""}
         <p>You can view or manage this appointment in your account dashboard.</p>
         <br>
         <p>Best regards,</p>
@@ -154,16 +174,16 @@ export const sendAppointmentUpdate = async (email, name, appointment, doctorName
       </div>
     `;
 
-    await transporter.sendMail({
-      from: `"${config.appName}" <${config.from}>`,
-      to: email,
-      subject,
-      html
-    });
-  } catch (error) {
-    console.error('Error sending appointment update email:', error);
-    throw new Error('Failed to send appointment update email');
-  }
+		await transporter.sendMail({
+			from: `"${config.appName}" <${config.from}>`,
+			to: email,
+			subject,
+			html,
+		});
+	} catch (error) {
+		console.error("Error sending appointment update email:", error);
+		throw new Error("Failed to send appointment update email");
+	}
 };
 
 /**
@@ -173,10 +193,10 @@ export const sendAppointmentUpdate = async (email, name, appointment, doctorName
  * @param {string} resetToken - Password reset token
  */
 export const sendPasswordResetEmail = async (email, name, resetToken) => {
-  try {
-    const resetUrl = `${config.baseUrl}/reset-password?token=${resetToken}`;
-    const subject = `Password Reset Request for ${config.appName}`;
-    const html = `
+	try {
+		const resetUrl = `${config.baseUrl}/reset-password?token=${resetToken}`;
+		const subject = `Password Reset Request for ${config.appName}`;
+		const html = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <h2 style="color: #2c3e50;">Password Reset</h2>
         <p>Dear ${name},</p>
@@ -190,16 +210,16 @@ export const sendPasswordResetEmail = async (email, name, resetToken) => {
       </div>
     `;
 
-    await transporter.sendMail({
-      from: `"${config.appName}" <${config.from}>`,
-      to: email,
-      subject,
-      html
-    });
-  } catch (error) {
-    console.error('Error sending password reset email:', error);
-    throw new Error('Failed to send password reset email');
-  }
+		await transporter.sendMail({
+			from: `"${config.appName}" <${config.from}>`,
+			to: email,
+			subject,
+			html,
+		});
+	} catch (error) {
+		console.error("Error sending password reset email:", error);
+		throw new Error("Failed to send password reset email");
+	}
 };
 
 /**
@@ -208,10 +228,14 @@ export const sendPasswordResetEmail = async (email, name, resetToken) => {
  * @param {string} patientName - Patient's name
  * @param {Object} record - Health record details
  */
-export const sendHealthRecordUploadedEmail = async (email, patientName, record) => {
-  try {
-    const subject = `New Health Record Uploaded`;
-    const html = `
+export const sendHealthRecordUploadedEmail = async (
+	email,
+	patientName,
+	record,
+) => {
+	try {
+		const subject = `New Health Record Uploaded`;
+		const html = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <h2 style="color: #2c3e50;">Health Record Uploaded</h2>
         <p>Dear ${patientName},</p>
@@ -221,7 +245,7 @@ export const sendHealthRecordUploadedEmail = async (email, patientName, record) 
           <li>Title: ${record.title}</li>
           <li>Type: ${record.recordType}</li>
           <li>Date: ${new Date(record.date).toLocaleDateString()}</li>
-          ${record.description ? `<li>Description: ${record.description}</li>` : ''}
+          ${record.description ? `<li>Description: ${record.description}</li>` : ""}
         </ul>
         <p>You can view this record in your account dashboard.</p>
         <br>
@@ -230,16 +254,16 @@ export const sendHealthRecordUploadedEmail = async (email, patientName, record) 
       </div>
     `;
 
-    await transporter.sendMail({
-      from: `"${config.appName}" <${config.from}>`,
-      to: email,
-      subject,
-      html
-    });
-  } catch (error) {
-    console.error('Error sending health record uploaded email:', error);
-    throw new Error('Failed to send health record uploaded email');
-  }
+		await transporter.sendMail({
+			from: `"${config.appName}" <${config.from}>`,
+			to: email,
+			subject,
+			html,
+		});
+	} catch (error) {
+		console.error("Error sending health record uploaded email:", error);
+		throw new Error("Failed to send health record uploaded email");
+	}
 };
 
 /**
@@ -249,17 +273,22 @@ export const sendHealthRecordUploadedEmail = async (email, patientName, record) 
  * @param {Object} prescription - Prescription details
  * @param {string} doctorName - Doctor's name
  */
-export const sendPrescriptionReadyEmail = async (email, patientName, prescription, doctorName) => {
-  try {
-    const subject = `Your prescription from Dr. ${doctorName} is ready`;
-    const html = `
+export const sendPrescriptionReadyEmail = async (
+	email,
+	patientName,
+	prescription,
+	doctorName,
+) => {
+	try {
+		const subject = `Your prescription from Dr. ${doctorName} is ready`;
+		const html = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <h2 style="color: #2c3e50;">Prescription Ready</h2>
         <p>Dear ${patientName},</p>
         <p>Your prescription from Dr. ${doctorName} is now available.</p>
-        ${prescription.diagnosis ? `<p><strong>Diagnosis:</strong> ${prescription.diagnosis}</p>` : ''}
-        ${prescription.notes ? `<p><strong>Notes:</strong> ${prescription.notes}</p>` : ''}
-        ${prescription.followUpDate ? `<p><strong>Follow-up Date:</strong> ${new Date(prescription.followUpDate).toLocaleDateString()}</p>` : ''}
+        ${prescription.diagnosis ? `<p><strong>Diagnosis:</strong> ${prescription.diagnosis}</p>` : ""}
+        ${prescription.notes ? `<p><strong>Notes:</strong> ${prescription.notes}</p>` : ""}
+        ${prescription.followUpDate ? `<p><strong>Follow-up Date:</strong> ${new Date(prescription.followUpDate).toLocaleDateString()}</p>` : ""}
         <p>You can view and download your prescription from your account dashboard.</p>
         <br>
         <p>Best regards,</p>
@@ -267,14 +296,14 @@ export const sendPrescriptionReadyEmail = async (email, patientName, prescriptio
       </div>
     `;
 
-    await transporter.sendMail({
-      from: `"${config.appName}" <${config.from}>`,
-      to: email,
-      subject,
-      html
-    });
-  } catch (error) {
-    console.error('Error sending prescription ready email:', error);
-    throw new Error('Failed to send prescription ready email');
-  }
+		await transporter.sendMail({
+			from: `"${config.appName}" <${config.from}>`,
+			to: email,
+			subject,
+			html,
+		});
+	} catch (error) {
+		console.error("Error sending prescription ready email:", error);
+		throw new Error("Failed to send prescription ready email");
+	}
 };
