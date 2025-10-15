@@ -8,7 +8,7 @@ import DoctorCard from '../../components/public/ClinicDetailPage/DoctorCard';
 import OpeningHours from '../../components/public/ClinicDetailPage/OpeningHours';
 import QuickStats from '../../components/public/ClinicDetailPage/QuickStats';
 import Loading from '../../components/ui/Loading';
-
+import StarRating from '../../components/public/StarRating';
 const ClinicDetailPage = () => {
   const { clinicId } = useParams();
   console.log(clinicId);
@@ -125,7 +125,16 @@ const ClinicDetailPage = () => {
           <ClinicHeader clinic={clinic} />
         </div>
       </div>
-      
+      <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">Clinic Reviews</h3>
+        <StarRating 
+          type="clinic" 
+          id={clinicId} 
+          size="large" 
+          detailed={true}
+          inline={false}
+        />
+      </div>
       <div className="px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Main Content */}

@@ -1,10 +1,12 @@
-import React from 'react';
-import { Star, ChevronRight ,User} from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { ChevronRight, User } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Loading from '../../ui/Loading';
+import StarRating from '../StarRating';
 
 const ClinicDoctorsPopup = ({ clinic, hoveredClinic, clinicDoctors }) => {
-  const navigate=useNavigate();
+  const navigate = useNavigate();
+
   const handleDoctorClick = (doctorId) => {
     navigate(`/doctor/${doctorId}`);
   };
@@ -49,14 +51,17 @@ const ClinicDoctorsPopup = ({ clinic, hoveredClinic, clinicDoctors }) => {
                     <div className="text-xs text-gray-500">
                       {doctor.specialization}
                     </div>
-                    <div className="flex items-center space-x-2 mt-1">
-                      <div className="flex items-center">
-                        <Star className="h-3 w-3 text-yellow-400 fill-current" />
-                        <span className="text-xs text-gray-600 ml-1">
-                          {doctor.averageRating || 'N/A'}
-                        </span>
-                      </div>
-                      <span className="text-xs text-gray-400">•</span>
+                    <div className="flex items-center justify-between mt-1">
+                      {/* Use StarRating component with small size and inline display */}
+                      <StarRating 
+                        type="doctor" 
+                        id={doctor._id} 
+                        size="small" 
+                        inline={true}
+                        showCount={true}
+                        showAverage={true}
+                        detailed={false}
+                      />
                       <span className="text-xs text-gray-600">
                         ₹{doctor.consultationFee}
                       </span>
@@ -89,12 +94,27 @@ const ClinicDoctorsPopup = ({ clinic, hoveredClinic, clinicDoctors }) => {
                     handleDoctorClick(doctor._id);
                   }}
                 >
-                  <div>
+                  <div className="flex-1">
                     <div className="font-medium text-sm">
                       Dr. {doctor.firstName} {doctor.lastName}
                     </div>
-                    <div className="text-xs text-gray-500">
+                    <div className="text-xs text-gray-500 mb-1">
                       {doctor.specialization}
+                    </div>
+                    <div className="flex items-center justify-between">
+                      {/* Use StarRating component for mobile view */}
+                      <StarRating 
+                        type="doctor" 
+                        id={doctor._id} 
+                        size="small" 
+                        inline={true}
+                        showCount={true}
+                        showAverage={true}
+                        detailed={false}
+                      />
+                      <span className="text-xs text-gray-600">
+                        ₹{doctor.consultationFee}
+                      </span>
                     </div>
                   </div>
                   <ChevronRight className="h-4 w-4 text-gray-400" />

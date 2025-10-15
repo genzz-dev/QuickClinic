@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import RatingComponent from '../../components/Patient/RatingComponent';
 import jsPDF from 'jspdf';
 import {
   Calendar,
@@ -21,9 +22,12 @@ import { getAppointmentDetails } from '../../service/appointmentApiService'
 import { getPatientAppointmentPrescription } from '../../service/prescriptionApiSevice'
 
 const AppointmentDetails = () => {
+
   const { appointmentId } = useParams();
   const navigate = useNavigate();
   const [appointment, setAppointment] = useState(null);
+  const [ratingLoading, setRatingLoading] = useState(false);
+  const [existingRating, setExistingRating] = useState(null);
   const [prescription, setPrescription] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -34,7 +38,9 @@ const AppointmentDetails = () => {
       fetchAppointmentData();
     }
   }, [appointmentId]);
-
+  const handleRatingUpdate = (updatedRating) => {
+    setExistingRating(updatedRating);
+  };
   const fetchAppointmentData = async () => {
     try {
       setLoading(true);
@@ -610,6 +616,31 @@ const generatePrescriptionPDF = () => {
           </div>
         </div>
       </div>
+          {appointment.status === 'completed' && (
+        <div className="mt-6">
+          {ratingLoading ? (
+            <div className="bg-white rounded-lg border border-gray-200 p-6">
+              <div className="animate-pulse flex space-x-4">
+                <div className="flex-1 space-y-4 py-1">
+                  <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                  <div className="space-y-2">
+                    <div className="h-4 bg-gray-200 rounded"></div>
+                    <div className="h-4 bg-gray-200 rounded w-5/6"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <RatingComponent
+              appointmentId={appointmentId}
+              doctorId={appointment.doctorId?._id || appointment.doctorId}
+              clinicId={appointment.clinicId?._id || appointment.clinicId}
+              existingRating={existingRating}
+              onRatingUpdate={handleRatingUpdate}
+            />
+          )}
+        </div>
+      )}
     </div>
   );
 };

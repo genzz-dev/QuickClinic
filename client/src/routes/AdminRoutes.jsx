@@ -14,6 +14,7 @@ import AdminNavbar from '../components/admin/AdminNavbar';
 import NotFoundPage from '../components/ui/NotFoundPage';
 import AdminAppointments from '../pages/admin/AdminAppointments';
 import AdminAppointmentDetails from '../pages/admin/AdminAppointmentDetails';
+import AdminRatingsPage from '../pages/admin/AdminRatingsPage';
 export default function AdminRoutes() {
   return (
     <>
@@ -26,6 +27,16 @@ export default function AdminRoutes() {
           <ProtectedRoute allowedRoles={['admin']}>
             <AdminSetupGuard requireProfile={true} requireClinic={true}>
               <AdminDashboard />
+            </AdminSetupGuard>
+          </ProtectedRoute>
+        }
+      />
+     <Route
+        path="/admin/ratings"
+        element={
+          <ProtectedRoute allowedRoles={['admin']}>
+            <AdminSetupGuard requireProfile={true} requireClinic={true}>
+              <AdminRatingsPage />
             </AdminSetupGuard>
           </ProtectedRoute>
         }

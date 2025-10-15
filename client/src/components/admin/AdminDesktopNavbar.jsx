@@ -1,5 +1,5 @@
 import React from "react";
-import { FiHome, FiUsers, FiMapPin, FiLogOut, FiUser, FiClock } from "react-icons/fi";
+import { FiHome, FiUsers, FiMapPin, FiLogOut, FiUser, FiClock, FiStar } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from '../../context/authContext'
 
@@ -62,6 +62,14 @@ const AdminDesktopNavbar = () => {
               <FiClock className="w-4 h-4 mr-2" />
               Manage Appointments
             </button>
+            <button
+              onClick={() => navigate("/admin/ratings")}
+              className="flex items-center text-gray-600 hover:text-blue-600 transition-colors font-medium"
+            >
+              <FiStar className="w-4 h-4 mr-2" />
+              Ratings
+            </button>
+            
           </div>
 
           {/* User Info & Logout */}
