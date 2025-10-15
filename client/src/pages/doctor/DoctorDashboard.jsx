@@ -2,12 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getDoctorProfile, getDoctorClinicInfo } from '../../service/doctorApiService.js';
 import { getDoctorAppointments } from '../../service/appointmentApiService.js';
-
+import { getRatingStats } from '../../service/ratingApiService.js';
 const DoctorDashboard = () => {
   const [doctor, setDoctor] = useState(null);
   const [clinic, setClinic] = useState(null);
   const [todayAppointments, setTodayAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [ratingStats, setRatingStats] = useState(null);
   const navigate = useNavigate();
 
   // Helper function to safely convert MongoDB decimals
@@ -27,7 +28,9 @@ const DoctorDashboard = () => {
     }
     return String(value);
   };
-
+  const handleRatingClick = () => {
+    navigate(`/doctor/ratings/${doctor._id}`);
+  };
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
@@ -45,6 +48,16 @@ const DoctorDashboard = () => {
         
         const appointments = appointmentsResponse?.appointments || [];
         setTodayAppointments(appointments.slice(0, 3));
+        try {
+        const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+        const doctorId = userData.profileId || userData._id;
+        if (doctorId) {
+          const ratingsResponse = await getRatingStats('doctor', doctorId);
+          setRatingStats(ratingsResponse);
+        }
+      } catch (ratingError) {
+        console.log('Rating stats not available:', ratingError);
+      }
       } catch (error) {
         console.error('Error fetching dashboard data:', error);
       } finally {
@@ -305,18 +318,54 @@ const DoctorDashboard = () => {
           </div>
           
           <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-            <div className="flex items-center">
-              <div className="w-12 h-12 bg-yellow-100 rounded-xl flex items-center justify-center">
-                <svg className="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+            <div className="flex  items-center">
+                <div 
+  className="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition-shadow cursor-pointer border-l-4 border-yellow-400"
+  onClick={handleRatingClick}
+>
+  <div className="flex items-center justify-between">
+    <div>
+      <h3 className="text-lg font-semibold text-gray-800 mb-2">
+        Average Rating
+      </h3>
+      <div className="flex items-center space-x-2">
+        <div className="text-3xl font-bold text-yellow-600">
+          {ratingStats?.averageRating?.toFixed(1) || 
+           getDecimalValue(doctor?.ratings?.average).toFixed(1) || 
+           '5.0'}
+        </div>
+        <div className="flex">
+          {Array.from({ length: 5 }, (_, index) => (
+            <span
+              key={index}
+              className={`text-xl ${
+                index < Math.round(ratingStats?.averageRating || 
+                getDecimalValue(doctor?.ratings?.average) || 5)
+                  ? 'text-yellow-400' 
+                  : 'text-gray-300'
+              }`}
+            >
+              ★
+            </span>
+          ))}
+        </div>
+      </div>
+                <div className="text-sm text-gray-600 mt-1">
+                  Based on {ratingStats?.totalRatings || 
+                  doctor?.ratings?.count || 0} reviews
+                </div>
+              </div>
+              <div className="text-blue-500">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                 </svg>
               </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Average Rating</p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {getDecimalValue(doctor?.averageRating).toFixed(1) || '5.0'}
-                </p>
-              </div>
+            </div>
+            <div className="mt-3 text-sm text-blue-600 font-medium">
+              Click to view all reviews →
+            </div>
+          </div>
+
             </div>
           </div>
         </div>

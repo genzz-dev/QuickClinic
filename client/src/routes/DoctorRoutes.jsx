@@ -13,6 +13,7 @@ import DoctorProfilePage from '../pages/doctor/DoctorProfile';
 import DoctorNavbar from '../components/Doctors/DoctorNavbar';
 import DoctorMobileBottomBar from '../components/Doctors/DoctorMobileBottomBar';
 import DoctorSchedule from '../pages/doctor/DoctorSchedule';
+import DoctorRatings from '../components/Doctors/DoctorRatings';
 
 export default function DoctorRoutes() {
   return (
@@ -45,6 +46,15 @@ export default function DoctorRoutes() {
               <DoctorSetupGuard requireProfile={true} requireClinic={true}>
                
                 <DoctorProfilePage />
+              </DoctorSetupGuard>
+            }
+          />
+                    <Route
+            path="doctor/ratings/:doctorId"
+            element={
+              <DoctorSetupGuard requireProfile={true} requireClinic={true}>
+               
+                <DoctorRatings />
               </DoctorSetupGuard>
             }
           />

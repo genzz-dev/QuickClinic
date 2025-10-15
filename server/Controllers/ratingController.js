@@ -3,8 +3,8 @@ import Appointment from '../models/Appointment/Appointment.js';
 import Doctor from '../models/Users/Doctor.js';
 import Clinic from '../models/Clinic/Clinic.js';
 import Patient from '../models/Users/Patient.js';
-// Create a new rating (for doctor or clinic)
 
+// Create a new rating (for doctor or clinic)
 export const createRating = async (req, res) => {
     try {
         const { appointmentId, rating, comment, ratingType, doctorId, clinicId } = req.body;
@@ -27,17 +27,17 @@ export const createRating = async (req, res) => {
         // Check if rating already exists for this appointment and type
         const existingRating = await Rating.findOne({
             appointmentId,
-            profileId,
+            patientId: profileId,
             ratingType
         });
-
+        
         if (existingRating) {
             return res.status(400).json({ message: `You have already rated this ${ratingType}` });
         }
 
         // Create new rating
         const newRating = new Rating({
-            "patientId":profileId,
+            patientId: profileId,
             appointmentId,
             doctorId: ratingType === 'doctor' ? (doctorId || appointment.doctorId) : null,
             clinicId: ratingType === 'clinic' ? (clinicId || appointment.clinicId) : null,
@@ -59,7 +59,6 @@ export const createRating = async (req, res) => {
             message: `${ratingType} rated successfully`,
             rating: newRating
         });
-
     } catch (error) {
         console.log(error);
         res.status(500).json({ message: 'Error creating rating', error: error.message });
@@ -96,7 +95,6 @@ export const getDoctorRatings = async (req, res) => {
         }
 
         const skip = (parseInt(page) - 1) * parseInt(limit);
-
         const ratings = await Rating.find(filterQuery)
             .populate('patientId', 'firstName lastName')
             .populate('appointmentId', 'date')
@@ -119,7 +117,6 @@ export const getDoctorRatings = async (req, res) => {
             averageRating: doctor?.ratings?.average || 0,
             totalRatingCount: doctor?.ratings?.count || 0
         });
-
     } catch (error) {
         res.status(500).json({ message: 'Error fetching doctor ratings', error: error.message });
     }
@@ -155,7 +152,6 @@ export const getClinicRatings = async (req, res) => {
         }
 
         const skip = (parseInt(page) - 1) * parseInt(limit);
-
         const ratings = await Rating.find(filterQuery)
             .populate('patientId', 'firstName lastName')
             .populate('appointmentId', 'date')
@@ -178,7 +174,6 @@ export const getClinicRatings = async (req, res) => {
             averageRating: clinic?.ratings?.average || 0,
             totalRatingCount: clinic?.ratings?.count || 0
         });
-
     } catch (error) {
         res.status(500).json({ message: 'Error fetching clinic ratings', error: error.message });
     }
@@ -187,10 +182,10 @@ export const getClinicRatings = async (req, res) => {
 // Get patient's completed appointments eligible for rating
 export const getEligibleAppointments = async (req, res) => {
     try {
-        //const patientId = req.user.patientId;
-        const {profileId}=req.user;
+        const { profileId } = req.user;
+
         const appointments = await Appointment.find({
-            patientId,
+            patientId: profileId,
             status: 'completed'
         })
         .populate('doctorId', 'firstName lastName specialization')
@@ -202,13 +197,13 @@ export const getEligibleAppointments = async (req, res) => {
             appointments.map(async (appointment) => {
                 const doctorRating = await Rating.findOne({
                     appointmentId: appointment._id,
-                    "patientId":profileId,
+                    patientId: profileId,
                     ratingType: 'doctor'
                 });
 
                 const clinicRating = await Rating.findOne({
                     appointmentId: appointment._id,
-                    "patientId":profileId,
+                    patientId: profileId,
                     ratingType: 'clinic'
                 });
 
@@ -225,7 +220,6 @@ export const getEligibleAppointments = async (req, res) => {
         res.json({
             appointments: appointmentsWithRatingStatus
         });
-
     } catch (error) {
         res.status(500).json({ message: 'Error fetching eligible appointments', error: error.message });
     }
@@ -236,19 +230,16 @@ export const updateRating = async (req, res) => {
     try {
         const { ratingId } = req.params;
         const { rating, comment } = req.body;
-        //const patientId = req.user.patientId;
-        const {profileId}=req.user;
+        const { profileId } = req.user;
 
         const existingRating = await Rating.findById(ratingId);
         if (!existingRating) {
             return res.status(404).json({ message: 'Rating not found' });
         }
 
-        if (existingRating.patientId.toString() !== patientId.toString()) {
+        if (existingRating.patientId.toString() !== profileId.toString()) {
             return res.status(403).json({ message: 'Unauthorized to update this rating' });
         }
-
-        const oldRating = existingRating.rating;
 
         existingRating.rating = rating;
         existingRating.comment = comment;
@@ -267,7 +258,6 @@ export const updateRating = async (req, res) => {
             message: 'Rating updated successfully',
             rating: existingRating
         });
-
     } catch (error) {
         res.status(500).json({ message: 'Error updating rating', error: error.message });
     }
@@ -277,8 +267,7 @@ export const updateRating = async (req, res) => {
 export const deleteRating = async (req, res) => {
     try {
         const { ratingId } = req.params;
-        //const patientId = req.user.patientId;
-        const {profileId}=req.user;
+        const { profileId } = req.user;
 
         const rating = await Rating.findById(ratingId);
         if (!rating) {
@@ -299,81 +288,69 @@ export const deleteRating = async (req, res) => {
         }
 
         res.json({ message: 'Rating deleted successfully' });
-
     } catch (error) {
         res.status(500).json({ message: 'Error deleting rating', error: error.message });
     }
 };
 
-// Helper function to update doctor rating statistics
+// Helper function to update doctor rating statistics (NO DISTRIBUTION)
 const updateDoctorRating = async (doctorId) => {
-    const ratings = await Rating.find({ doctorId, ratingType: 'doctor' });
-    const count = ratings.length;
-    const totalStars = ratings.reduce((sum, rating) => sum + rating.rating, 0);
-    const average = count > 0 ? Math.round((totalStars / count) * 10) / 10 : 0;
+    try {
+        const ratings = await Rating.find({ doctorId, ratingType: 'doctor' });
+        const count = ratings.length;
+        const totalStars = ratings.reduce((sum, rating) => sum + rating.rating, 0);
+        const average = count > 0 ? Math.round((totalStars / count) * 10) / 10 : 0;
 
-    await Doctor.findByIdAndUpdate(doctorId, {
-        'ratings.count': count,
-        'ratings.totalStars': totalStars,
-        'ratings.average': average
-    });
+        await Doctor.findByIdAndUpdate(doctorId, {
+            'ratings.count': count,
+            'ratings.totalStars': totalStars,
+            'ratings.average': average
+        });
+    } catch (error) {
+        console.error('Error updating doctor rating:', error);
+    }
 };
 
-// Helper function to update clinic rating statistics
+// Helper function to update clinic rating statistics (NO DISTRIBUTION)
 const updateClinicRating = async (clinicId) => {
-    const ratings = await Rating.find({ clinicId, ratingType: 'clinic' });
-    const count = ratings.length;
-    const totalStars = ratings.reduce((sum, rating) => sum + rating.rating, 0);
-    const average = count > 0 ? Math.round((totalStars / count) * 10) / 10 : 0;
+    try {
+        const ratings = await Rating.find({ clinicId, ratingType: 'clinic' });
+        const count = ratings.length;
+        const totalStars = ratings.reduce((sum, rating) => sum + rating.rating, 0);
+        const average = count > 0 ? Math.round((totalStars / count) * 10) / 10 : 0;
 
-    await Clinic.findByIdAndUpdate(clinicId, {
-        'ratings.count': count,
-        'ratings.totalStars': totalStars,
-        'ratings.average': average
-    });
+        await Clinic.findByIdAndUpdate(clinicId, {
+            'ratings.count': count,
+            'ratings.totalStars': totalStars,
+            'ratings.average': average
+        });
+    } catch (error) {
+        console.error('Error updating clinic rating:', error);
+    }
 };
 
-// Get rating statistics summary
+// Simple rating stats - NO DISTRIBUTION
 export const getRatingStats = async (req, res) => {
     try {
-        const { type, id } = req.params; // type: 'doctor' or 'clinic'
+        const { type, id } = req.params;
 
-        let model, filterQuery;
+        let model;
         if (type === 'doctor') {
             model = Doctor;
-            filterQuery = { doctorId: id, ratingType: 'doctor' };
         } else if (type === 'clinic') {
             model = Clinic;
-            filterQuery = { clinicId: id, ratingType: 'clinic' };
         } else {
             return res.status(400).json({ message: 'Invalid type. Use "doctor" or "clinic"' });
         }
 
-        // Get entity with rating stats
         const entity = await model.findById(id);
         if (!entity) {
             return res.status(404).json({ message: `${type} not found` });
         }
 
-        // Get rating distribution
-        const ratingDistribution = await Rating.aggregate([
-            { $match: filterQuery },
-            { $group: { _id: '$rating', count: { $sum: 1 } } },
-            { $sort: { _id: -1 } }
-        ]);
-
-        // Format distribution
-        const distribution = {
-            5: 0, 4: 0, 3: 0, 2: 0, 1: 0
-        };
-        ratingDistribution.forEach(item => {
-            distribution[item._id] = item.count;
-        });
-
         res.json({
             averageRating: entity.ratings?.average || 0,
             totalRatings: entity.ratings?.count || 0,
-            distribution,
             entityInfo: {
                 id: entity._id,
                 name: type === 'doctor' 
@@ -381,8 +358,8 @@ export const getRatingStats = async (req, res) => {
                     : entity.name
             }
         });
-
     } catch (error) {
+        console.error('Error in getRatingStats:', error);
         res.status(500).json({ message: 'Error fetching rating stats', error: error.message });
     }
 };
