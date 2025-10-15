@@ -1,5 +1,5 @@
 import { MapPin, Star, Award, Heart } from 'lucide-react';
-
+import StarRating from '../StarRating';
 const DoctorCard = ({ doctor, handleDoctorClick, formatCurrency }) => {
   return (
     <div
@@ -27,7 +27,13 @@ const DoctorCard = ({ doctor, handleDoctorClick, formatCurrency }) => {
             <p className="text-blue-600 text-sm font-semibold mb-2 bg-blue-50 px-3 py-1 rounded-full inline-block">
               {doctor.specialization}
             </p>
-            
+              <StarRating 
+              type="doctor" 
+              id={doctor._id} 
+              size="small" 
+              inline={true}
+              />
+
             <div className="flex items-center gap-4 text-sm text-gray-600 mb-3">
               {doctor.averageRating > 0 && (
                 <div className="flex items-center gap-1 bg-yellow-50 px-2 py-1 rounded-lg">

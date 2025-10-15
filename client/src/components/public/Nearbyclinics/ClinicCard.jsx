@@ -4,7 +4,7 @@ import ClinicImage from './ClinicImage';
 import ClinicContactInfo from './ClinicContactInfo';
 import ClinicFacilities from './ClinicFacilities';
 import ClinicDoctorsPopup from './ClinicDoctorsPopup';
-
+import StarRating from '../StarRating';
 const today = new Date().toLocaleDateString("en-US", { weekday: "long" }).toLowerCase();
 
 const ClinicCard = ({ 
@@ -39,7 +39,12 @@ const ClinicCard = ({
           <h3 className="text-xl font-semibold text-gray-900">
             {clinic.name}
           </h3>
-          
+            <StarRating 
+            type="clinic" 
+            id={clinic._id} 
+            size="small" 
+            inline={true}
+          />
           {/* Alternative verification badge option (if you prefer it next to the name) */}
           {!clinic.isVerified && (
             <div className="flex items-center gap-1 text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">

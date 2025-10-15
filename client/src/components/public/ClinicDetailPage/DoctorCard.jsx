@@ -1,5 +1,5 @@
 import { User, Award, Video, CheckCircle } from 'lucide-react';
-
+import StarRating from '../StarRating';
 const DoctorCard = ({ doctor, onClick }) => {
   const renderStars = (rating) => {
     const stars = [];
@@ -44,6 +44,13 @@ const DoctorCard = ({ doctor, onClick }) => {
           <h3 className="font-semibold text-gray-900 text-lg">
             Dr. {doctor.firstName} {doctor.lastName}
           </h3>
+          {console.log("doctor is ",doctor._id)}
+            <StarRating 
+    type="doctor" 
+    id={doctor._id} 
+    size="small" 
+    inline={true}
+  />
           <p className="text-blue-600 font-medium">{doctor.specialization}</p>
           
           {doctor.bio && (

@@ -9,7 +9,7 @@ import LoadingState from '../../components/public/Doctors/LoadingState';
 import ErrorState from '../../components/public/Doctors/ErrorState';
 import NoResults from '../../components/public/Doctors/NoResults';
 import Loading from '../../components/ui/Loading';
-
+import StarRating from '../../components/public/StarRating';
 const Doctors = () => {
   const navigate = useNavigate();
   const [doctors, setDoctors] = useState([]);
