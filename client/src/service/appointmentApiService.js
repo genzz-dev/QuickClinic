@@ -1,35 +1,34 @@
-import apiService from './apiservice.js';
+import apiService from "./apiservice.js";
 
 /**
  * Appointment API Service - All appointment-related API calls
  */
 
-
 export const bookAppointment = async (appointmentData) => {
-  return await apiService.post('/appointments', appointmentData, {
-    headers: { 'Content-Type': 'application/json' }
-  });
+	return await apiService.post("/appointments", appointmentData, {
+		headers: { "Content-Type": "application/json" },
+	});
 };
 
 /**
  * Get Patient Appointments
  */
 export const getPatientAppointments = async (filters = {}) => {
-  return await apiService.get('/appointments/patient', { params: filters });
+	return await apiService.get("/appointments/patient", { params: filters });
 };
 
 /**
  * Get Doctor Appointments
  */
 export const getDoctorAppointments = async (filters = {}) => {
-  return await apiService.get('/appointments/doctor', { params: filters });
+	return await apiService.get("/appointments/doctor", { params: filters });
 };
 
 /**
  * Get Clinic Appointments
  */
 export const getClinicAppointments = async (filters = {}) => {
-  return await apiService.get('/appointments/clinic', { params: filters });
+	return await apiService.get("/appointments/clinic", { params: filters });
 };
 
 /**
@@ -37,9 +36,9 @@ export const getClinicAppointments = async (filters = {}) => {
 
  */
 export const updateAppointment = async (appointmentId, updateData) => {
-  return await apiService.put(`/appointments/${appointmentId}`, updateData, {
-    headers: { 'Content-Type': 'application/json' }
-  });
+	return await apiService.put(`/appointments/${appointmentId}`, updateData, {
+		headers: { "Content-Type": "application/json" },
+	});
 };
 
 /**
@@ -47,9 +46,13 @@ export const updateAppointment = async (appointmentId, updateData) => {
 
  */
 export const updateAppointmentStatus = async (appointmentId, statusData) => {
-  return await apiService.put(`/appointments/${appointmentId}/status`, statusData, {
-    headers: { 'Content-Type': 'application/json' }
-  });
+	return await apiService.put(
+		`/appointments/${appointmentId}/status`,
+		statusData,
+		{
+			headers: { "Content-Type": "application/json" },
+		},
+	);
 };
 
 /**
@@ -57,7 +60,7 @@ export const updateAppointmentStatus = async (appointmentId, statusData) => {
 
  */
 export const getAppointmentDetails = async (appointmentId) => {
-  return await apiService.get(`/appointments/${appointmentId}`);
+	return await apiService.get(`/appointments/${appointmentId}`);
 };
 
 /**
@@ -65,24 +68,24 @@ export const getAppointmentDetails = async (appointmentId) => {
 
  */
 export const cancelAppointment = async (appointmentId) => {
-  return await apiService.put(`/appointments/${appointmentId}/cancel`);
+	return await apiService.put(`/appointments/${appointmentId}/cancel`);
 };
 /**
  * Get patient info for appointment
  */
 export const getPatientInfoForAppointment = async (appointmentId) => {
-  return await apiService.get(`/appointments/${appointmentId}/patient-info`);
+	return await apiService.get(`/appointments/${appointmentId}/patient-info`);
 };
 
 // Export all functions as default object
 export default {
-  bookAppointment,
-  getPatientAppointments,
-  getDoctorAppointments,
-  getClinicAppointments,
-  updateAppointment,
-  updateAppointmentStatus,
-  getAppointmentDetails,
-  cancelAppointment,
-  getPatientInfoForAppointment 
+	bookAppointment,
+	getPatientAppointments,
+	getDoctorAppointments,
+	getClinicAppointments,
+	updateAppointment,
+	updateAppointmentStatus,
+	getAppointmentDetails,
+	cancelAppointment,
+	getPatientInfoForAppointment,
 };
