@@ -111,7 +111,7 @@ const AddClinicForm = ({
 		try {
 			await onSubmit(formData, files, addressMethod);
 		} catch (error) {
-			// Error handling is done in parent component
+			console.log(error);
 		}
 	};
 
