@@ -66,6 +66,7 @@ const ScheduleModal = ({ open, onClose, doctor, onSave }) => {
 				});
 			} catch (e) {
 				setSchedule(defaultSchedule());
+				console.log(e);
 			} finally {
 				setLoading(false);
 			}
