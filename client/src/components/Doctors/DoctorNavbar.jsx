@@ -11,26 +11,13 @@ import {
 } from "react-icons/fi";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/authContext";
-import { getDoctorProfile } from "../../service/doctorApiService";
 
 const DoctorNavbar = () => {
 	const navigate = useNavigate();
 	const location = useLocation();
-	const [doctor, setDoctor] = useState(null);
 	const [isMenuOpen, setIsMenuOpen] = useState(false);
 	const { logout } = useAuth();
-	useEffect(() => {
-		loadDoctorProfile();
-	}, []);
 
-	const loadDoctorProfile = async () => {
-		try {
-			const response = await getDoctorProfile();
-			setDoctor(response.data);
-		} catch (error) {
-			console.error("Failed to load doctor profile:", error);
-		}
-	};
 
 	const handleLogout = async () => {
 		console.log("hey");
