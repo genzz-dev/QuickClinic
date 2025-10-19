@@ -13,7 +13,6 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import ActionButton from "../../components/admin/dashboard/ActionButton";
 import ClinicProfile from "../../components/admin/dashboard/ClinicProfile";
-import StatCard from "../../components/admin/dashboard/StatCard";
 import VerificationBanner from "../../components/admin/dashboard/VerificationBanner";
 import Loading from "../../components/ui/Loading";
 import {
