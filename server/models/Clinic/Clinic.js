@@ -25,7 +25,6 @@ const clinicSchema = new mongoose.Schema({
 		},
 	},
 	googleMapsPhone: { type: String }, // Phone from Google Maps
-	isVerified: { type: Boolean, default: false },
 	verificationAttempts: { type: Number, default: 0 },
 	lastVerificationAttempt: { type: Date },
 	contact: {

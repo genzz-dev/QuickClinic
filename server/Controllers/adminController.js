@@ -15,9 +15,7 @@ import {
 import { sendOTP, verifyOTP } from "../services/otpService.js";
 import { uploadToCloudinary } from "../services/uploadService.js";
 
-// Helper validation functions
-const isValidEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-const isValidPhone = (phone) => /^\+?[\d\s-()]{7,}$/.test(phone);
+
 // check if admin profile is created or not
 export const checkAdminProfileExists = async (req, res) => {
 	try {
@@ -50,7 +48,7 @@ export const checkAdminProfileExists = async (req, res) => {
 // check if admin has added a clinic or not
 export const checkClinicExists = async (req, res) => {
 	try {
-		const { userId, clinicId } = req.user;
+		const { clinicId } = req.user;
 
 		if (clinicId) {
 			return res.status(200).json({

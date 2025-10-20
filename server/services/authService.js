@@ -52,7 +52,7 @@ export const refreshTokens = async (refreshToken) => {
 	try {
 		decoded = verifyRefreshToken(refreshToken);
 	} catch (error) {
-		throw new Error("Invalid or expired refresh token");
+		throw new Error(`Invalid or expired refresh token ${error}`);
 	}
 
 	const user = await User.findById(decoded.userId);

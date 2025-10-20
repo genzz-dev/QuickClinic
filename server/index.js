@@ -6,7 +6,6 @@ import cookieParser from "cookie-parser";
 import cors from "cors";
 import express from "express";
 import connectDB from "./config/db.js";
-import { config } from "./config/token.js";
 import adminRoutes from "./Routes/adminRoutes.js";
 import appointmentRoutes from "./Routes/appointmentRoutes.js";
 import authRoutes from "./Routes/authRoutes.js";

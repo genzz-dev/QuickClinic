@@ -1,6 +1,5 @@
 // publicController.js
 
-import mongoose from "mongoose";
 import Clinic from "../models/Clinic/Clinic.js";
 import Schedule from "../models/Clinic/Schedule.js";
 import Doctor from "../models/Users/Doctor.js";

@@ -2,7 +2,6 @@ import Appointment from "../models/Appointment/Appointment.js";
 import Clinic from "../models/Clinic/Clinic.js";
 import Rating from "../models/Ratings/Ratings.js";
 import Doctor from "../models/Users/Doctor.js";
-import Patient from "../models/Users/Patient.js";
 
 // Create a new rating (for doctor or clinic)
 export const createRating = async (req, res) => {

@@ -1,7 +1,6 @@
 import mongoose from "mongoose";
 import Appointment from "../models/Appointment/Appointment.js";
 import Schedule from "../models/Clinic/Schedule.js";
-import HealthRecord from "../models/HealthRecord/HealthRecord.js";
 import Doctor from "../models/Users/Doctor.js";
 import Patient from "../models/Users/Patient.js";
 
@@ -269,7 +268,7 @@ export const getDoctorAppointments = async (req, res) => {
 // Get all appointments for admin (clinic-specific)
 export const getClinicAppointments = async (req, res) => {
 	try {
-		const { profileId, clinicId } = req.user;
+		const {  clinicId } = req.user;
 		const { status, date, upcoming, past, doctorId, patientId } = req.query;
 
 		if (!clinicId) {
