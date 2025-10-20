@@ -230,7 +230,7 @@ const NearbyClinicsPage = () => {
 				data.region,
 			);
 		} catch (error) {
-			setLocationError("Unable to determine location");
+			setLocationError(`Unable to determine location ${error}`);
 			setLoading(false);
 		}
 	};

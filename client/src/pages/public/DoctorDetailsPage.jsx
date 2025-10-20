@@ -53,8 +53,8 @@ const DoctorDetailsPage = () => {
 				}
 				setDoctor(doctorData.data);
 
-				const schedulePromise = getDoctorSchedule(doctorId)
-					.then((scheduleData) => {
+				const schedulePromise = getDoctorSchedule(doctorId);
+				schedulePromise.then((scheduleData) => {
 						if (scheduleData) {
 							setSchedule(scheduleData.data);
 						}
@@ -62,6 +62,7 @@ const DoctorDetailsPage = () => {
 					.catch((err) => {
 						console.error("Error fetching schedule:", err);
 					});
+					
 
 				if (doctorData.data.clinicId) {
 					setClinic(doctorData.data.clinicId);

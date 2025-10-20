@@ -81,7 +81,7 @@ const AdminDashboard = () => {
 			await fetchDashboardData();
 			handleSendVerificationOTP();
 		} catch (err) {
-			toast.error("Failed to save the link. Please try again.");
+			toast.error(`Failed to save the link. Please try again.${err}`);
 		} finally {
 			setIsUpdatingClinic(false);
 		}
@@ -97,9 +97,7 @@ const AdminDashboard = () => {
 			toast.error(
 				err.response?.data?.message || `Failed to send verification code ${err}`,
 			);
-		} finally {
-			
-		}
+		} 
 	};
 
 	const handleVerifyOTP = async (e) => {
