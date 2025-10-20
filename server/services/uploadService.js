@@ -1,23 +1,23 @@
-import fs from "fs";
-import cloudinary from "../config/cloudinary.js";
+import fs from 'fs';
+import cloudinary from '../config/cloudinary.js';
 
 export const uploadToCloudinary = async (localFilePath) => {
-	try {
-		if (!localFilePath) return null;
+  try {
+    if (!localFilePath) return null;
 
-		const result = await cloudinary.uploader.upload(localFilePath, {
-			resource_type: "image",
-		});
+    const result = await cloudinary.uploader.upload(localFilePath, {
+      resource_type: 'image',
+    });
 
-		// Remove file after upload
-		fs.unlinkSync(localFilePath);
+    // Remove file after upload
+    fs.unlinkSync(localFilePath);
 
-		return {
-			url: result.secure_url,
-			public_id: result.public_id,
-		};
-	} catch (error) {
-		fs.unlinkSync(localFilePath); // remove file even if upload fails
-		throw error;
-	}
+    return {
+      url: result.secure_url,
+      public_id: result.public_id,
+    };
+  } catch (error) {
+    fs.unlinkSync(localFilePath); // remove file even if upload fails
+    throw error;
+  }
 };

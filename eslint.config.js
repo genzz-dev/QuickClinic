@@ -30,11 +30,14 @@ export default [
     },
     rules: {
       // Disable problematic rules for React
-      'no-unused-vars': ['error', { 
-        argsIgnorePattern: '^_',
-        varsIgnorePattern: '^(React|[A-Z])',
-        ignoreRestSiblings: true 
-      }],
+      'no-unused-vars': [
+        'error',
+        {
+          argsIgnorePattern: '^_',
+          varsIgnorePattern: '^(React|[A-Z])',
+          ignoreRestSiblings: true,
+        },
+      ],
       'react/react-in-jsx-scope': 'off',
       'react/prop-types': 'off',
       'react/jsx-uses-react': 'off',
@@ -49,10 +52,13 @@ export default [
       },
     },
     rules: {
-      'no-unused-vars': ['error', { 
-        argsIgnorePattern: '^_',
-        ignoreRestSiblings: true 
-      }],
+      'no-unused-vars': [
+        'error',
+        {
+          argsIgnorePattern: '^_',
+          ignoreRestSiblings: true,
+        },
+      ],
     },
   },
   {
