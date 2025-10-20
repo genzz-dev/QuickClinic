@@ -1,5 +1,3 @@
-import React from "react";
-
 const SettingsTab = ({ appointmentDuration, setSchedule }) => {
 	return (
 		<div className="max-w-md">

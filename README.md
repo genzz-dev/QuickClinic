@@ -1,19 +1,19 @@
-
 # 🏥 QuickClinic – Smart Clinic & Appointment Platform
 
 **QuickClinic** is a full-stack MERN-based platform designed to streamline clinic operations for **admins**, **doctors**, and **patients**. From appointment booking to prescription tracking, it ensures a smooth, modern healthcare experience.
 
 Built with **React + Vite + TailwindCSS** and powered by a **Node.js + Express + MongoDB** backend, the platform supports **JWT-based role-based authentication**, geolocation features, and Google Maps integration.
 live demo:https://quick-clinic-psi.vercel.app/
+
 ---
 
 ## 👥 User Roles
 
-| Role     | Capabilities |
-|----------|--------------|
-| **Clinic Admin** | Add & verify doctors, approve/reject appointments, manage schedules |
-| **Doctor** | Manage appointments, add prescriptions, view patient records, set availability |
-| **Patient** | Search clinics, book appointments, view prescriptions and history |
+| Role             | Capabilities                                                                   |
+| ---------------- | ------------------------------------------------------------------------------ |
+| **Clinic Admin** | Add & verify doctors, approve/reject appointments, manage schedules            |
+| **Doctor**       | Manage appointments, add prescriptions, view patient records, set availability |
+| **Patient**      | Search clinics, book appointments, view prescriptions and history              |
 
 ---
 
@@ -53,17 +53,20 @@ quickclinic/
 ## 🧪 Features by Role
 
 ### 👤 Patient
+
 - Search clinics by specialty or proximity
 - Book appointments with available doctors
 - View full prescription and medical history
 
 ### 👨‍⚕️ Doctor
+
 - Accept or reject appointments
 - Set availability
 - Add/view prescriptions
 - View full patient treatment history
 
 ### 🏥 Clinic Admin
+
 - Add and verify doctors
 - Approve or reject appointments
 - View status of all clinic operations
@@ -131,17 +134,17 @@ node index.js
 
 ## 📚 API Overview
 
-| Endpoint | Method | Auth | Description |
-|----------|--------|------|-------------|
-| `/api/auth/login` | POST | ❌ | Login users |
-| `/api/auth/register` | POST | ❌ | Register new patients |
-| `/api/clinic/add` | POST | ✅ Admin | Add new clinic |
-| `/api/clinic/verify` | POST | ✅ Admin | Verify via Google Maps link or OTP |
-| `/api/doctor/add` | POST | ✅ Admin | Add a doctor |
-| `/api/doctor/schedule` | POST | ✅ Doctor | Set availability |
-| `/api/appointment/book` | POST | ✅ Patient | Book an appointment |
-| `/api/prescription/create` | POST | ✅ Doctor | Add prescription |
-| `/api/patient/history` | GET | ✅ Doctor/Patient | View medical history |
+| Endpoint                   | Method | Auth              | Description                        |
+| -------------------------- | ------ | ----------------- | ---------------------------------- |
+| `/api/auth/login`          | POST   | ❌                | Login users                        |
+| `/api/auth/register`       | POST   | ❌                | Register new patients              |
+| `/api/clinic/add`          | POST   | ✅ Admin          | Add new clinic                     |
+| `/api/clinic/verify`       | POST   | ✅ Admin          | Verify via Google Maps link or OTP |
+| `/api/doctor/add`          | POST   | ✅ Admin          | Add a doctor                       |
+| `/api/doctor/schedule`     | POST   | ✅ Doctor         | Set availability                   |
+| `/api/appointment/book`    | POST   | ✅ Patient        | Book an appointment                |
+| `/api/prescription/create` | POST   | ✅ Doctor         | Add prescription                   |
+| `/api/patient/history`     | GET    | ✅ Doctor/Patient | View medical history               |
 
 ---
 
@@ -157,4 +160,3 @@ node index.js
 - Email + SMS reminders
 - Ratings & feedback for doctors
 - Calendar integration
-

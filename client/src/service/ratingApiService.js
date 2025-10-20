@@ -1,4 +1,4 @@
-import apiService from "./apiservice";
+import apiService from './apiservice';
 
 /**
  * Rating API Service - All rating-related API calls
