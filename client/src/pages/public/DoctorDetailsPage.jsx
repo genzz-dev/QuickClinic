@@ -5,7 +5,6 @@ import AboutSection from "../../components/public/DoctorDetailsPage/AboutSection
 import ClinicInfoSection from "../../components/public/DoctorDetailsPage/ClinicInfoSection";
 import DoctorHeader from "../../components/public/DoctorDetailsPage/DoctorHeader";
 import ErrorState from "../../components/public/DoctorDetailsPage/ErrorState";
-import LoadingState from "../../components/public/DoctorDetailsPage/LoadingState";
 import NotFoundState from "../../components/public/DoctorDetailsPage/NotFoundState";
 import QualificationsSection from "../../components/public/DoctorDetailsPage/QualificationsSection";
 import ScheduleSection from "../../components/public/DoctorDetailsPage/ScheduleSection";
@@ -14,7 +13,6 @@ import StarRating from "../../components/public/StarRating";
 import Loading from "../../components/ui/Loading";
 import authService from "../../service/authservice"; // Import auth service
 import {
-	getClinicById,
 	getDoctorById,
 	getDoctorSchedule,
 } from "../../service/publicapi";

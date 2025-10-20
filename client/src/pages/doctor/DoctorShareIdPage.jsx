@@ -36,7 +36,7 @@ function DoctorShareIdPage() {
 				consultationFee: data?.consultationFee || "",
 			});
 		} catch (error) {
-			setMessage({ type: "error", text: "Failed to load profile" });
+			setMessage({ type: "error", text: `Failed to load profile${error}`});
 		} finally {
 			setLoading(false);
 		}

@@ -65,6 +65,7 @@ const PatientAppointments = () => {
 				prescriptionStatusMap[appointment._id] = true;
 			} catch (err) {
 				prescriptionStatusMap[appointment._id] = false;
+				console.log(err);
 			}
 		});
 
@@ -189,7 +190,9 @@ const PatientAppointments = () => {
 			const formattedTime = format(new Date(`2000-01-01T${time}`), "hh:mm a");
 			return { date: formattedDate, time: formattedTime };
 		} catch (error) {
+			console.log(error);
 			return { date: "Invalid date", time: "Invalid time" };
+			
 		}
 	};
 

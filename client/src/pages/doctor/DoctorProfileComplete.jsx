@@ -39,6 +39,7 @@ const DoctorCompleteProfile = () => {
 		} catch (error) {
 			// Profile doesn't exist, show form
 			setLoading(false);
+			console.log(error);
 		}
 	};
 

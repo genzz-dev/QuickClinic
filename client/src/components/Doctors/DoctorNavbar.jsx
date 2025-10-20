@@ -1,5 +1,5 @@
 // components/doctor/DoctorNavbar.jsx
-import { useEffect, useState } from "react";
+import {useState } from "react";
 import {
 	FiCalendar,
 	FiClock,

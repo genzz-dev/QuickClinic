@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import AddClinicForm from "../../components/admin/clinic/AddClinicForm/AddClinicForm.jsx";
 import ProgressSteps from "../../components/admin/clinic/AddClinicForm/ProgressSteps.jsx";

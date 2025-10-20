@@ -12,7 +12,6 @@ import {
 	Phone,
 	Pill,
 	Stethoscope,
-	User,
 	XCircle,
 } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -25,7 +24,6 @@ const AppointmentDetails = () => {
 	const { appointmentId } = useParams();
 	const navigate = useNavigate();
 	const [appointment, setAppointment] = useState(null);
-	const [ratingLoading, setRatingLoading] = useState(false);
 	const [existingRating, setExistingRating] = useState(null);
 	const [prescription, setPrescription] = useState(null);
 	const [loading, setLoading] = useState(true);
@@ -60,7 +58,7 @@ const AppointmentDetails = () => {
 				);
 			} catch (prescriptionError) {
 				// Prescription doesn't exist or user doesn't have access - this is okay
-				console.log("No prescription found or access denied");
+				console.log("No prescription found or access denied",prescriptionError);
 				setPrescription(null);
 			}
 		} catch (err) {
@@ -727,27 +725,13 @@ const AppointmentDetails = () => {
 			</div>
 			{appointment.status === "completed" && (
 				<div className="mt-6">
-					{ratingLoading ? (
-						<div className="bg-white rounded-lg border border-gray-200 p-6">
-							<div className="animate-pulse flex space-x-4">
-								<div className="flex-1 space-y-4 py-1">
-									<div className="h-4 bg-gray-200 rounded w-3/4"></div>
-									<div className="space-y-2">
-										<div className="h-4 bg-gray-200 rounded"></div>
-										<div className="h-4 bg-gray-200 rounded w-5/6"></div>
-									</div>
-								</div>
-							</div>
-						</div>
-					) : (
-						<RatingComponent
-							appointmentId={appointmentId}
-							doctorId={appointment.doctorId?._id || appointment.doctorId}
-							clinicId={appointment.clinicId?._id || appointment.clinicId}
-							existingRating={existingRating}
-							onRatingUpdate={handleRatingUpdate}
-						/>
-					)}
+					<RatingComponent
+						appointmentId={appointmentId}
+						doctorId={appointment.doctorId?._id || appointment.doctorId}
+						clinicId={appointment.clinicId?._id || appointment.clinicId}
+						existingRating={existingRating}
+						onRatingUpdate={handleRatingUpdate}
+					/>
 				</div>
 			)}
 		</div>

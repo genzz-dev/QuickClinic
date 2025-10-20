@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { getClinicDoctors, getClinicInfo } from "../../service/adminApiService";
+import { getClinicInfo } from "../../service/adminApiService";
 import {
 	getClinicRatings,
 	getDoctorRatings,

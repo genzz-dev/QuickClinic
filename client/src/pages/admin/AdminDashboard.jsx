@@ -1,11 +1,7 @@
 import {
-	ArrowRightIcon,
 	BuildingOfficeIcon,
 	CheckCircleIcon,
-	ExclamationTriangleIcon,
 	PencilSquareIcon,
-	PlusCircleIcon,
-	ShieldExclamationIcon,
 	UserGroupIcon,
 } from "@heroicons/react/24/outline";
 import { useEffect, useState } from "react";
@@ -35,7 +31,6 @@ const AdminDashboard = () => {
 
 	const [showVerificationModal, setShowVerificationModal] = useState(false);
 	const [verificationCode, setVerificationCode] = useState("");
-	const [sendingOTP, setSendingOTP] = useState(false);
 	const [verifyingOTP, setVerifyingOTP] = useState(false);
 
 	useEffect(() => {
@@ -93,17 +88,17 @@ const AdminDashboard = () => {
 	};
 
 	const handleSendVerificationOTP = async () => {
-		setSendingOTP(true);
+		
 		try {
 			await sendVerificationOTP();
 			toast.success("Verification code sent to your clinic's phone number!");
 			setShowVerificationModal(true);
 		} catch (err) {
 			toast.error(
-				err.response?.data?.message || "Failed to send verification code.",
+				err.response?.data?.message || `Failed to send verification code ${err}`,
 			);
 		} finally {
-			setSendingOTP(false);
+			
 		}
 	};
 

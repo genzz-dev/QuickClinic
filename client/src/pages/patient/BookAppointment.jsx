@@ -13,7 +13,6 @@ import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { bookAppointment } from "../../service/appointmentApiService";
 import {
-	checkDoctorAvailability,
 	getDoctorAvailability,
 	getDoctorById,
 	getDoctorSchedule,

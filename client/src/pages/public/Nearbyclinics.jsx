@@ -10,11 +10,9 @@ import Loading from "../../components/ui/Loading";
 import { getClinicDoctors, searchClinics } from "../../service/publicapi";
 
 const NearbyClinicsPage = () => {
-	const [initialFiltersLoaded, setInitialFiltersLoaded] = useState(false);
 	const [clinics, setClinics] = useState([]);
 	const [loading, setLoading] = useState(true);
 	const [locationError, setLocationError] = useState(null);
-	const [userLocation, setUserLocation] = useState(null);
 	const [hoveredClinic, setHoveredClinic] = useState(null);
 	const [clinicDoctors, setClinicDoctors] = useState({});
 	const [filteredClinics, setFilteredClinics] = useState([]);
@@ -98,11 +96,10 @@ const NearbyClinicsPage = () => {
 					navigator.geolocation.getCurrentPosition(
 						async (position) => {
 							const { latitude, longitude } = position.coords;
-							setUserLocation({ lat: latitude, lng: longitude });
 							await fetchNearbyClinics(latitude, longitude);
 						},
 						async (error) => {
-							console.log("Geolocation denied, falling back to IP location");
+							console.log(`Geolocation denied, falling back to IP location ${error}`);
 							await getLocationFromIP();
 						},
 					);
@@ -110,7 +107,7 @@ const NearbyClinicsPage = () => {
 					await getLocationFromIP();
 				}
 			} catch (error) {
-				setLocationError("Unable to get location");
+				setLocationError(`Unable to get location ${error}`);
 				setLoading(false);
 			}
 		};
@@ -226,12 +223,6 @@ const NearbyClinicsPage = () => {
 		try {
 			const response = await fetch("https://ipapi.co/json/");
 			const data = await response.json();
-			setUserLocation({
-				lat: data.latitude,
-				lng: data.longitude,
-				city: data.city,
-				region: data.region,
-			});
 			await fetchNearbyClinics(
 				data.latitude,
 				data.longitude,
@@ -300,7 +291,7 @@ const NearbyClinicsPage = () => {
 				}));
 
 				setClinics(clinicsWithBasicDoctorInfo);
-				setInitialFiltersLoaded(true);
+				
 			}
 		} catch (error) {
 			console.error("Error fetching clinics:", error);

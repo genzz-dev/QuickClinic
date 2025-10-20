@@ -80,7 +80,6 @@ const AdminAppointmentDetails = () => {
 
 	useEffect(() => {
 		fetchAppointment();
-		// eslint-disable-next-line
 	}, [appointmentId]);
 
 	const fetchAppointment = async () => {
@@ -90,6 +89,7 @@ const AdminAppointmentDetails = () => {
 			setAppointment(res.appointment);
 		} catch (err) {
 			setAppointment(null);
+			console.log(err);
 		} finally {
 			setLoading(false);
 		}
@@ -102,7 +102,8 @@ const AdminAppointmentDetails = () => {
 			await updateAppointmentStatus(appointmentId, { status: newStatus });
 			setAppointment((prev) => ({ ...prev, status: newStatus }));
 		} catch (err) {
-			alert("Failed to update status");
+			alert("Failed to update status",err);
+
 		}
 		setUpdatingStatus(false);
 	};
@@ -114,7 +115,7 @@ const AdminAppointmentDetails = () => {
 			await cancelAppointment(appointmentId);
 			setAppointment((prev) => ({ ...prev, status: "cancelled" }));
 		} catch (err) {
-			alert("Failed to cancel appointment");
+			alert("Failed to cancel appointment",err);
 		}
 		setCanceling(false);
 	};

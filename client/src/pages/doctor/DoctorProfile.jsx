@@ -149,7 +149,7 @@ const DoctorProfilePage = () => {
 				setSuccess("Successfully left the clinic");
 				setTimeout(() => setSuccess(""), 3000);
 			} catch (error) {
-				setError("Failed to leave clinic");
+				setError(`Failed to leave clinic${error}`);
 			}
 		}
 	};

@@ -118,13 +118,14 @@ const PatientCompleteProfile = () => {
 		try {
 			setLoading(true);
 			const response = await createPatientProfile(profileData, profilePicture);
-
+			if(response){
 			setSuccessMessage("Patient profile created successfully!");
 			setHasProfile(true);
 			setCurrentStep(2);
 			clearErrors();
 
 			setTimeout(() => setSuccessMessage(""), 3000);
+			}
 			return true;
 		} catch (error) {
 			handleApiError(error, "Failed to create patient profile");
@@ -140,7 +141,7 @@ const PatientCompleteProfile = () => {
 		try {
 			setLoading(true);
 			const response = await uploadHealthRecord(healthRecord, healthFile);
-
+			if(response){
 			setSuccessMessage("Health record uploaded successfully!");
 			resetHealthRecordForm();
 			clearErrors();
@@ -149,8 +150,9 @@ const PatientCompleteProfile = () => {
 				setSuccessMessage("");
 				navigate("/patient/dashboard");
 			}, 2000);
-
+		}
 			return true;
+
 		} catch (error) {
 			handleApiError(error, "Failed to upload health record");
 			return false;
@@ -359,14 +361,6 @@ const PatientCompleteProfile = () => {
 		setFilePreview("");
 	};
 
-	const goToNextStep = () => {
-		setCurrentStep(2);
-	};
-
-	const goToPreviousStep = () => {
-		if (hasProfile) return; // Don't allow going back if profile exists
-		setCurrentStep(1);
-	};
 
 	// Render Methods
 	const renderStepIndicator = () => (

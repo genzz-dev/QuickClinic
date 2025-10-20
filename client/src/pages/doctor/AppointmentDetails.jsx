@@ -72,6 +72,7 @@ const AppointmentDetails = () => {
 			} catch (err) {
 				// No prescription exists yet
 				setPrescription(null);
+				console.log(err);
 			}
 
 			setError(null);
@@ -125,27 +126,6 @@ const AppointmentDetails = () => {
 		}
 
 		return age;
-	};
-
-	const formatAddress = (address) => {
-		if (!address) return "";
-
-		if (typeof address === "string") {
-			return address;
-		}
-
-		if (typeof address === "object") {
-			const parts = [];
-			if (address.formattedAddress) parts.push(address.formattedAddress);
-			if (address.city) parts.push(address.city);
-			if (address.state) parts.push(address.state);
-			if (address.zipCode) parts.push(address.zipCode);
-			if (address.country) parts.push(address.country);
-
-			return parts.filter(Boolean).join(", ");
-		}
-
-		return "";
 	};
 
 	const StatusBadge = ({ status }) => {

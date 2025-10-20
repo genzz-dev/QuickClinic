@@ -100,7 +100,7 @@ export const AuthProvider = ({ children }) => {
 				return { success: false, error: result.error };
 			}
 		} catch (error) {
-			return { success: false, error: "Registration failed" };
+			return { success: false, error: `Registration failed ${error}` };
 		} finally {
 			setIsLoading(false);
 		}
@@ -117,6 +117,7 @@ export const AuthProvider = ({ children }) => {
 			// Even if logout fails, clear local state
 			setUser(null);
 			setIsAuthenticated(false);
+			console.log(error);
 			return { success: false, error: "Logout failed" };
 		} finally {
 			setIsLoading(false);

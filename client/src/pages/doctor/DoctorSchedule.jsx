@@ -4,7 +4,6 @@ import { getDoctorSchedule } from "../../service/doctorApiService";
 
 const DoctorSchedule = () => {
 	const [schedule, setSchedule] = useState(null);
-	const [doctorInfo, setDoctorInfo] = useState(null);
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState("");
 
@@ -38,7 +37,6 @@ const DoctorSchedule = () => {
 
 			if (response.hasSchedule) {
 				setSchedule(response.schedule);
-				setDoctorInfo(response.doctorInfo);
 				console.log(response);
 			} else {
 				setError("No schedule found");

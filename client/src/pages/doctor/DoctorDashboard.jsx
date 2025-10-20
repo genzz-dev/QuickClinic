@@ -24,14 +24,6 @@ const DoctorDashboard = () => {
 		return parseFloat(value) || 0;
 	};
 
-	// Helper function to safely get string values
-	const getStringValue = (value) => {
-		if (!value) return "";
-		if (typeof value === "object" && value.$numberDecimal) {
-			return value.$numberDecimal;
-		}
-		return String(value);
-	};
 	const handleRatingClick = () => {
 		navigate(`/doctor/ratings/${doctor._id}`);
 	};
@@ -279,7 +271,7 @@ const DoctorDashboard = () => {
 
 							<div className="space-y-3">
 								{todayAppointments.length > 0 ? (
-									todayAppointments.map((appointment, index) => (
+									todayAppointments.map((appointment) => (
 										<div
 											key={appointment._id}
 											onClick={() => handleAppointmentClick(appointment._id)}
