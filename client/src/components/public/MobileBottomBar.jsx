@@ -1,27 +1,13 @@
-import { useState } from "react";
 import {
-	FiAtSign,
 	FiLogIn,
 	FiMapPin,
-	FiMenu,
 	FiSearch,
 	FiUser,
-	FiX,
 } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
 
 const MobileNavigation = () => {
 	const navigate = useNavigate();
-	const [isMenuOpen, setIsMenuOpen] = useState(false);
-	const [searchQuery, setSearchQuery] = useState("");
-
-	const handleSearch = (e) => {
-		e.preventDefault();
-		navigate(`/search?q=${encodeURIComponent(searchQuery)}`);
-	};
-
-	const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
-
 	return (
 		<div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50">
 			{/* Bottom Navigation */}

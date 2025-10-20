@@ -47,6 +47,8 @@ function AppInner() {
 
 	// Conditional rendering with better route handling
 	const renderRoutes = () => {
+		console.log('Auth state:', { isAuthenticated, isLoading, user, pathname: location.pathname });
+
 		// For authenticated users
 		if (isAuthenticated && user) {
 			switch (user.role) {
