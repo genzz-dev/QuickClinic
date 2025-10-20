@@ -82,15 +82,7 @@ export const leaveCurrentClinic = async () => {
 	return await apiService.post("/doctors/leave-clinic");
 };
 
-/**
- * Verify Doctor Credentials with NMS
- * @param {Object} verificationData - {registrationNumber, registrationYear, stateCouncil}
- */
-export const verifyDoctorCredentials = async (verificationData) => {
-	return await apiService.post("/doctors/verify", verificationData, {
-		headers: { "Content-Type": "application/json" },
-	});
-};
+
 export const checkDoctorProfileStatus = async () => {
 	return await apiService.get("/doctors/profile-status");
 };
@@ -117,7 +109,6 @@ export default {
 	getDoctorProfile,
 	getDoctorsByClinic,
 	leaveCurrentClinic,
-	verifyDoctorCredentials,
 	checkDoctorProfileStatus,
 	checkDoctorClinicStatus,
 	getDoctorSchedule,

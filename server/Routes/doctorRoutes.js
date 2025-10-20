@@ -9,7 +9,7 @@ import {
 	getDoctorsByClinic,
 	leaveCurrentClinic,
 	updateDoctorProfile,
-	verifyDoctorCredentials,
+	
 } from "../Controllers/doctorController.js";
 import { authenticate, authorize } from "../Middleware/authMiddleware.js";
 import upload from "../Middleware/upload.js";
@@ -29,7 +29,6 @@ router.post(
 	authorize("doctor"),
 	leaveCurrentClinic,
 );
-router.post("/verify", verifyDoctorCredentials);
 router.get("/clinic-status", checkClinicStatus);
 router.get("/profile-status", checkProfileStatus);
 router.get("/clinic", getDoctorClinicInfo);

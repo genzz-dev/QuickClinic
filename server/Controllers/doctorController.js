@@ -1,7 +1,6 @@
 import mongoose from "mongoose";
 import Clinic from "../models/Clinic/Clinic.js";
 import Doctor from "../models/Users/Doctor.js";
-import { checkDoctorName } from "../services/nmsService.js";
 import { uploadToCloudinary } from "../services/uploadService.js";
 
 // Create a doctor profile
@@ -265,80 +264,7 @@ export const leaveCurrentClinic = async (req, res) => {
 		});
 	}
 };
-// Verify doctor credentials with NMS
-export const verifyDoctorCredentials = async (req, res) => {
-	try {
-		const { profileId } = req.user;
-		const { registrationNumber, registrationYear, stateCouncil } = req.body;
 
-		// Validate input
-		if (!registrationNumber || !registrationYear || !stateCouncil) {
-			return res.status(400).json({
-				message: "Registration number, year, and state council are required",
-				errors: {
-					registrationNumber: !registrationNumber
-						? "Registration number is required"
-						: undefined,
-					registrationYear: !registrationYear
-						? "Registration year is required"
-						: undefined,
-					stateCouncil: !stateCouncil ? "State council is required" : undefined,
-				},
-			});
-		}
-
-		// Get doctor's current name
-		const doctor = await Doctor.findById(profileId);
-		if (!doctor) {
-			return res.status(404).json({ message: "Doctor profile not found" });
-		}
-
-		// Call NMS service
-		const inputName = `${doctor.firstName} ${doctor.lastName}`;
-		const verificationResult = await checkDoctorName(
-			inputName,
-			registrationNumber,
-			registrationYear,
-			stateCouncil,
-		);
-
-		if (!verificationResult.match) {
-			return res.status(400).json({
-				message: "Verification failed",
-				details: {
-					inputName,
-					fetchedName: verificationResult.fetchedName,
-					suggestion:
-						"Names do not match. Please check your registration details.",
-				},
-			});
-		}
-
-		// Update doctor's verification status
-		doctor.isVerified = true;
-		doctor.verificationData = {
-			registrationNumber,
-			registrationYear,
-			stateCouncil,
-			verifiedName: verificationResult.fetchedName,
-			verificationDate: new Date(),
-		};
-
-		await doctor.save();
-
-		res.json({
-			message: "Doctor verified successfully",
-			doctor: doctor.toObject({ getters: true }),
-			verificationDetails: verificationResult.doctorInfo,
-		});
-	} catch (error) {
-		console.error("Error verifying doctor:", error);
-		res.status(500).json({
-			message: "Failed to verify doctor",
-			error: process.env.NODE_ENV === "development" ? error.message : undefined,
-		});
-	}
-};
 // Check doctor profile completion status
 export const checkProfileStatus = async (req, res) => {
 	try {
