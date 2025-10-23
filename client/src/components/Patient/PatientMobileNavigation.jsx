@@ -54,41 +54,7 @@ const PatientMobileNavigation = () => {
 
   return (
     <>
-      {/* Mobile Top Header */}
-      <div className="sticky top-0 z-50 bg-white shadow-sm border-b border-gray-200 md:hidden">
-        <div className="flex items-center justify-between px-4 py-3">
-          {/* Logo */}
-          <div onClick={() => navigate('/')} className="flex items-center cursor-pointer">
-            <div className="w-7 h-7 bg-blue-600 rounded-lg flex items-center justify-center mr-2">
-              <span className="text-white font-bold text-xs">QC</span>
-            </div>
-            <span className="text-lg font-bold text-gray-900">QuickClinic</span>
-          </div>
-
-          {/* Menu Button */}
-          <button
-            onClick={toggleMenu}
-            className="p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors"
-          >
-            <FiMenu className="w-6 h-6" />
-          </button>
-        </div>
-
-        {/* Search Bar */}
-        <div className="px-4 pb-3">
-          <form onSubmit={handleSearch} className="relative">
-            <input
-              type="text"
-              placeholder="Search doctors, clinics, specialties..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-            />
-            <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-          </form>
-        </div>
-      </div>
-
+      
       {/* Mobile Bottom Navigation */}
       <div className="fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-gray-200 md:hidden">
         <div className="flex items-center justify-around py-2">
@@ -169,9 +135,6 @@ const PatientMobileNavigation = () => {
           </div>
         </div>
       )}
-
-      {/* Bottom padding for content to avoid bottom nav overlap */}
-      <div className="h-20 md:hidden"></div>
     </>
   );
 };
