@@ -1,6 +1,4 @@
 import { Route, Routes } from 'react-router-dom';
-import PatientDesktopNavbar from '../components/Patient/PatientDesktopNavbar';
-import PatientMobileNavigation from '../components/Patient/PatientMobileNavigation';
 import SearchResultsPage from '../components/public/SearchResultsPage';
 import NotFoundPage from '../components/ui/NotFoundPage';
 import AppointmentDetails from '../pages/patient/AppointmentDetails';
@@ -16,9 +14,11 @@ import NearbyClinicsPage from '../pages/public/Nearbyclinics';
 import PatientPreventGuard from './guards/PatientPreventGuard';
 import PatientSetupGuard from './guards/PatientSetupGuard';
 import ProtectedRoute from './guards/protectedRoutes';
+import PatientNavbar from '../components/Patient/PatientNavbar';
 export default function PatientRoutes() {
   return (
     <>
+      <PatientNavbar />
       {/* Patient Dashboard - Requires patient profile */}
       <Routes>
         <Route
@@ -26,9 +26,7 @@ export default function PatientRoutes() {
           element={
             <ProtectedRoute role="patient">
               <PatientSetupGuard requireProfile={true}>
-                <PatientDesktopNavbar />
                 <PatientDashboard />
-                <PatientMobileNavigation />
               </PatientSetupGuard>
             </ProtectedRoute>
           }
@@ -38,9 +36,7 @@ export default function PatientRoutes() {
           element={
             <ProtectedRoute role="patient">
               <PatientSetupGuard requireProfile={true}>
-                <PatientDesktopNavbar />
                 <NearbyClinicsPage />
-                <PatientMobileNavigation />
               </PatientSetupGuard>
             </ProtectedRoute>
           }
@@ -50,9 +46,7 @@ export default function PatientRoutes() {
           element={
             <ProtectedRoute role="patient">
               <PatientSetupGuard requireProfile={true}>
-                <PatientDesktopNavbar />
                 <AppointmentDetails />
-                <PatientMobileNavigation />
               </PatientSetupGuard>
             </ProtectedRoute>
           }
@@ -62,9 +56,7 @@ export default function PatientRoutes() {
           element={
             <ProtectedRoute role="patient">
               <PatientSetupGuard requireProfile={true}>
-                <PatientDesktopNavbar />
                 <BookAppointment />
-                <PatientMobileNavigation />
               </PatientSetupGuard>
             </ProtectedRoute>
           }
@@ -74,9 +66,7 @@ export default function PatientRoutes() {
           element={
             <ProtectedRoute role="patient">
               <PatientSetupGuard requireProfile={true}>
-                <PatientDesktopNavbar />
                 <PatientAppointments />
-                <PatientMobileNavigation />
               </PatientSetupGuard>
             </ProtectedRoute>
           }
@@ -86,9 +76,7 @@ export default function PatientRoutes() {
           element={
             <ProtectedRoute role="patient">
               <PatientSetupGuard requireProfile={true}>
-                <PatientDesktopNavbar />
                 <SearchResultsPage />
-                <PatientMobileNavigation />
               </PatientSetupGuard>
             </ProtectedRoute>
           }
@@ -98,9 +86,7 @@ export default function PatientRoutes() {
           element={
             <ProtectedRoute role="patient">
               <PatientSetupGuard requireProfile={true}>
-                <PatientDesktopNavbar />
                 <PatientProfilePage />
-                <PatientMobileNavigation />
               </PatientSetupGuard>
             </ProtectedRoute>
           }
@@ -110,9 +96,7 @@ export default function PatientRoutes() {
           element={
             <ProtectedRoute role="patient">
               <PatientSetupGuard requireProfile={true}>
-                <PatientDesktopNavbar />
                 <ClinicDetailPage />
-                <PatientMobileNavigation />
               </PatientSetupGuard>
             </ProtectedRoute>
           }
@@ -122,9 +106,7 @@ export default function PatientRoutes() {
           element={
             <ProtectedRoute role="patient">
               <PatientSetupGuard requireProfile={true}>
-                <PatientDesktopNavbar />
                 <DoctorDetailsPage />
-                <PatientMobileNavigation />
               </PatientSetupGuard>
             </ProtectedRoute>
           }
@@ -134,9 +116,7 @@ export default function PatientRoutes() {
           element={
             <ProtectedRoute role="patient">
               <PatientSetupGuard requireProfile={true}>
-                <PatientDesktopNavbar />
                 <Doctors />
-                <PatientMobileNavigation />
               </PatientSetupGuard>
             </ProtectedRoute>
           }

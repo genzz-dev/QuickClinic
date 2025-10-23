@@ -15,5 +15,8 @@
     "lint": "eslint . --ext .js,.jsx",
     "lint:fix": "eslint . --ext .js,.jsx --fix",
     "format": "prettier --write './**/*.{js,jsx,ts,tsx,css,md,json}'"
+  },
+  "dependencies": {
+    "framer-motion": "^12.23.24"
   }
 }
