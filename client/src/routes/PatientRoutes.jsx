@@ -19,6 +19,7 @@ export default function PatientRoutes() {
   return (
     <>
       <PatientNavbar />
+      <div className='pb-20 md:pb-0'>
       {/* Patient Dashboard - Requires patient profile */}
       <Routes>
         <Route
@@ -136,6 +137,7 @@ export default function PatientRoutes() {
         {/* Catch all - 404 */}
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
+      </div>
     </>
   );
 }
