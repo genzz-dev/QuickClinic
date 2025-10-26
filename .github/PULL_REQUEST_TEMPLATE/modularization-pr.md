@@ -1,7 +1,7 @@
 ---
 name: 🔧 Component Modularization PR
 about: Pull request for refactoring UI into smaller components
-title: "[MODULARIZE]"
+title: '[MODULARIZE]'
 labels: enhancement, refactoring, UI
 ---
 
@@ -11,20 +11,24 @@ Closes #<!-- issue number -->
 
 ## File Modularized
 
-**Original File Path:** 
+**Original File Path:**
+
 <!-- e.g., src/pages/Admin/Dashboard.jsx -->
 
-**Original File Size:** 
+**Original File Size:**
+
 <!-- Lines of code before modularization -->
 
 ## New Component Structure
 
 **Components Created:**
+
 <!-- List all new components with their paths -->
+
 1. `<!-- path/ComponentName.jsx -->` - <!-- brief description -->
-2. 
-3. 
+2.
+3.
 
-**Component Location:** 
+**Component Location:**
+
 <!-- e.g., src/components/Admin/Dashboard/ -->
-

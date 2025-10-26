@@ -21,9 +21,7 @@ const Medications = ({ medications }) => {
                 <td className="p-1.5 sm:p-3 font-medium text-gray-900 text-[10px] sm:text-sm">
                   {med.name}
                 </td>
-                <td className="p-1.5 sm:p-3 text-gray-600 text-[10px] sm:text-sm">
-                  {med.dosage}
-                </td>
+                <td className="p-1.5 sm:p-3 text-gray-600 text-[10px] sm:text-sm">{med.dosage}</td>
                 <td className="p-1.5 sm:p-3 text-gray-600 text-[10px] sm:text-sm">
                   {med.frequency}
                 </td>

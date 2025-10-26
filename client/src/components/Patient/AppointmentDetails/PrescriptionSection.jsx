@@ -32,7 +32,7 @@ const PrescriptionSection = ({ prescription, appointment }) => {
             Medical Prescription
           </h2>
         </div>
-        <button 
+        <button
           onClick={handleDownloadPDF}
           disabled={downloadLoading}
           className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 sm:py-2 bg-white text-indigo-600 border-0 rounded-md text-xs sm:text-sm font-medium cursor-pointer hover:-translate-y-0.5 hover:shadow-lg transition-all disabled:opacity-60 disabled:cursor-not-allowed"
@@ -55,7 +55,9 @@ const PrescriptionSection = ({ prescription, appointment }) => {
 
           {/* Doctor Signature */}
           <div className="mt-6 sm:mt-8 pt-3 sm:pt-4 border-t border-gray-200 text-right">
-            <p className='text-sm text-gray-500 m-0'>Dr. {appointment.doctorId.firstName}{" "}{appointment.doctorId.lastName}</p>
+            <p className="text-sm text-gray-500 m-0">
+              Dr. {appointment.doctorId.firstName} {appointment.doctorId.lastName}
+            </p>
             <div className="w-32 sm:w-40 h-px bg-gray-700 ml-auto mb-1"></div>
             <p className="text-xs text-gray-500 m-0">Doctor's Signature</p>
           </div>
