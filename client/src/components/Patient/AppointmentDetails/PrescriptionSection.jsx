@@ -55,10 +55,9 @@ const PrescriptionSection = ({ prescription, appointment }) => {
 
           {/* Doctor Signature */}
           <div className="mt-6 sm:mt-8 pt-3 sm:pt-4 border-t border-gray-200 text-right">
-            <p className='text-ls text-gray-500 m-0'>Dr.{appointment.doctorId.firstName}{appointment.doctorId.lastName}</p>
+            <p className='text-sm text-gray-500 m-0'>Dr. {appointment.doctorId.firstName}{" "}{appointment.doctorId.lastName}</p>
             <div className="w-32 sm:w-40 h-px bg-gray-700 ml-auto mb-1"></div>
             <p className="text-xs text-gray-500 m-0">Doctor's Signature</p>
-            {console.log(appointment)}
           </div>
         </div>
       </div>
