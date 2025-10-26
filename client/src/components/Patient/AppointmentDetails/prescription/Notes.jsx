@@ -3,8 +3,10 @@ const Notes = ({ notes }) => {
 
   return (
     <div className="mb-4">
-      <h3 className="font-medium text-gray-900 mb-2">Additional Notes</h3>
-      <p className="text-gray-600 bg-yellow-50 p-3 rounded-md">{notes}</p>
+      <h3 className="font-medium text-gray-900 mb-2 text-sm sm:text-base">Additional Notes</h3>
+      <p className="text-gray-600 bg-yellow-50 p-2 sm:p-3 rounded-md text-xs sm:text-sm">
+        {notes}
+      </p>
     </div>
   );
 };
