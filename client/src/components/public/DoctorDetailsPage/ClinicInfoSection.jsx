@@ -1,7 +1,17 @@
 import { Building, CheckCircle, ChevronRight, Mail, MapPin, Phone, XCircle } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
-const ClinicInfoSection = ({ clinic, handleClinicClick }) =>
-  clinic && (
+const ClinicInfoSection = ({ clinic }) => {
+  const navigate = useNavigate(); // Move hook to component top level
+
+  const handleClinicClick = (clinic) => {
+    console.log('hey');
+    if (clinic?._id) {
+      navigate(`/clinic/${clinic._id}`);
+    }
+  };
+
+  return clinic ? (
     <div className="bg-white rounded-lg shadow-lg p-6">
       <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
         <Building className="w-5 h-5 text-indigo-600" />
@@ -10,7 +20,15 @@ const ClinicInfoSection = ({ clinic, handleClinicClick }) =>
 
       <div
         className="cursor-pointer group border border-gray-200 rounded-lg p-4 hover:border-blue-300 hover:bg-blue-50 transition-all duration-200"
-        onClick={handleClinicClick}
+        onClick={() => handleClinicClick(clinic)}
+        role="button"
+        tabIndex={0}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            handleClinicClick(clinic);
+          }
+        }}
       >
         <div className="flex items-start justify-between">
           <div className="flex-1">
@@ -18,7 +36,7 @@ const ClinicInfoSection = ({ clinic, handleClinicClick }) =>
               <h3 className="font-semibold text-gray-900 group-hover:text-blue-700">
                 {clinic.name}
               </h3>
-              {console.log(clinic)}
+
               {/* Verification Badge */}
               <div
                 className={`flex items-center gap-1 text-sm px-2 py-1 rounded-full ${clinic.isVerified ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}
@@ -89,6 +107,7 @@ const ClinicInfoSection = ({ clinic, handleClinicClick }) =>
         </div>
       </div>
     </div>
-  );
+  ) : null;
+};
 
 export default ClinicInfoSection;
