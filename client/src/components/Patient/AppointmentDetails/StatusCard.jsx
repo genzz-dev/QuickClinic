@@ -41,7 +41,9 @@ const StatusCard = ({ appointment }) => {
               </h3>
             </div>
           </div>
-          <div className={`px-3 py-1.5 rounded-lg border font-medium text-xs whitespace-nowrap ${getStatusColor(appointment.status)}`}>
+          <div
+            className={`px-3 py-1.5 rounded-lg border font-medium text-xs whitespace-nowrap ${getStatusColor(appointment.status)}`}
+          >
             {getStatusText(appointment.status)}
           </div>
         </div>
@@ -119,9 +121,7 @@ const StatusCard = ({ appointment }) => {
                 <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wide mb-0.5">
                   Reason
                 </p>
-                <p className="text-sm font-medium text-gray-900 truncate">
-                  {appointment.reason}
-                </p>
+                <p className="text-sm font-medium text-gray-900 truncate">{appointment.reason}</p>
               </div>
             </div>
           </div>

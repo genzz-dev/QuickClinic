@@ -78,7 +78,7 @@ const DoctorDetailsPage = () => {
   }, [doctorId]);
 
   const handleClinicClick = () => {
-    console.log("hey");
+    console.log('hey');
     if (clinic?._id) {
       navigate(`/clinic/${clinic._id}`);
     }

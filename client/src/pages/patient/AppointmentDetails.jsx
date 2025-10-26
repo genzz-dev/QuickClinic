@@ -30,7 +30,7 @@ const AppointmentDetails = () => {
     try {
       setLoading(true);
       setError(null);
-      
+
       const appointmentResponse = await getAppointmentDetails(appointmentId);
       setAppointment(appointmentResponse.appointment || appointmentResponse.data);
 

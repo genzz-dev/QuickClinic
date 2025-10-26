@@ -5,7 +5,7 @@ const ClinicInfoSection = ({ clinic }) => {
   const navigate = useNavigate(); // Move hook to component top level
 
   const handleClinicClick = (clinic) => {
-    console.log("hey");
+    console.log('hey');
     if (clinic?._id) {
       navigate(`/clinic/${clinic._id}`);
     }

@@ -14,7 +14,7 @@ const Header = ({ navigate }) => {
           {/* Left: Back Button */}
           <motion.button
             whileTap={{ scale: 0.95 }}
-            onClick={() => navigate('/appointments')}
+            onClick={() => navigate('/patient/appointments')}
             className="flex items-center space-x-2 text-gray-700 font-medium transition-colors group"
           >
             <div className="bg-gray-100 rounded-lg p-2 transition-colors group-hover:bg-gray-200">
@@ -27,9 +27,7 @@ const Header = ({ navigate }) => {
           <div className="flex-1 flex justify-center px-4">
             <div className="flex items-center space-x-3">
               {/* Mobile title */}
-              <h1 className="text-base font-semibold text-gray-900 sm:hidden">
-                Appointment
-              </h1>
+              <h1 className="text-base font-semibold text-gray-900 sm:hidden">Appointment</h1>
             </div>
           </div>
 

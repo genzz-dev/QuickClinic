@@ -9,9 +9,7 @@ const Tests = ({ tests }) => {
           <li key={index} className="bg-green-50 p-3 rounded-md">
             <span className="font-medium text-green-800">{test.name}</span>
             {test.instructions && (
-              <p className="text-green-600 text-sm mt-1">
-                Instructions: {test.instructions}
-              </p>
+              <p className="text-green-600 text-sm mt-1">Instructions: {test.instructions}</p>
             )}
           </li>
         ))}

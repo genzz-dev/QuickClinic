@@ -29,9 +29,7 @@ const AppointmentDetailsLayout = ({
             <button
               onClick={() => setActiveTab('details')}
               className={`flex items-center space-x-2 px-6 py-4 font-medium text-sm transition-colors relative ${
-                activeTab === 'details'
-                  ? 'text-blue-600'
-                  : 'text-gray-500'
+                activeTab === 'details' ? 'text-blue-600' : 'text-gray-500'
               }`}
             >
               <Stethoscope className="w-4 h-4" />
@@ -53,9 +51,7 @@ const AppointmentDetailsLayout = ({
             <button
               onClick={() => setActiveTab('prescription')}
               className={`flex items-center space-x-2 px-6 py-4 font-medium text-sm transition-colors relative ${
-                activeTab === 'prescription'
-                  ? 'text-blue-600'
-                  : 'text-gray-500'
+                activeTab === 'prescription' ? 'text-blue-600' : 'text-gray-500'
               }`}
             >
               <FileText className="w-4 h-4" />
@@ -90,22 +86,28 @@ const AppointmentDetailsLayout = ({
             >
               {/* Appointment Details Section */}
               <StatusCard appointment={appointment} />
-              
+
               {/* Doctor & Clinic Info Section */}
-              <DoctorClinicInfo appointment={appointment} />
-              
-              {/* Rating Component */}
+              <DoctorClinicInfo appointment={appointment} navigate={navigate} />
+
+              {/* Rating Component - Fixed Container */}
               {appointment.status === 'completed' && (
-                <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
-                  <h3 className="text-gray-900 font-semibold text-lg mb-4">
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: 0.2 }}
+                  className="bg-white rounded-2xl shadow-sm border border-gray-200 p-4 sm:p-6"
+                >
+                  <h3 className="text-gray-900 font-semibold text-base sm:text-lg mb-4">
                     Rate Your Experience
                   </h3>
                   <RatingComponent
                     appointmentId={appointmentId}
-                    existingRating={existingRating}
+                    doctorId={appointment.doctorId?._id}
+                    clinicId={appointment.clinicId?._id}
                     onRatingUpdate={onRatingUpdate}
                   />
-                </div>
+                </motion.div>
               )}
             </motion.div>
           ) : (
@@ -118,10 +120,7 @@ const AppointmentDetailsLayout = ({
             >
               {/* Prescription Section */}
               {prescription ? (
-                <PrescriptionSection
-                  prescription={prescription}
-                  appointment={appointment}
-                />
+                <PrescriptionSection prescription={prescription} appointment={appointment} />
               ) : (
                 <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-12 text-center">
                   <FileText className="w-16 h-16 text-gray-300 mx-auto mb-4" />
