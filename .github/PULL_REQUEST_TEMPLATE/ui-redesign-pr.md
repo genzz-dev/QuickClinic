@@ -29,9 +29,7 @@ Closes #<!-- issue number -->
 <!-- List all components that were changed -->
 
 -
--
-
-**New Components Created:**
+- **New Components Created:**
 
 <!-- List new components added -->
 
