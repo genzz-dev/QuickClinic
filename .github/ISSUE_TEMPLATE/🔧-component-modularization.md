@@ -7,4 +7,12 @@ assignees: ''
 
 ---
 
+## File to be Modularized
 
+**File Path:** 
+<!-- e.g., src/pages/Admin/Dashboard.jsx -->
+
+## Proposed Component Location
+
+**Target Directory:** 
+<!-- e.g., src/components/Admin/Dashboard/ -->
