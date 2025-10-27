@@ -2,7 +2,7 @@ import { AlertCircle, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { bookAppointment } from '../../service/appointmentApiService';
-import { getDoctorAvailability, getDoctorById, getDoctorSchedule } from '../../service/publicapi'
+import { getDoctorAvailability, getDoctorById, getDoctorSchedule } from '../../service/publicapi';
 import DoctorInfoCard from '../../components/Patient/BookAppointment/DoctorInfoCard';
 import BookingForm from '../../components/Patient/BookAppointment/BookingForm';
 
@@ -167,10 +167,7 @@ const BookAppointment = () => {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Doctor Information */}
-          <DoctorInfoCard 
-            doctor={doctor} 
-            schedule={schedule} 
-          />
+          <DoctorInfoCard doctor={doctor} schedule={schedule} />
 
           {/* Booking Form */}
           <BookingForm

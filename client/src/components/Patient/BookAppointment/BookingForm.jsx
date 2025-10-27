@@ -19,7 +19,7 @@ const BookingForm = ({
   success,
   dateAvailability,
   doctor,
-  onBooking
+  onBooking,
 }) => {
   return (
     <div className="lg:col-span-2">
