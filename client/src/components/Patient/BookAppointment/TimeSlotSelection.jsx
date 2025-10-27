@@ -8,7 +8,7 @@ const TimeSlotSelection = ({ availableSlots, selectedSlot, setSelectedSlot }) =>
         Available Time Slots
       </label>
       <div className="grid grid-cols-4 sm:grid-cols-6 gap-3">
-        {availableSlots.map((slot) => (
+        {availableSlots?.map((slot) => (
           <button
             key={slot}
             type="button"

@@ -80,7 +80,7 @@ const BookingForm = ({
           </div>
 
           {/* Teleconsultation Option */}
-          {doctor.availableForTeleconsultation && (
+          {doctor?.availableForTeleconsultation && (
             <div className="flex items-center">
               <input
                 id="teleconsultation"
@@ -101,7 +101,7 @@ const BookingForm = ({
               selectedDate={selectedDate}
               selectedSlot={selectedSlot}
               isTeleconsultation={isTeleconsultation}
-              consultationFee={doctor.consultationFee}
+              consultationFee={doctor?.consultationFee}
             />
           )}
 
