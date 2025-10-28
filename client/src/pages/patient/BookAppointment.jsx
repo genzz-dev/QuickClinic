@@ -1,16 +1,16 @@
 import { AlertCircle, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import { bookAppointment } from '../../service/appointmentApiService';
 import { getDoctorAvailability, getDoctorById, getDoctorSchedule } from '../../service/publicapi';
 import DoctorInfoCard from '../../components/Patient/BookAppointment/DoctorInfoCard';
 import BookingForm from '../../components/Patient/BookAppointment/BookingForm';
+import Loading from '../../components/ui/Loading';
 
 const BookAppointment = () => {
   const { doctorId } = useParams();
   const navigate = useNavigate();
-
-  // State management
   const [doctor, setDoctor] = useState(null);
   const [schedule, setSchedule] = useState(null);
   const [selectedDate, setSelectedDate] = useState('');
@@ -22,8 +22,8 @@ const BookAppointment = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [dateAvailability, setDateAvailability] = useState(null);
+  const [currentStep, setCurrentStep] = useState(1);
 
-  // Fetch doctor details and schedule on component mount
   useEffect(() => {
     const fetchDoctorData = async () => {
       try {
@@ -53,12 +53,12 @@ const BookAppointment = () => {
     }
   }, [doctorId]);
 
-  // Check availability when date is selected
   useEffect(() => {
     const checkDateAvailability = async () => {
       if (selectedDate && doctor) {
         try {
           const response = await getDoctorAvailability(doctorId, selectedDate);
+
           if (response.success) {
             setDateAvailability(response.data);
             if (response.data.available) {
@@ -81,7 +81,6 @@ const BookAppointment = () => {
     checkDateAvailability();
   }, [selectedDate, doctorId, doctor]);
 
-  // Handle appointment booking
   const handleBooking = async (e) => {
     e.preventDefault();
 
@@ -94,12 +93,10 @@ const BookAppointment = () => {
       setLoading(true);
       setError('');
 
-      // Calculate end time based on appointment duration
       const appointmentDuration = schedule?.appointmentDuration || 30;
       const [hours, minutes] = selectedSlot.split(':');
       const startTime = new Date();
       startTime.setHours(parseInt(hours), parseInt(minutes), 0, 0);
-
       const endTime = new Date(startTime);
       endTime.setMinutes(endTime.getMinutes() + appointmentDuration);
 
@@ -107,7 +104,9 @@ const BookAppointment = () => {
         doctorId,
         date: selectedDate,
         startTime: selectedSlot,
-        endTime: `${String(endTime.getHours()).padStart(2, '0')}:${String(endTime.getMinutes()).padStart(2, '0')}`,
+        endTime: `${String(endTime.getHours()).padStart(2, '0')}:${String(
+          endTime.getMinutes()
+        ).padStart(2, '0')}`,
         reason,
         isTeleconsultation,
       };
@@ -129,65 +128,81 @@ const BookAppointment = () => {
   };
 
   if (loading && !doctor) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading doctor information...</p>
-        </div>
-      </div>
-    );
+    return <Loading />;
   }
 
   if (!doctor) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
         <div className="text-center">
-          <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
-          <p className="text-gray-600">Doctor not found</p>
+          <AlertCircle className="w-16 h-16 mx-auto mb-4 text-gray-400" />
+          <h2 className="text-2xl font-bold text-gray-900">Doctor not found</h2>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <div className="mb-8">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 overflow-hidden">
+      <AnimatePresence mode="wait">
+        {success && (
+          <motion.div
+            initial={{ opacity: 0, y: -50 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -50 }}
+            className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 bg-green-500 text-white px-6 py-3 rounded-full shadow-2xl flex items-center gap-2"
+          >
+            <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+            <span className="font-medium">{success}</span>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Header */}
+      <div className="bg-white shadow-sm px-4 py-3 border-b">
+        <div className="max-w-7xl mx-auto flex items-center justify-between">
+          <h1 className="text-sm lg:text-xl font-bold text-gray-900">Book Appointment</h1>
           <button
             onClick={() => navigate(-1)}
-            className="flex items-center text-blue-600 hover:text-blue-800 mb-4"
+            className="flex items-center gap-1 text-gray-600 hover:text-gray-900 transition-colors"
           >
-            <X className="h-5 w-5 mr-1" />
-            Back
+            <X className="w-5 h-5" />
+            <span className="text-xs lg:text-sm font-medium">Close</span>
           </button>
-          <h1 className="text-3xl font-bold text-gray-900">Book Appointment</h1>
         </div>
+      </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Doctor Information */}
-          <DoctorInfoCard doctor={doctor} schedule={schedule} />
+      {/* Vertical Layout - Both Mobile & Desktop */}
+      <div className="h-[calc(100vh-68px)] overflow-y-auto">
+        <div className="max-w-7xl mx-auto px-4 py-4 lg:py-6">
+          {/* Doctor Info Card - Top */}
+          <div className="mb-4 lg:mb-6">
+            <DoctorInfoCard doctor={doctor} schedule={schedule} />
+          </div>
 
-          {/* Booking Form */}
-          <BookingForm
-            schedule={schedule}
-            selectedDate={selectedDate}
-            setSelectedDate={setSelectedDate}
-            availableSlots={availableSlots}
-            selectedSlot={selectedSlot}
-            setSelectedSlot={setSelectedSlot}
-            reason={reason}
-            setReason={setReason}
-            isTeleconsultation={isTeleconsultation}
-            setIsTeleconsultation={setIsTeleconsultation}
-            loading={loading}
-            error={error}
-            success={success}
-            dateAvailability={dateAvailability}
-            doctor={doctor}
-            onBooking={handleBooking}
-          />
+          {/* Booking Form - Bottom */}
+          <div>
+            <BookingForm
+              schedule={schedule}
+              selectedDate={selectedDate}
+              setSelectedDate={setSelectedDate}
+              availableSlots={availableSlots}
+              selectedSlot={selectedSlot}
+              setSelectedSlot={setSelectedSlot}
+              reason={reason}
+              setReason={setReason}
+              isTeleconsultation={isTeleconsultation}
+              setIsTeleconsultation={setIsTeleconsultation}
+              loading={loading}
+              error={error}
+              success={success}
+              dateAvailability={dateAvailability}
+              doctor={doctor}
+              onBooking={handleBooking}
+              currentStep={currentStep}
+              setCurrentStep={setCurrentStep}
+            />
+          </div>
         </div>
       </div>
     </div>
