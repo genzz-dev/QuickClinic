@@ -18,15 +18,6 @@ const HeroSection = ({ onPillHover }) => {
 
   return (
     <div className="relative min-h-[550px] overflow-hidden bg-gradient-to-br from-blue-600 via-blue-500 to-cyan-500 px-8 py-12 md:py-16 lg:py-20">
-      <div
-        className="absolute inset-0 opacity-10"
-        style={{
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          backgroundRepeat: 'no-repeat',
-        }}
-      />
-
       {/* Gradient overlay for better text readability */}
       <div className="absolute inset-0 bg-gradient-to-br from-blue-600/80 via-blue-500/70 to-cyan-500/80" />
 
