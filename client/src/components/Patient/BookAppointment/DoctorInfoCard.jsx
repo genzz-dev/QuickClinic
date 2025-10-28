@@ -74,7 +74,6 @@ const DoctorInfoCard = ({ doctor, schedule }) => {
               {doctor.clinicId.name}
             </p>
           )}
-          {console.log(doctor)}
           {/* Address */}
           <div className="flex items-start gap-1 text-xs sm:text-sm text-gray-600">
             <MapPin className="w-4 h-4 flex-shrink-0 mt-0.5" />
