@@ -3,7 +3,8 @@
 **QuickClinic** is a full-stack MERN-based platform designed to streamline clinic operations for **admins**, **doctors**, and **patients**. From appointment booking to prescription tracking, it ensures a smooth, modern healthcare experience.
 
 Built with **React + Vite + TailwindCSS** and powered by a **Node.js + Express + MongoDB** backend, the platform supports **JWT-based role-based authentication**, geolocation features, and Google Maps integration.
-live demo:https://quick-clinic-psi.vercel.app/
+
+Live demo: https://quick-clinic-psi.vercel.app/
 
 ---
 
@@ -35,7 +36,7 @@ live demo:https://quick-clinic-psi.vercel.app/
 - **Frontend:** React, Vite, TailwindCSS
 - **Backend:** Node.js, Express, MongoDB
 - **Authentication:** JWT Access + Refresh Tokens
-- **APIs:** Google Maps, IP Geolocation
+- **APIs:** Google Maps, IP Geolocation, Cloudinary
 - **Deployment:** Vercel (Frontend), Render (Backend)
 
 ---
@@ -93,64 +94,73 @@ quickclinic/
 
 ## 🔧 Getting Started
 
-### 🖥️ Frontend Setup
+### Environment Variables Setup
 
+You need to create **two separate `.env` files** - one for the client (frontend) and one for the server (backend).
+
+#### 🖥️ Frontend (.env in client folder)
+
+```env
+VITE_API_BASE_URL=http://localhost:3000/api
+```
+
+**Note:** You can use the local backend URL (`http://localhost:3000/api`) or the live backend URL: `https://quickclinic-fowt.onrender.com/api`
+
+#### 🛠️ Backend (.env in server folder)
+
+```env
+JWT_ACCESS_SECRET=4a8f5b3e7d2c1a9b6f5e4c3a2b1d0e9f8a7b6c5d4e3f2a1b0c9d8e7f6a5b4
+JWT_REFRESH_SECRET=6e5f4d3c2b1a0f9e8d7c6b5a4f3e2d1c0b9a8f7e6d5c4b3a2f1e0d9c8b7
+JWT_ACCESS_EXPIRE=15m
+JWT_REFRESH_EXPIRE=7d
+PORT=3000
+CLIENT_URL=http://localhost:5173
+MONGO_URI=your_mongodb_connection_string
+COOKIE_SECURE=false
+COOKIE_SAME_SITE=lax
+CLOUD_NAME=your_cloudinary_name
+CLOUD_API_KEY=your_cloudinary_api_key
+CLOUD_API_SECRET=your_cloudinary_api_secret
+GOOGLE_API_KEY=your_google_api_key
+GOOGLE_PLACES_ENDPOINT=https://maps.googleapis.com/maps/api/place
+Frontend_url=http://localhost:5173
+```
+
+---
+
+### Running the Application
+
+#### Option 1: Manual Run
+
+**Frontend (Client):**
 ```bash
 cd client
 npm install
-# In .env file
-VITE_BASE_URL=http://localhost:8000/api
 npm run dev
 ```
 
-### 🛠️ Backend Setup
-
+**Backend (Server):**
 ```bash
 cd server
 npm install
+node index.js
+# or use nodemon for development
+nodemon index.js
 ```
 
-Create `.env` file:
+#### Option 2: Docker
 
-```env
-PORT=8000
-MONGO_URI=your_mongodb_url
-JWT_ACCESS_SECRET=your_access_token_secret
-JWT_REFRESH_SECRET=your_refresh_token_secret
-JWT_ACCESS_EXPIRE=15m
-JWT_REFRESH_EXPIRE=7d
-GOOGLE_API_KEY=your_google_maps_api_key
-```
-
-Start the server:
+Use the provided `docker-compose.yml` file:
 
 ```bash
-nodemon index.js
-# or
-node index.js
+docker-compose up
 ```
 
----
-
-## 📚 API Overview
-
-| Endpoint                   | Method | Auth              | Description                        |
-| -------------------------- | ------ | ----------------- | ---------------------------------- |
-| `/api/auth/login`          | POST   | ❌                | Login users                        |
-| `/api/auth/register`       | POST   | ❌                | Register new patients              |
-| `/api/clinic/add`          | POST   | ✅ Admin          | Add new clinic                     |
-| `/api/clinic/verify`       | POST   | ✅ Admin          | Verify via Google Maps link or OTP |
-| `/api/doctor/add`          | POST   | ✅ Admin          | Add a doctor                       |
-| `/api/doctor/schedule`     | POST   | ✅ Doctor         | Set availability                   |
-| `/api/appointment/book`    | POST   | ✅ Patient        | Book an appointment                |
-| `/api/prescription/create` | POST   | ✅ Doctor         | Add prescription                   |
-| `/api/patient/history`     | GET    | ✅ Doctor/Patient | View medical history               |
+This will start both the frontend and backend services in containers.
 
 ---
 
-## 🗃️ Data Lifecycle
-
-- Expired appointments and old records can be auto-cleaned using cron jobs or TTL indexes.
+**Live Backend URL:** [https://quickclinic-fowt.onrender.com/api](https://quickclinic-fowt.onrender.com/api)
 
 ---
 
@@ -160,3 +170,9 @@ node index.js
 - Email + SMS reminders
 - Ratings & feedback for doctors
 - Calendar integration
+- QuickMed - a whole new module for the medicine info 
+---
+
+## 🤝 Contributing
+
+Want to contribute? Please read [CONTRIBUTING.md](./CONTRIBUTING.md) for guidelines.
