@@ -33,7 +33,7 @@ Thanks for showing interest in contributing! 🚀
 
 ### Creating Issues and PRs
 
-- **Anyone can create issues** and raise PRs without needing to be assigned first
+- **Anyone can create issues** and raise PRs without needing to be assigned first Just leave a short comment mentioning that you're working on it to ensure multiple people don't work on the same Issue
 - You don't need to wait for issue assignment to start working on something
 - **Keep PRs as small as possible** for easier review
 - If your changes are large, consider creating **sub-issues** and breaking them into multiple smaller PRs
