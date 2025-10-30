@@ -82,8 +82,7 @@ const AppointmentCard = ({ appointment, prescriptionStatus, onAppointmentClick }
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-center gap-3">
           <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center text-white font-semibold">
-            {appointment.doctorId?.firstName?.[0]}
-            {appointment.doctorId?.lastName?.[0]}
+            <img src={appointment.doctorId?.profilePicture} alt={appointment.doctorId?.firstName?.[0]} />
           </div>
           <div>
             <h3 className="font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">
