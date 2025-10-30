@@ -3,10 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import { getPatientAppointments } from '../../service/appointmentApiService';
 import { getPatientProfile } from '../../service/patientApiService';
 import Loading from '../../components/ui/Loading';
-import HeroSection from '../../components/Patient/PatientDeshboard/HeroSection';
-import FeatureCards from '../../components/Patient/PatientDeshboard/FeatureCards';
-import QuickActions from '../../components/Patient/PatientDeshboard/QuickActions';
-import RecentActivity from '../../components/Patient/PatientDeshboard/RecentActivity';
+import HeroSection from '../../components/Patient/PatientDashboard/HeroSection';
+import FeatureCards from '../../components/Patient/PatientDashboard/FeatureCards';
+import QuickActions from '../../components/Patient/PatientDashboard/QuickActions';
+import RecentActivity from '../../components/Patient/PatientDashboard/RecentActivity';
 
 const PatientDashboard = () => {
   const navigate = useNavigate();
