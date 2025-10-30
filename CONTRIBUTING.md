@@ -43,6 +43,7 @@ Thanks for showing interest in contributing! 🚀
 Before submitting your PR:
 
 1. **Run Prettier** to ensure code formatting consistency:
+
    ```bash
    npx prettier --write .
    npx prettier --check .
@@ -58,10 +59,12 @@ Before submitting your PR:
 ## Tech Stack
 
 ### Frontend
+
 - Vite + React
 - Tailwind CSS
 
 ### Backend
+
 - Express
 - MongoDB
 - JWT Authentication

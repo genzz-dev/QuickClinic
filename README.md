@@ -133,6 +133,7 @@ Frontend_url=http://localhost:5173
 #### Option 1: Manual Run
 
 **Frontend (Client):**
+
 ```bash
 cd client
 npm install
@@ -140,6 +141,7 @@ npm run dev
 ```
 
 **Backend (Server):**
+
 ```bash
 cd server
 npm install
@@ -170,7 +172,8 @@ This will start both the frontend and backend services in containers.
 - Email + SMS reminders
 - Ratings & feedback for doctors
 - Calendar integration
-- QuickMed - a whole new module for the medicine info 
+- QuickMed - a whole new module for the medicine info
+
 ---
 
 ## 🤝 Contributing
