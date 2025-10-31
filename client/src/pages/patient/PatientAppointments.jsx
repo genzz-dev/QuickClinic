@@ -300,9 +300,9 @@ const PatientAppointments = () => {
           <div className="border-b border-gray-200">
             <div className="flex space-x-8" role="tablist">
               {[
-                { id: 'upcoming', label: 'Upcoming', count: stats.upcoming },
-                { id: 'today', label: 'Today', count: 0 },
-                { id: 'past', label: 'Past', count: stats.completed },
+                  { id: 'upcoming', label: 'Upcoming', count: tabCounts.upcoming },
+                { id: 'today', label: 'Today', count: tabCounts.today },
+                { id: 'past', label: 'Past', count: tabCounts.past },
               ].map((tab) => (
                 <button
                   key={tab.id}
