@@ -23,13 +23,13 @@ import Loading from '../../components/ui/Loading';
 /**
  * PatientAppointments Component
  * Main component for displaying and managing patient appointments
- * 
+ *
  * Features:
  * - View upcoming, today's, and past appointments
  * - Search and filter appointments
  * - Check prescription status
  * - Navigate to appointment details
- * 
+ *
  * @returns {JSX.Element} Patient appointments page
  */
 const PatientAppointments = () => {
@@ -231,9 +231,7 @@ const PatientAppointments = () => {
         {/* Header Section */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-5 sm:p-6 mb-6">
           <div className="mb-5">
-            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
-              My Appointments
-            </h1>
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">My Appointments</h1>
             <p className="text-gray-600 text-sm sm:text-base">
               Manage and view your medical appointments
             </p>
@@ -409,7 +407,7 @@ const PatientAppointments = () => {
 /**
  * AppointmentCard Component
  * Displays individual appointment information
- * 
+ *
  * @param {Object} props - Component props
  * @param {Object} props.appointment - Appointment data
  * @param {boolean} props.hasPrescription - Whether prescription is available
@@ -418,9 +416,24 @@ const PatientAppointments = () => {
 const AppointmentCard = ({ appointment, hasPrescription, onClick }) => {
   const getStatusBadge = (status) => {
     const statusConfig = {
-      scheduled: { label: 'Pending', bg: 'bg-yellow-50', text: 'text-yellow-700', border: 'border-yellow-200' },
-      completed: { label: 'Completed', bg: 'bg-green-50', text: 'text-green-700', border: 'border-green-200' },
-      cancelled: { label: 'Cancelled', bg: 'bg-red-50', text: 'text-red-700', border: 'border-red-200' },
+      scheduled: {
+        label: 'Pending',
+        bg: 'bg-yellow-50',
+        text: 'text-yellow-700',
+        border: 'border-yellow-200',
+      },
+      completed: {
+        label: 'Completed',
+        bg: 'bg-green-50',
+        text: 'text-green-700',
+        border: 'border-green-200',
+      },
+      cancelled: {
+        label: 'Cancelled',
+        bg: 'bg-red-50',
+        text: 'text-red-700',
+        border: 'border-red-200',
+      },
     };
 
     const config = statusConfig[status] || statusConfig.scheduled;
@@ -461,8 +474,7 @@ const AppointmentCard = ({ appointment, hasPrescription, onClick }) => {
           </div>
           <div>
             <h3 className="font-semibold text-gray-900 text-sm">
-              Dr. {appointment.doctorId?.firstName || 'N/A'}{' '}
-              {appointment.doctorId?.lastName || ''}
+              Dr. {appointment.doctorId?.firstName || 'N/A'} {appointment.doctorId?.lastName || ''}
             </h3>
             <p className="text-gray-600 text-xs capitalize">
               {appointment.doctorId?.specialization || 'General'}
@@ -528,7 +540,7 @@ const AppointmentCard = ({ appointment, hasPrescription, onClick }) => {
 /**
  * StatCard Component
  * Displays appointment statistics
- * 
+ *
  * @param {Object} props - Component props
  * @param {string} props.label - Stat label
  * @param {number} props.value - Stat value
