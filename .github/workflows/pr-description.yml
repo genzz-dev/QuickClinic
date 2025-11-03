@@ -1,0 +1,105 @@
+name: PR Description Generator
+
+on:
+  pull_request:
+    types: [opened, edited]
+
+jobs:
+  generate-description:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Install Prettier
+        run: npm install -g prettier
+
+      - name: Check Prettier
+        id: prettier-check
+        run: |
+          if npx prettier --check .; then
+            echo "prettier_status=✅ Passed" >> $GITHUB_OUTPUT
+          else
+            echo "prettier_status=❌ Failed" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Get Changed Files
+        id: changed-files
+        run: |
+          echo "files<<EOF" >> $GITHUB_OUTPUT
+          git diff --name-only origin/${{ github.base_ref }}...${{ github.head_ref }} >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Update PR Description
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const changedFiles = `${{ steps.changed-files.outputs.files }}`;
+            const prettierStatus = `${{ steps.prettier-check.outputs.prettier_status }}`;
+            
+            const template = `## Project
+            - [ ] QuickClinic
+            - [ ] QuickMed
+
+            ## Change Type
+            - [ ] New Feature/Page
+            - [ ] Bug Fix
+            - [ ] UI Redesign
+            - [ ] Optimization
+            - [ ] Other
+
+            ## Page Type
+            - [ ] Public
+            - [ ] Patient
+            - [ ] Doctor
+            - [ ] Admin
+
+            ## Stack
+            - [ ] Frontend
+            - [ ] Backend
+            - [ ] Full Stack
+
+            ## Route Status
+            - [ ] New Route
+            - [ ] Existing Route
+
+            ## What Changed
+            ### Route/API Affected
+            <!-- Specify the route or API endpoint -->
+            
+            ### Description
+            <!-- Detailed description of changes -->
+
+            ## Screenshots
+            ### Mobile View
+            <!-- Add mobile screenshots here -->
+
+            ### Desktop View
+            <!-- Add desktop screenshots here -->
+
+            ## Files Changed
+            \`\`\`
+            ${changedFiles}
+            \`\`\`
+
+            ## Code Quality
+            **Prettier Check:** ${prettierStatus}
+
+            ## Related Issues
+            Closes #
+
+            ---
+            *Auto-generated on ${new Date().toISOString()}*`;
+            
+            await github.rest.pulls.update({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number,
+              body: template
+            });
