@@ -10,7 +10,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
         with:
-          fetch-depth: 0
+          fetch-depth: 0 # Fetch full history to enable git diff
 
       - name: Setup Node.js
         uses: actions/setup-node@v3
@@ -32,9 +32,11 @@ jobs:
       - name: Get Changed Files
         id: changed-files
         run: |
-          echo "files<<EOF" >> $GITHUB_OUTPUT
-          git diff --name-only origin/${{ github.base_ref }}...${{ github.head_ref }} >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
+          {
+            echo 'files<<EOF'
+            git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }}
+            echo 'EOF'
+          } >> $GITHUB_OUTPUT
 
       - name: Update PR Description
         uses: actions/github-script@v6
@@ -42,7 +44,7 @@ jobs:
           script: |
             const changedFiles = `${{ steps.changed-files.outputs.files }}`;
             const prettierStatus = `${{ steps.prettier-check.outputs.prettier_status }}`;
-            
+
             const template = `## Project
             - [ ] QuickClinic
             - [ ] QuickMed
@@ -72,7 +74,7 @@ jobs:
             ## What Changed
             ### Route/API Affected
             <!-- Specify the route or API endpoint -->
-            
+
             ### Description
             <!-- Detailed description of changes -->
 
@@ -96,7 +98,7 @@ jobs:
 
             ---
             *Auto-generated on ${new Date().toISOString()}*`;
-            
+
             await github.rest.pulls.update({
               owner: context.repo.owner,
               repo: context.repo.repo,
