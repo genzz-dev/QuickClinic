@@ -3,7 +3,9 @@ name: PR Description Generator
 on:
   pull_request:
     types: [opened, edited]
-
+permissions:
+  pull-requests: write
+  contents: read
 jobs:
   generate-description:
     runs-on: ubuntu-latest
