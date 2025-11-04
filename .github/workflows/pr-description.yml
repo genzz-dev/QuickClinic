@@ -1,4 +1,4 @@
-name: PR Description Generator
+name: PR Auto-Check Comment
 
 on:
   pull_request:
@@ -9,7 +9,7 @@ permissions:
   contents: read
 
 jobs:
-  update-pr:
+  add-comment:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -41,65 +41,19 @@ jobs:
             echo "prettier_status=❌ Failed" >> $GITHUB_OUTPUT
           fi
 
-      - name: Update PR Description
-        uses: actions/github-script@v6
+      - name: Add PR Comment
+        uses: actions/github-script@v7
         with:
-          script: >
-            (async () => {
-              console.log('=== WORKFLOW STARTED ===');
-              console.log('PR Number:', context.issue.number);
-
-              const changedFiles = `${{ steps.changed-files.outputs.files }}`;
-              const prettierStatus = `${{ steps.prettier-check.outputs.prettier_status }}`;
-
-              const { data: pr } = await github.rest.pulls.get({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                pull_number: context.issue.number
-              });
-
-              const currentBody = pr.body || '';
-              console.log('Current body length:', currentBody.length);
-
-              const marker = '<!-- AUTO-GENERATED-SECTION -->';
-              const endMarker = '<!-- AUTO-GENERATED-END -->';
-              const timestamp = new Date().toISOString();
-
-              const autoGenSection = marker +
-                '\n\n## Files Changed\n```
-                (changedFiles || 'No files changed') +
-                '\n```\n\n## Code Quality\n**Prettier Check:** ' +
-                (prettierStatus || 'Unknown') +
-                '\n\n*Auto-generated on ' + timestamp + '*\n' +
-                endMarker;
-
-              let newBody = currentBody;
-              const hasMarker = currentBody.includes(marker);
-              console.log('Has marker:', hasMarker);
-
-              if (hasMarker) {
-                console.log('Replacing existing section');
-                newBody = currentBody.replace(
-                  /<!-- AUTO-GENERATED-SECTION -->[\s\S]*?<!-- AUTO-GENERATED-END -->/,
-                  autoGenSection
-                );
-              } else {
-                console.log('Appending new section');
-                newBody = currentBody + '\n\n' + autoGenSection;
-              }
-
-              console.log('Bodies different:', newBody !== currentBody);
-
-              if (newBody !== currentBody) {
-                console.log('Updating PR...');
-                await github.rest.pulls.update({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  pull_number: context.issue.number,
-                  body: newBody
-                });
-                console.log('✅ UPDATE SUCCESSFUL');
-              } else {
-                console.log('No changes needed');
-              }
-            })();
+          script: |
+            const changedFiles = `${{ steps.changed-files.outputs.files }}`;
+            const prettierStatus = `${{ steps.prettier-check.outputs.prettier_status }}`;
+            const timestamp = new Date().toISOString();
+            
+            const comment = `## 📋 PR Auto-Check\n\n### 📝 Files Changed\n\`\`\`\n${changedFiles || 'No files changed'}\n\`\`\`\n\n### ✨ Code Quality\n**Prettier Check:** ${prettierStatus}\n\n---\n*Auto-generated on ${timestamp}*`;
+            
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: comment
+            });
