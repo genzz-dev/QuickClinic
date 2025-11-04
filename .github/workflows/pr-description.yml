@@ -48,84 +48,84 @@ jobs:
           script: |
             const changedFiles = `${{ steps.changed-files.outputs.files }}`;
             const prettierStatus = `${{ steps.prettier-check.outputs.prettier_status }}`;
-
-            const existingBody = context.payload.pull_request.body || '';
-            const autoGenMarker = '<!-- AUTO-GENERATED-SECTION -->';
-            const autoGenEnd = '<!-- AUTO-GENERATED-END -->';
-
-            const autoGenSection = `${autoGenMarker}
-
-            ## Files Changed
-            \`\`\`
-            ${changedFiles}
-            \`\`\`
-
-            ## Code Quality
-            **Prettier Check:** ${prettierStatus}
-
-            *Auto-generated on ${new Date().toISOString()}*
-
-            ${autoGenEnd}`;
-
-            let finalBody = existingBody;
-
-            if (!existingBody.includes(autoGenMarker)) {
-              if (context.payload.action === 'opened') {
-                const template = `## Project
-                - [ ] QuickClinic
-                - [ ] QuickMed
-
-                ## Change Type
-                - [ ] New Feature/Page
-                - [ ] Bug Fix
-                - [ ] UI Redesign
-                - [ ] Optimization
-                - [ ] Other
-
-                ## Page Type
-                - [ ] Public
-                - [ ] Patient
-                - [ ] Doctor
-                - [ ] Admin
-
-                ## Stack
-                - [ ] Frontend
-                - [ ] Backend
-                - [ ] Full Stack
-
-                ## Route Status
-                - [ ] New Route
-                - [ ] Existing Route
-
-                ## What Changed
-                ### Route/API Affected
-                <!-- Specify the route or API endpoint -->
-
-                ### Description
-                <!-- Detailed description of changes -->
-
-                ## Screenshots
-                ### Mobile View
-                <!-- Add mobile screenshots here -->
-
-                ### Desktop View
-                <!-- Add desktop screenshots here -->
-
-                ${autoGenSection}`;
-                finalBody = template;
-              } else {
-                finalBody = existingBody + '\n\n' + autoGenSection;
-              }
-            } else {
-              finalBody = existingBody.replace(
-                new RegExp(`${autoGenMarker}[\\s\\S]*?${autoGenEnd}`, 'g'),
-                autoGenSection
-              );
-            }
-
-            await github.rest.pulls.update({
+            
+            const { data: currentPR } = await github.rest.pulls.get({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              pull_number: context.issue.number,
-              body: finalBody
+              pull_number: context.issue.number
             });
+            
+            let currentBody = currentPR.body || '';
+            const autoGenMarker = '<!-- AUTO-GENERATED-SECTION -->';
+            const autoGenEnd = '<!-- AUTO-GENERATED-END -->';
+            
+            const autoGenContent = `## Files Changed\n\`\`\`\n${changedFiles}\n\`\`\`\n\n## Code Quality\n**Prettier Check:** ${prettierStatus}\n\n*Auto-generated on ${new Date().toISOString()}*`;
+            
+            const autoGenSection = autoGenMarker + '\n' + autoGenContent + '\n' + autoGenEnd;
+            
+            let newBody = '';
+            
+            if (context.payload.action === 'opened' && !currentBody) {
+              const template = '## Project\n' +
+                '- [ ] QuickClinic\n' +
+                '- [ ] QuickMed\n' +
+                '\n' +
+                '## Change Type\n' +
+                '- [ ] New Feature/Page\n' +
+                '- [ ] Bug Fix\n' +
+                '- [ ] UI Redesign\n' +
+                '- [ ] Optimization\n' +
+                '- [ ] Other\n' +
+                '\n' +
+                '## Page Type\n' +
+                '- [ ] Public\n' +
+                '- [ ] Patient\n' +
+                '- [ ] Doctor\n' +
+                '- [ ] Admin\n' +
+                '\n' +
+                '## Stack\n' +
+                '- [ ] Frontend\n' +
+                '- [ ] Backend\n' +
+                '- [ ] Full Stack\n' +
+                '\n' +
+                '## Route Status\n' +
+                '- [ ] New Route\n' +
+                '- [ ] Existing Route\n' +
+                '\n' +
+                '## What Changed\n' +
+                '### Route/API Affected\n' +
+                '<!-- Specify the route or API endpoint -->\n' +
+                '\n' +
+                '### Description\n' +
+                '<!-- Detailed description of changes -->\n' +
+                '\n' +
+                '## Screenshots\n' +
+                '### Mobile View\n' +
+                '<!-- Add mobile screenshots here -->\n' +
+                '\n' +
+                '### Desktop View\n' +
+                '<!-- Add desktop screenshots here -->\n' +
+                '\n' +
+                autoGenSection;
+              
+              newBody = template;
+            } else if (currentBody.includes(autoGenMarker)) {
+              newBody = currentBody.replace(
+                /<!-- AUTO-GENERATED-SECTION -->[\s\S]*?<!-- AUTO-GENERATED-END -->/,
+                autoGenSection
+              );
+            } else if (context.payload.action === 'edited') {
+              newBody = currentBody + '\n\n' + autoGenSection;
+            } else {
+              newBody = currentBody;
+            }
+            
+            if (newBody !== currentBody) {
+              await github.rest.pulls.update({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: context.issue.number,
+                body: newBody
+              });
+              console.log('✅ PR description updated');
+            }
