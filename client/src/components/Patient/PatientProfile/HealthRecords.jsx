@@ -76,9 +76,7 @@ const HealthRecords = ({ profile, setShowHealthRecordForm, handleDownloadFile })
                         key={fileIndex}
                         className="flex items-center justify-between bg-gray-50 p-2 rounded"
                       >
-                        <span className="text-sm text-gray-700 truncate">
-                          {file.originalName}
-                        </span>
+                        <span className="text-sm text-gray-700 truncate">{file.originalName}</span>
                         <button
                           onClick={() => handleDownloadFile(file)}
                           className="text-blue-600 hover:text-blue-700 p-1 hover:bg-blue-50 rounded transition-colors"
@@ -96,9 +94,7 @@ const HealthRecords = ({ profile, setShowHealthRecordForm, handleDownloadFile })
             <div className="text-center py-8">
               <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
               <h3 className="text-lg font-medium text-gray-900 mb-2">No Health Records</h3>
-              <p className="text-gray-600 mb-4">
-                Upload your first health record to get started
-              </p>
+              <p className="text-gray-600 mb-4">Upload your first health record to get started</p>
             </div>
           )}
         </div>

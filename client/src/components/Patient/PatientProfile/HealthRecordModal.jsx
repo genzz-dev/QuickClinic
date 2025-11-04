@@ -12,7 +12,7 @@ const HealthRecordModal = ({
   setError,
   setSuccess,
   fetchProfile,
-  setIsLoading
+  setIsLoading,
 }) => {
   const healthRecordTypes = [
     'allergy',
@@ -89,9 +89,7 @@ const HealthRecordModal = ({
 
           <form onSubmit={handleUploadHealthRecord} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Record Type *
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Record Type *</label>
               <select
                 name="recordType"
                 value={healthRecordForm.recordType}
@@ -133,9 +131,7 @@ const HealthRecordModal = ({
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Description
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
               <textarea
                 name="description"
                 value={healthRecordForm.description}
@@ -147,9 +143,7 @@ const HealthRecordModal = ({
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Upload File *
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Upload File *</label>
               <input
                 type="file"
                 onChange={handleFileChange}

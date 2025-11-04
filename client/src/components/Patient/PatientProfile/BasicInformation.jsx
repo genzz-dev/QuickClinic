@@ -7,7 +7,7 @@ const BasicInformation = ({
   editFormData,
   handleInputChange,
   profilePictureFile,
-  handleProfilePictureChange
+  handleProfilePictureChange,
 }) => {
   const formatDate = (dateString) => {
     if (!dateString) return 'Not specified';
@@ -95,15 +95,11 @@ const BasicInformation = ({
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
           <p className="text-gray-900">{profile?.email || 'Not specified'}</p>
-          {isEditing && (
-            <p className="text-xs text-gray-500 mt-1">Email cannot be changed</p>
-          )}
+          {isEditing && <p className="text-xs text-gray-500 mt-1">Email cannot be changed</p>}
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Date of Birth
-          </label>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Date of Birth</label>
           <p className="text-gray-900">{formatDate(profile?.dateOfBirth)}</p>
           {isEditing && (
             <p className="text-xs text-gray-500 mt-1">Date of birth cannot be changed</p>
@@ -130,9 +126,7 @@ const BasicInformation = ({
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Phone Number
-          </label>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
           {isEditing ? (
             <input
               type="tel"

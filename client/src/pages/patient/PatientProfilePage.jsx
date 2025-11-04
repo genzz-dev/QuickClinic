@@ -65,7 +65,7 @@ const PatientProfilePage = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <ProfileHeader 
+        <ProfileHeader
           isEditing={isEditing}
           setIsEditing={setIsEditing}
           isLoading={isLoading}
@@ -108,11 +108,14 @@ const PatientProfilePage = () => {
                 link.click();
                 document.body.removeChild(link);
               } else if (file.fileId || file._id) {
-                const response = await fetch(`/api/health-records/download/${file.fileId || file._id}`, {
-                  headers: {
-                    Authorization: `Bearer ${localStorage.getItem('token')}`,
-                  },
-                });
+                const response = await fetch(
+                  `/api/health-records/download/${file.fileId || file._id}`,
+                  {
+                    headers: {
+                      Authorization: `Bearer ${localStorage.getItem('token')}`,
+                    },
+                  }
+                );
 
                 if (response.ok) {
                   const blob = await response.blob();

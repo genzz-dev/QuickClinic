@@ -12,7 +12,7 @@ const ProfileContent = ({
   profilePictureFile,
   setProfilePictureFile,
   setShowHealthRecordForm,
-  handleDownloadFile
+  handleDownloadFile,
 }) => {
   const handleInputChange = (e) => {
     const { name, value } = e.target;

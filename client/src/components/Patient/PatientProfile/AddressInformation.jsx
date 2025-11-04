@@ -11,9 +11,7 @@ const AddressInformation = ({ profile, isEditing, editFormData, handleInputChang
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="md:col-span-2">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Street Address
-          </label>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Street Address</label>
           {isEditing ? (
             <input
               type="text"
