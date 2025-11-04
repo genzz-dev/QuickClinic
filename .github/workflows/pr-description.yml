@@ -2,19 +2,27 @@ name: PR Description Generator
 
 on:
   pull_request:
-    types: [opened, edited]
+    types: [opened, edited, synchronize]
 
 permissions:
   pull-requests: write
   contents: read
 
 jobs:
-  generate-description:
+  update-pr:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout
+        uses: actions/checkout@v3
         with:
           fetch-depth: 0
+
+      - name: Get Changed Files
+        id: changed-files
+        run: |
+          echo "files<<EOF" >> $GITHUB_OUTPUT
+          git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Setup Node.js
         uses: actions/setup-node@v3
@@ -27,105 +35,95 @@ jobs:
       - name: Check Prettier
         id: prettier-check
         run: |
-          if npx prettier --check .; then
+          if npx prettier --check . 2>/dev/null; then
             echo "prettier_status=✅ Passed" >> $GITHUB_OUTPUT
           else
             echo "prettier_status=❌ Failed" >> $GITHUB_OUTPUT
           fi
 
-      - name: Get Changed Files
-        id: changed-files
-        run: |
-          {
-            echo 'files<<EOF'
-            git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }}
-            echo 'EOF'
-          } >> $GITHUB_OUTPUT
-
       - name: Update PR Description
         uses: actions/github-script@v6
         with:
           script: |
+            console.log('=== WORKFLOW STARTED ===');
+            console.log('PR Number:', context.issue.number);
+            console.log('Action:', context.payload.action);
+
             const changedFiles = `${{ steps.changed-files.outputs.files }}`;
             const prettierStatus = `${{ steps.prettier-check.outputs.prettier_status }}`;
 
-            const { data: currentPR } = await github.rest.pulls.get({
+            console.log('Files changed:', changedFiles ? 'YES' : 'NONE');
+            console.log('Prettier status:', prettierStatus);
+
+            console.log('Fetching current PR...');
+            const { data: pr } = await github.rest.pulls.get({
               owner: context.repo.owner,
               repo: context.repo.repo,
               pull_number: context.issue.number
             });
 
-            let currentBody = currentPR.body || '';
-            const autoGenMarker = '<!-- AUTO-GENERATED-SECTION -->';
-            const autoGenEnd = '<!-- AUTO-GENERATED-END -->';
+            const currentBody = pr.body || '';
+            console.log('Current body length:', currentBody.length);
+            console.log('Current body preview:', currentBody.substring(0, 200));
 
-            const autoGenContent = `## Files Changed\n\`\`\`\n${changedFiles}\n\`\`\`\n\n## Code Quality\n**Prettier Check:** ${prettierStatus}\n\n*Auto-generated on ${new Date().toISOString()}*`;
+            const marker = '<!-- AUTO-GENERATED-SECTION -->';
+            const endMarker = '<!-- AUTO-GENERATED-END -->';
 
-            const autoGenSection = autoGenMarker + '\n' + autoGenContent + '\n' + autoGenEnd;
+            const timestamp = new Date().toISOString();
+            const autoGenContent = [
+              '',
+              '## Files Changed',
+              '```
+              changedFiles || 'No files detected',
+              '```',
+              '',
+              '## Code Quality',
+              '**Prettier Check:** ' + (prettierStatus || 'Not checked'),
+              '',
+              '*Auto-generated on ' + timestamp + '*',
+              ''
+            ].join('\n');
 
-            let newBody = '';
+            const autoGenSection = marker + autoGenContent + endMarker;
 
-            if (context.payload.action === 'opened' && !currentBody) {
-              const template = '## Project\n' +
-                '- [ ] QuickClinic\n' +
-                '- [ ] QuickMed\n' +
-                '\n' +
-                '## Change Type\n' +
-                '- [ ] New Feature/Page\n' +
-                '- [ ] Bug Fix\n' +
-                '- [ ] UI Redesign\n' +
-                '- [ ] Optimization\n' +
-                '- [ ] Other\n' +
-                '\n' +
-                '## Page Type\n' +
-                '- [ ] Public\n' +
-                '- [ ] Patient\n' +
-                '- [ ] Doctor\n' +
-                '- [ ] Admin\n' +
-                '\n' +
-                '## Stack\n' +
-                '- [ ] Frontend\n' +
-                '- [ ] Backend\n' +
-                '- [ ] Full Stack\n' +
-                '\n' +
-                '## Route Status\n' +
-                '- [ ] New Route\n' +
-                '- [ ] Existing Route\n' +
-                '\n' +
-                '## What Changed\n' +
-                '### Route/API Affected\n' +
-                '<!-- Specify the route or API endpoint -->\n' +
-                '\n' +
-                '### Description\n' +
-                '<!-- Detailed description of changes -->\n' +
-                '\n' +
-                '## Screenshots\n' +
-                '### Mobile View\n' +
-                '<!-- Add mobile screenshots here -->\n' +
-                '\n' +
-                '### Desktop View\n' +
-                '<!-- Add desktop screenshots here -->\n' +
-                '\n' +
-                autoGenSection;
-              
-              newBody = template;
-            } else if (currentBody.includes(autoGenMarker)) {
+            console.log('Auto-gen section length:', autoGenSection.length);
+
+            let newBody;
+            const hasMarker = currentBody.includes(marker);
+            console.log('Has marker:', hasMarker);
+
+            if (hasMarker) {
+              console.log('>>> Replacing existing auto-gen section');
               newBody = currentBody.replace(
-                /<!-- AUTO-GENERATED-SECTION -->[\s\S]*?<!-- AUTO-GENERATED-END -->/,
+                /<!-- AUTO-GENERATED-SECTION -->[\s\S]*?<!-- AUTO-GENERATED-END -->/g,
                 autoGenSection
               );
-            } else if (context.payload.action === 'edited') {
-              newBody = currentBody + '\n\n' + autoGenSection;
             } else {
-              newBody = currentBody;
+              console.log('>>> Appending new auto-gen section');
+              const separator = currentBody.trim() ? '\n\n---\n' : '';
+              newBody = currentBody + separator + autoGenSection;
             }
 
-            if (newBody !== currentBody) {
-              await github.rest.pulls.update({
+            console.log('New body length:', newBody.length);
+            console.log('Bodies are different:', newBody !== currentBody);
+            console.log('>>> UPDATING PR NOW...');
+
+            try {
+              const updateResult = await github.rest.pulls.update({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 pull_number: context.issue.number,
                 body: newBody
               });
-              console.log('✅ PR description updated');
+              
+              console.log('✅ UPDATE SUCCESSFUL');
+              console.log('Response status:', updateResult.status);
+              console.log('Updated body length:', updateResult.data.body.length);
+            } catch (error) {
+              console.error('❌ UPDATE FAILED');
+              console.error('Error message:', error.message);
+              console.error('Error status:', error.status);
+              throw error;
             }
+
+            console.log('=== WORKFLOW COMPLETED ===');
