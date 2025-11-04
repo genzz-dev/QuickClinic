@@ -48,23 +48,23 @@ jobs:
           script: |
             const changedFiles = `${{ steps.changed-files.outputs.files }}`;
             const prettierStatus = `${{ steps.prettier-check.outputs.prettier_status }}`;
-            
+
             const { data: currentPR } = await github.rest.pulls.get({
               owner: context.repo.owner,
               repo: context.repo.repo,
               pull_number: context.issue.number
             });
-            
+
             let currentBody = currentPR.body || '';
             const autoGenMarker = '<!-- AUTO-GENERATED-SECTION -->';
             const autoGenEnd = '<!-- AUTO-GENERATED-END -->';
-            
+
             const autoGenContent = `## Files Changed\n\`\`\`\n${changedFiles}\n\`\`\`\n\n## Code Quality\n**Prettier Check:** ${prettierStatus}\n\n*Auto-generated on ${new Date().toISOString()}*`;
-            
+
             const autoGenSection = autoGenMarker + '\n' + autoGenContent + '\n' + autoGenEnd;
-            
+
             let newBody = '';
-            
+
             if (context.payload.action === 'opened' && !currentBody) {
               const template = '## Project\n' +
                 '- [ ] QuickClinic\n' +
@@ -119,7 +119,7 @@ jobs:
             } else {
               newBody = currentBody;
             }
-            
+
             if (newBody !== currentBody) {
               await github.rest.pulls.update({
                 owner: context.repo.owner,
