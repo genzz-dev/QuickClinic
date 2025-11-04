@@ -3,16 +3,18 @@ name: PR Description Generator
 on:
   pull_request:
     types: [opened, edited]
+
 permissions:
   pull-requests: write
   contents: read
+
 jobs:
   generate-description:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
         with:
-          fetch-depth: 0 # Fetch full history to enable git diff
+          fetch-depth: 0
 
       - name: Setup Node.js
         uses: actions/setup-node@v3
@@ -47,45 +49,11 @@ jobs:
             const changedFiles = `${{ steps.changed-files.outputs.files }}`;
             const prettierStatus = `${{ steps.prettier-check.outputs.prettier_status }}`;
 
-            const template = `## Project
-            - [ ] QuickClinic
-            - [ ] QuickMed
+            const existingBody = context.payload.pull_request.body || '';
+            const autoGenMarker = '<!-- AUTO-GENERATED-SECTION -->';
+            const autoGenEnd = '<!-- AUTO-GENERATED-END -->';
 
-            ## Change Type
-            - [ ] New Feature/Page
-            - [ ] Bug Fix
-            - [ ] UI Redesign
-            - [ ] Optimization
-            - [ ] Other
-
-            ## Page Type
-            - [ ] Public
-            - [ ] Patient
-            - [ ] Doctor
-            - [ ] Admin
-
-            ## Stack
-            - [ ] Frontend
-            - [ ] Backend
-            - [ ] Full Stack
-
-            ## Route Status
-            - [ ] New Route
-            - [ ] Existing Route
-
-            ## What Changed
-            ### Route/API Affected
-            <!-- Specify the route or API endpoint -->
-
-            ### Description
-            <!-- Detailed description of changes -->
-
-            ## Screenshots
-            ### Mobile View
-            <!-- Add mobile screenshots here -->
-
-            ### Desktop View
-            <!-- Add desktop screenshots here -->
+            const autoGenSection = `${autoGenMarker}
 
             ## Files Changed
             \`\`\`
@@ -95,15 +63,69 @@ jobs:
             ## Code Quality
             **Prettier Check:** ${prettierStatus}
 
-            ## Related Issues
-            Closes #
+            *Auto-generated on ${new Date().toISOString()}*
 
-            ---
-            *Auto-generated on ${new Date().toISOString()}*`;
+            ${autoGenEnd}`;
+
+            let finalBody = existingBody;
+
+            if (!existingBody.includes(autoGenMarker)) {
+              if (context.payload.action === 'opened') {
+                const template = `## Project
+                - [ ] QuickClinic
+                - [ ] QuickMed
+
+                ## Change Type
+                - [ ] New Feature/Page
+                - [ ] Bug Fix
+                - [ ] UI Redesign
+                - [ ] Optimization
+                - [ ] Other
+
+                ## Page Type
+                - [ ] Public
+                - [ ] Patient
+                - [ ] Doctor
+                - [ ] Admin
+
+                ## Stack
+                - [ ] Frontend
+                - [ ] Backend
+                - [ ] Full Stack
+
+                ## Route Status
+                - [ ] New Route
+                - [ ] Existing Route
+
+                ## What Changed
+                ### Route/API Affected
+                <!-- Specify the route or API endpoint -->
+
+                ### Description
+                <!-- Detailed description of changes -->
+
+                ## Screenshots
+                ### Mobile View
+                <!-- Add mobile screenshots here -->
+
+                ### Desktop View
+                <!-- Add desktop screenshots here -->
+
+                ${autoGenSection}`;
+                finalBody = template;
+              } else {
+                finalBody = existingBody + '\n\n' + autoGenSection;
+              }
+            } else {
+              finalBody = existingBody.replace(
+                new RegExp(`${autoGenMarker}[\\s\\S]*?${autoGenEnd}`, 'g'),
+                autoGenSection
+              );
+            }
 
             await github.rest.pulls.update({
               owner: context.repo.owner,
               repo: context.repo.repo,
               pull_number: context.issue.number,
-              body: template
+              body: finalBody
             });
