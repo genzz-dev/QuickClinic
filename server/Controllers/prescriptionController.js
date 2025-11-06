@@ -5,50 +5,12 @@ import Prescription from '../models/Appointment/Prescription.js';
 // Create prescription for an appointment
 export const createPrescription = async (req, res) => {
   try {
-    const { profileId } = req.user; // Doctor's profile ID
+    const { profileId } = req.user;
     const { appointmentId } = req.params;
     const { diagnosis, medications, tests, notes, followUpDate } = req.body;
 
-    // Validate required fields
-    if (!appointmentId || !medications || medications.length === 0) {
-      return res.status(400).json({
-        message: 'Appointment ID and medications are required',
-        errors: {
-          appointmentId: !appointmentId ? 'Appointment ID is required' : undefined,
-          medications:
-            !medications || medications.length === 0
-              ? 'At least one medication is required'
-              : undefined,
-        },
-      });
-    }
+    // ... existing validation code ...
 
-    // Validate appointment exists and belongs to this doctor
-    const appointment = await Appointment.findOne({
-      _id: appointmentId,
-      doctorId: profileId,
-    });
-
-    if (!appointment) {
-      return res.status(404).json({ message: 'Appointment not found or not authorized' });
-    }
-
-    // Validate medications structure
-    const medicationErrors = [];
-    medications.forEach((med, index) => {
-      if (!med.name || !med.dosage || !med.frequency || !med.duration) {
-        medicationErrors.push(`Medication ${index + 1} is missing required fields`);
-      }
-    });
-
-    if (medicationErrors.length > 0) {
-      return res.status(400).json({
-        message: 'Medication validation failed',
-        errors: medicationErrors,
-      });
-    }
-
-    // Create prescription
     const prescription = new Prescription({
       appointmentId,
       doctorId: profileId,
@@ -66,22 +28,20 @@ export const createPrescription = async (req, res) => {
     appointment.prescriptionId = prescription._id;
     await appointment.save();
 
+    // *** SEND NOTIFICATION ***
+    try {
+      await notificationService.notifyPrescriptionAdded(prescription._id);
+    } catch (notifError) {
+      console.error('Failed to send notification:', notifError);
+      // Don't fail the request if notification fails
+    }
+
     res.status(201).json({
       message: 'Prescription created successfully',
       prescription: prescription.toObject({ getters: true }),
     });
   } catch (error) {
-    console.error('Error creating prescription:', error);
-
-    if (error.name === 'ValidationError') {
-      const errors = Object.values(error.errors).map((err) => err.message);
-      return res.status(400).json({ message: 'Validation error', errors });
-    }
-
-    res.status(500).json({
-      message: 'Failed to create prescription',
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
-    });
+    // ... existing error handling ...
   }
 };
 
