@@ -41,7 +41,7 @@ app.use('/api/prescriptions', prescriptionRoutes);
 app.use('/api/public', publicRoutes);
 app.use('/api/ratings', ratingRoutes);
 app.use('/api/notifications', notificationRoutes);
-app.use('/api/push-notification', pushNotificationServiceRoutes);
+app.use('/api/push-notifications', pushNotificationServiceRoutes);
 appointmentScheduler.start();
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
