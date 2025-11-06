@@ -48,9 +48,9 @@ jobs:
             const changedFiles = `${{ steps.changed-files.outputs.files }}`;
             const prettierStatus = `${{ steps.prettier-check.outputs.prettier_status }}`;
             const timestamp = new Date().toISOString();
-            
+
             const comment = `## 📋 PR Auto-Check\n\n### 📝 Files Changed\n\`\`\`\n${changedFiles || 'No files changed'}\n\`\`\`\n\n### ✨ Code Quality\n**Prettier Check:** ${prettierStatus}\n\n---\n*Auto-generated on ${timestamp}*`;
-            
+
             await github.rest.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
