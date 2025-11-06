@@ -14,6 +14,8 @@ import patientRoutes from './Routes/patientRoutes.js';
 import prescriptionRoutes from './Routes/prescriptionRoutes.js';
 import publicRoutes from './Routes/publicRoutes.js';
 import ratingRoutes from './Routes/ratingRoutes.js';
+import notificationRoutes from './Routes/notificationRoutes.js';
+import appointmentScheduler from './services/appointmentScheduler.js';
 
 const app = express();
 
@@ -38,7 +40,11 @@ app.use('/api/appointments', appointmentRoutes);
 app.use('/api/prescriptions', prescriptionRoutes);
 app.use('/api/public', publicRoutes);
 app.use('/api/ratings', ratingRoutes);
-
+app.use('/api/notifications', notificationRoutes);
+appointmentScheduler.start();
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
+});
+process.on('SIGTERM', () => {
+  appointmentScheduler.stop();
 });
