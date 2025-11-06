@@ -93,7 +93,7 @@ class NotificationService {
    * Notify patient about appointment status change
    * Sends both database and push notifications
    */
-  async notifyAppointmentStatusChange(appointmentId, newStatus) {
+  async notifyAppointmentStatusChange(userId, appointmentId, newStatus) {
     try {
       const appointment = await Appointment.findById(appointmentId)
         .populate('patientId', '_id firstName lastName email')
@@ -137,8 +137,7 @@ class NotificationService {
 
       // Create database notification
       const dbNotification = await Notification.create({
-        userId: appointment.patientId.userId,
-        patientId: appointment.patientId._id,
+        patientId: userId,
         type: newStatus === 'cancelled' ? 'appointment_cancelled' : 'appointment_status_change',
         title: statusInfo.title,
         message: fullMessage,

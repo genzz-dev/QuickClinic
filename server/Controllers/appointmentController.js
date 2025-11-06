@@ -3,7 +3,7 @@ import Appointment from '../models/Appointment/Appointment.js';
 import Schedule from '../models/Clinic/Schedule.js';
 import Doctor from '../models/Users/Doctor.js';
 import Patient from '../models/Users/Patient.js';
-
+import notificationService from '../services/notificationService.js';
 // Book a new appointment
 export const bookAppointment = async (req, res) => {
   try {
@@ -465,7 +465,7 @@ export const updateAppointmentStatus = async (req, res) => {
       { status, updatedAt: new Date() },
       { new: true, runValidators: true }
     )
-      .populate('patientId', 'firstName lastName email')
+      .populate('patientId', 'firstName lastName email userId') // ← ADDED userId!
       .populate('doctorId', 'firstName lastName')
       .lean();
 
@@ -475,7 +475,11 @@ export const updateAppointmentStatus = async (req, res) => {
 
     // *** SEND NOTIFICATION ***
     try {
-      await notificationService.notifyAppointmentStatusChange(appointmentId, status);
+      await notificationService.notifyAppointmentStatusChange(
+        appointment.patientId,
+        appointmentId,
+        status
+      );
     } catch (notifError) {
       console.error('Failed to send notification:', notifError);
       // Don't fail the request if notification fails
