@@ -26,10 +26,10 @@ class NotificationService {
       });
 
       await notification.save();
-      
+
       // Emit real-time notification if socket.io is configured
       this.emitRealtimeNotification(patient.userId, notification);
-      
+
       return notification;
     } catch (error) {
       console.error('Error creating notification:', error);
@@ -115,7 +115,11 @@ class NotificationService {
         .populate('doctorId', 'firstName lastName specialization')
         .populate('clinicId', 'name address');
 
-      if (!appointment || appointment.status === 'cancelled' || appointment.status === 'completed') {
+      if (
+        !appointment ||
+        appointment.status === 'cancelled' ||
+        appointment.status === 'completed'
+      ) {
         return null;
       }
 
@@ -223,7 +227,7 @@ class NotificationService {
       // Import io from your socket configuration
       // const io = require('../socket').getIO();
       // io.to(userId.toString()).emit('notification', notification);
-      
+
       // For now, this is a placeholder
       console.log(`Real-time notification would be sent to user ${userId}`);
     } catch (error) {
