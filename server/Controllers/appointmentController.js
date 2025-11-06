@@ -473,13 +473,20 @@ export const updateAppointmentStatus = async (req, res) => {
       return res.status(404).json({ message: 'Appointment not found' });
     }
 
+    // *** SEND NOTIFICATION ***
+    try {
+      await notificationService.notifyAppointmentStatusChange(appointmentId, status);
+    } catch (notifError) {
+      console.error('Failed to send notification:', notifError);
+      // Don't fail the request if notification fails
+    }
+
     res.json({
       message: 'Appointment status updated successfully',
       appointment,
     });
   } catch (error) {
     console.error('Error updating appointment status:', error);
-
     if (error.name === 'ValidationError') {
       const errors = Object.values(error.errors).map((err) => err.message);
       return res.status(400).json({ message: 'Validation error', errors });
