@@ -5,7 +5,7 @@ import {
   unsubscribeFromNotifications,
   testPushNotification,
 } from '../Controllers/pushNotificationController.js';
-import { authenticate } from '../middleware/auth.js';
+import { authenticate } from '../Middleware/authMiddleware.js';
 
 const router = express.Router();
 
