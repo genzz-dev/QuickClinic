@@ -459,8 +459,8 @@ export const updateAppointment = async (req, res) => {
         select: 'firstName lastName profilePicture userId',
         populate: {
           path: 'userId',
-          select: 'email'
-        }
+          select: 'email',
+        },
       })
       .populate('doctorId', 'firstName lastName specialization')
       .populate('clinicId', 'name address')
@@ -501,7 +501,6 @@ export const updateAppointment = async (req, res) => {
     });
   }
 };
-
 
 // Update appointment status (for admin/doctor)
 export const updateAppointmentStatus = async (req, res) => {
