@@ -132,25 +132,24 @@ export const bookAppointment = async (req, res) => {
     });
 
     await appointment.save();
-        // Populate appointment data for email
+    // Populate appointment data for email
     const populatedAppointment = await Appointment.findById(appointment.id)
       .populate('patientId', 'email firstName lastName')
       .populate('doctorId', 'firstName lastName')
       .populate('clinicId', 'name')
       .lean();
-        // Send appointment booked email
+    // Send appointment booked email
     if (populatedAppointment.patientId.email) {
-      emailService.sendAppointmentBookedEmail(
-        populatedAppointment.patientId.email,
-        {
+      emailService
+        .sendAppointmentBookedEmail(populatedAppointment.patientId.email, {
           doctorName: `Dr. ${populatedAppointment.doctorId.firstName} ${populatedAppointment.doctorId.lastName}`,
           date: populatedAppointment.date,
           startTime: populatedAppointment.startTime,
           endTime: populatedAppointment.endTime,
           reason: populatedAppointment.reason,
-          clinicName: populatedAppointment.clinicId?.name
-        }
-      ).catch(err => console.error('Failed to send appointment email:', err));
+          clinicName: populatedAppointment.clinicId?.name,
+        })
+        .catch((err) => console.error('Failed to send appointment email:', err));
     }
     res.status(201).json({
       message: 'Appointment booked successfully',
@@ -358,7 +357,21 @@ export const updateAppointment = async (req, res) => {
     if (!appointment) {
       return res.status(404).json({ message: 'Appointment not found' });
     }
-
+    // Send status change email
+    if (appointment.patientId.email) {
+      emailService
+        .sendAppointmentStatusEmail(
+          appointment.patientId.email,
+          {
+            doctorName: `Dr. ${appointment.doctorId.firstName} ${appointment.doctorId.lastName}`,
+            date: appointment.date,
+            startTime: appointment.startTime,
+            endTime: appointment.endTime,
+          },
+          status
+        )
+        .catch((err) => console.error('Failed to send status email:', err));
+    }
     // Check if user has permission to update this appointment
     if (role === 'patient' && appointment.patientId.toString() !== profileId.toString()) {
       return res.status(403).json({ message: 'Unauthorized to update this appointment' });

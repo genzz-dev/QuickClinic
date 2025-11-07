@@ -20,7 +20,7 @@
     "mongoose": "^8.16.0",
     "multer": "^2.0.1",
     "node-cron": "^4.2.1",
-    "nodemailer": "^7.0.3",
+    "nodemailer": "^7.0.10",
     "puppeteer": "^24.14.0",
     "web-push": "^3.6.7"
   },

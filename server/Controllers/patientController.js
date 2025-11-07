@@ -138,7 +138,7 @@ export const getPatientProfile = async (req, res) => {
       'emergencyContact.phoneNumber',
       'profilePicture',
       'healthRecords',
-      'appointments'
+      'appointments',
     ].join(' ');
 
     // Get patient with specific fields
@@ -150,7 +150,7 @@ export const getPatientProfile = async (req, res) => {
     // Always populate userId to get email
     populateOptions.push({
       path: 'userId',
-      select: 'email'
+      select: 'email',
     });
 
     if (patient.healthRecords && patient.healthRecords.length > 0) {
@@ -215,7 +215,6 @@ export const getPatientProfile = async (req, res) => {
     });
   }
 };
-
 
 export const uploadHealthRecord = async (req, res) => {
   try {

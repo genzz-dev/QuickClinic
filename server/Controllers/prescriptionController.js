@@ -63,7 +63,28 @@ export const createPrescription = async (req, res) => {
     // Update appointment with prescription reference
     appointment.prescriptionId = prescription._id;
     await appointment.save();
+    // Populate data for email
+    const populatedPrescription = await Prescription.findById(prescription.id)
+      .populate('patientId', 'email firstName lastName')
+      .populate('doctorId', 'firstName lastName')
+      .populate('appointmentId', 'date')
+      .lean();
 
+    // Send prescription email
+    if (populatedPrescription.patientId.email) {
+      emailService
+        .sendPrescriptionEmail(populatedPrescription.patientId.email, {
+          patientName: `${populatedPrescription.patientId.firstName} ${populatedPrescription.patientId.lastName}`,
+          doctorName: `${populatedPrescription.doctorId.firstName} ${populatedPrescription.doctorId.lastName}`,
+          diagnosis: populatedPrescription.diagnosis,
+          medications: populatedPrescription.medications,
+          tests: populatedPrescription.tests,
+          notes: populatedPrescription.notes,
+          appointmentDate: populatedPrescription.appointmentId.date,
+          followUpDate: populatedPrescription.followUpDate,
+        })
+        .catch((err) => console.error('Failed to send prescription email:', err));
+    }
     // *** SEND NOTIFICATION ***
     try {
       await notificationService.notifyPrescriptionAdded(prescription._id);

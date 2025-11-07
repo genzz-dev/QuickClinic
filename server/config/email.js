@@ -5,8 +5,8 @@ export const config = {
   ...(process.env.EMAIL_USER && {
     auth: {
       user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS
-    }
+      pass: process.env.EMAIL_PASS,
+    },
   }),
   from: process.env.EMAIL_FROM || 'no-reply@healthcare.local',
   appName: process.env.APP_NAME || 'QuickClinic',

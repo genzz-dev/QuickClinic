@@ -31,8 +31,9 @@ export const register = async (req, res) => {
     // Save refresh token to database
     user.refreshToken = refreshToken;
     await user.save();
-      emailService.sendWelcomeEmail(email, email.split('@')[0], user.role)
-      .catch(err => console.error('Failed to send welcome email:', err));
+    emailService
+      .sendWelcomeEmail(email, email.split('@')[0], user.role)
+      .catch((err) => console.error('Failed to send welcome email:', err));
     res.cookie('refreshToken', refreshToken, {
       httpOnly: true,
       secure: config.cookies.secure,

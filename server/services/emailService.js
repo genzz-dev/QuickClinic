@@ -6,10 +6,12 @@ const transporter = nodemailer.createTransport({
   host: config.host,
   port: config.port,
   secure: config.secure,
-  auth: config.auth ? {
-    user: config.auth.user,
-    pass: config.auth.pass
-  } : undefined
+  auth: config.auth
+    ? {
+        user: config.auth.user,
+        pass: config.auth.pass,
+      }
+    : undefined,
 });
 
 // Verify transporter connection
@@ -44,7 +46,7 @@ export const sendWelcomeEmail = async (userEmail, userName, role) => {
           <hr style="margin: 30px 0; border: none; border-top: 1px solid #ddd;">
           <p style="color: #666; font-size: 12px;">This is an automated message from ${config.appName}.</p>
         </div>
-      `
+      `,
     };
 
     const info = await transporter.sendMail(mailOptions);
@@ -60,7 +62,7 @@ export const sendWelcomeEmail = async (userEmail, userName, role) => {
 export const sendAppointmentBookedEmail = async (patientEmail, appointmentDetails) => {
   try {
     const { doctorName, date, startTime, endTime, reason, clinicName } = appointmentDetails;
-    
+
     const mailOptions = {
       from: config.from,
       to: patientEmail,
@@ -83,7 +85,7 @@ export const sendAppointmentBookedEmail = async (patientEmail, appointmentDetail
           <hr style="margin: 30px 0; border: none; border-top: 1px solid #ddd;">
           <p style="color: #666; font-size: 12px;">This is an automated message from ${config.appName}.</p>
         </div>
-      `
+      `,
     };
 
     const info = await transporter.sendMail(mailOptions);
@@ -99,28 +101,28 @@ export const sendAppointmentBookedEmail = async (patientEmail, appointmentDetail
 export const sendAppointmentStatusEmail = async (patientEmail, appointmentDetails, newStatus) => {
   try {
     const { doctorName, date, startTime, endTime } = appointmentDetails;
-    
+
     const statusMessages = {
       confirmed: {
         subject: 'Appointment Confirmed',
         message: 'Your appointment has been confirmed by the doctor.',
-        color: '#4CAF50'
+        color: '#4CAF50',
       },
       cancelled: {
         subject: 'Appointment Cancelled',
         message: 'Your appointment has been cancelled.',
-        color: '#f44336'
+        color: '#f44336',
       },
       completed: {
         subject: 'Appointment Completed',
         message: 'Your appointment has been marked as completed.',
-        color: '#2196F3'
+        color: '#2196F3',
       },
       'no-show': {
         subject: 'Appointment Marked as No-Show',
         message: 'Your appointment was marked as no-show.',
-        color: '#FF9800'
-      }
+        color: '#FF9800',
+      },
     };
 
     const statusInfo = statusMessages[newStatus] || statusMessages.confirmed;
@@ -147,7 +149,7 @@ export const sendAppointmentStatusEmail = async (patientEmail, appointmentDetail
           <hr style="margin: 30px 0; border: none; border-top: 1px solid #ddd;">
           <p style="color: #666; font-size: 12px;">This is an automated message from ${config.appName}.</p>
         </div>
-      `
+      `,
     };
 
     const info = await transporter.sendMail(mailOptions);
@@ -162,10 +164,21 @@ export const sendAppointmentStatusEmail = async (patientEmail, appointmentDetail
 // Send email when prescription is added (with prescription details)
 export const sendPrescriptionEmail = async (patientEmail, prescriptionDetails) => {
   try {
-    const { patientName, doctorName, diagnosis, medications, tests, notes, appointmentDate, followUpDate } = prescriptionDetails;
-    
+    const {
+      patientName,
+      doctorName,
+      diagnosis,
+      medications,
+      tests,
+      notes,
+      appointmentDate,
+      followUpDate,
+    } = prescriptionDetails;
+
     // Format medications list
-    const medicationsList = medications.map(med => `
+    const medicationsList = medications
+      .map(
+        (med) => `
       <li style="margin-bottom: 10px;">
         <strong>${med.name}</strong><br/>
         Dosage: ${med.dosage}<br/>
@@ -173,7 +186,9 @@ export const sendPrescriptionEmail = async (patientEmail, prescriptionDetails) =
         Duration: ${med.duration}
         ${med.instructions ? `<br/>Instructions: ${med.instructions}` : ''}
       </li>
-    `).join('');
+    `
+      )
+      .join('');
 
     const mailOptions = {
       from: config.from,
@@ -195,23 +210,35 @@ export const sendPrescriptionEmail = async (patientEmail, prescriptionDetails) =
               ${medicationsList}
             </ul>
             
-            ${tests && tests.length > 0 ? `
+            ${
+              tests && tests.length > 0
+                ? `
               <h4>Recommended Tests:</h4>
               <ul>
-                ${tests.map(test => `<li>${test}</li>`).join('')}
+                ${tests.map((test) => `<li>${test}</li>`).join('')}
               </ul>
-            ` : ''}
+            `
+                : ''
+            }
             
-            ${notes ? `
+            ${
+              notes
+                ? `
               <h4>Additional Notes:</h4>
               <p>${notes}</p>
-            ` : ''}
+            `
+                : ''
+            }
             
-            ${followUpDate ? `
+            ${
+              followUpDate
+                ? `
               <p style="background-color: #fff3cd; padding: 10px; border-left: 4px solid #ffc107;">
                 <strong>Follow-up Date:</strong> ${new Date(followUpDate).toLocaleDateString()}
               </p>
-            ` : ''}
+            `
+                : ''
+            }
           </div>
           
           <div style="margin: 30px 0;">
@@ -228,7 +255,7 @@ export const sendPrescriptionEmail = async (patientEmail, prescriptionDetails) =
           <hr style="margin: 30px 0; border: none; border-top: 1px solid #ddd;">
           <p style="color: #666; font-size: 12px;">This is an automated message from ${config.appName}.</p>
         </div>
-      `
+      `,
     };
 
     const info = await transporter.sendMail(mailOptions);
@@ -244,5 +271,5 @@ export default {
   sendWelcomeEmail,
   sendAppointmentBookedEmail,
   sendAppointmentStatusEmail,
-  sendPrescriptionEmail
+  sendPrescriptionEmail,
 };
