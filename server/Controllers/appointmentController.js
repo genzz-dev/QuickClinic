@@ -132,16 +132,26 @@ export const bookAppointment = async (req, res) => {
     });
 
     await appointment.save();
-    // Populate appointment data for email
-    const populatedAppointment = await Appointment.findById(appointment.id)
-      .populate('patientId', 'email firstName lastName')
+
+    // Populate appointment data for email - get email from User model via patientId
+    const populatedAppointment = await Appointment.findById(appointment._id)
+      .populate({
+        path: 'patientId',
+        select: 'firstName lastName userId',
+        populate: {
+          path: 'userId',
+          select: 'email',
+        },
+      })
       .populate('doctorId', 'firstName lastName')
       .populate('clinicId', 'name')
       .lean();
+
     // Send appointment booked email
-    if (populatedAppointment.patientId.email) {
+    const patientEmail = populatedAppointment.patientId?.userId?.email;
+    if (patientEmail) {
       emailService
-        .sendAppointmentBookedEmail(populatedAppointment.patientId.email, {
+        .sendAppointmentBookedEmail(patientEmail, {
           doctorName: `Dr. ${populatedAppointment.doctorId.firstName} ${populatedAppointment.doctorId.lastName}`,
           date: populatedAppointment.date,
           startTime: populatedAppointment.startTime,
@@ -151,6 +161,7 @@ export const bookAppointment = async (req, res) => {
         })
         .catch((err) => console.error('Failed to send appointment email:', err));
     }
+
     res.status(201).json({
       message: 'Appointment booked successfully',
       appointment: appointment.toObject({ getters: true }),
