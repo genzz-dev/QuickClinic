@@ -91,7 +91,6 @@ const BasicInformation = ({
             <p className="text-gray-900">{profile?.lastName || 'Not specified'}</p>
           )}
         </div>
-
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
           <p className="text-gray-900">{profile?.email || 'Not specified'}</p>

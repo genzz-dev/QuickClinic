@@ -4,6 +4,8 @@ import Schedule from '../models/Clinic/Schedule.js';
 import Doctor from '../models/Users/Doctor.js';
 import Patient from '../models/Users/Patient.js';
 import notificationService from '../services/notificationService.js';
+import emailService from '../services/emailService.js';
+
 // Book a new appointment
 export const bookAppointment = async (req, res) => {
   try {
@@ -130,7 +132,26 @@ export const bookAppointment = async (req, res) => {
     });
 
     await appointment.save();
-
+        // Populate appointment data for email
+    const populatedAppointment = await Appointment.findById(appointment.id)
+      .populate('patientId', 'email firstName lastName')
+      .populate('doctorId', 'firstName lastName')
+      .populate('clinicId', 'name')
+      .lean();
+        // Send appointment booked email
+    if (populatedAppointment.patientId.email) {
+      emailService.sendAppointmentBookedEmail(
+        populatedAppointment.patientId.email,
+        {
+          doctorName: `Dr. ${populatedAppointment.doctorId.firstName} ${populatedAppointment.doctorId.lastName}`,
+          date: populatedAppointment.date,
+          startTime: populatedAppointment.startTime,
+          endTime: populatedAppointment.endTime,
+          reason: populatedAppointment.reason,
+          clinicName: populatedAppointment.clinicId?.name
+        }
+      ).catch(err => console.error('Failed to send appointment email:', err));
+    }
     res.status(201).json({
       message: 'Appointment booked successfully',
       appointment: appointment.toObject({ getters: true }),
