@@ -3,7 +3,7 @@ import Appointment from '../models/Appointment/Appointment.js';
 import Schedule from '../models/Clinic/Schedule.js';
 import Doctor from '../models/Users/Doctor.js';
 import Patient from '../models/Users/Patient.js';
-
+import notificationService from '../services/notificationService.js';
 // Book a new appointment
 export const bookAppointment = async (req, res) => {
   try {
@@ -465,12 +465,24 @@ export const updateAppointmentStatus = async (req, res) => {
       { status, updatedAt: new Date() },
       { new: true, runValidators: true }
     )
-      .populate('patientId', 'firstName lastName email')
+      .populate('patientId', 'firstName lastName email userId') // ← ADDED userId!
       .populate('doctorId', 'firstName lastName')
       .lean();
 
     if (!appointment) {
       return res.status(404).json({ message: 'Appointment not found' });
+    }
+
+    // *** SEND NOTIFICATION ***
+    try {
+      await notificationService.notifyAppointmentStatusChange(
+        appointment.patientId,
+        appointmentId,
+        status
+      );
+    } catch (notifError) {
+      console.error('Failed to send notification:', notifError);
+      // Don't fail the request if notification fails
     }
 
     res.json({
@@ -479,7 +491,6 @@ export const updateAppointmentStatus = async (req, res) => {
     });
   } catch (error) {
     console.error('Error updating appointment status:', error);
-
     if (error.name === 'ValidationError') {
       const errors = Object.values(error.errors).map((err) => err.message);
       return res.status(400).json({ message: 'Validation error', errors });

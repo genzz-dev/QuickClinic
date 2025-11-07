@@ -15,6 +15,7 @@ import PatientPreventGuard from './guards/PatientPreventGuard';
 import PatientSetupGuard from './guards/PatientSetupGuard';
 import ProtectedRoute from './guards/protectedRoutes';
 import PatientNavbar from '../components/Patient/PatientNavbar';
+import PatientNotifications from '../pages/patient/PatientNotification';
 export default function PatientRoutes() {
   return (
     <>
@@ -68,6 +69,16 @@ export default function PatientRoutes() {
               <ProtectedRoute role="patient">
                 <PatientSetupGuard requireProfile={true}>
                   <PatientAppointments />
+                </PatientSetupGuard>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/patient/notifications"
+            element={
+              <ProtectedRoute role="patient">
+                <PatientSetupGuard requireProfile={true}>
+                  <PatientNotifications />
                 </PatientSetupGuard>
               </ProtectedRoute>
             }

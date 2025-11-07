@@ -433,10 +433,25 @@ const AppointmentDetails = () => {
                           <p className="font-medium">{patientInfo.email || 'Not available'}</p>
                         </div>
                         <div>
-                          <p className="text-sm text-gray-600">Emergency Contact</p>
-                          <p className="font-medium">
-                            {patientInfo.emergencyContact || 'Not available'}
-                          </p>
+                          <div className="flex items-start space-x-3">
+                            <PhoneIcon className="h-5 w-5 text-gray-400 mt-0.5" />
+                            <div>
+                              <p className="text-sm text-gray-500">Emergency Contact</p>
+                              {patientInfo.emergencyContact && patientInfo.emergencyContact.name ? (
+                                <div>
+                                  <p className="text-gray-600">
+                                    {patientInfo.emergencyContact.name}
+                                  </p>
+                                  <p className="text-gray-500 text-sm">
+                                    {patientInfo.emergencyContact.relationship} •{' '}
+                                    {patientInfo.emergencyContact.phoneNumber}
+                                  </p>
+                                </div>
+                              ) : (
+                                <p className="text-gray-600">Not available</p>
+                              )}
+                            </div>
+                          </div>
                         </div>
                       </div>
                     </div>

@@ -1,11 +1,11 @@
 import mongoose from 'mongoose';
 import Appointment from '../models/Appointment/Appointment.js';
 import Prescription from '../models/Appointment/Prescription.js';
-
+import notificationService from '../services/notificationService.js';
 // Create prescription for an appointment
 export const createPrescription = async (req, res) => {
   try {
-    const { profileId } = req.user; // Doctor's profile ID
+    const { profileId } = req.user;
     const { appointmentId } = req.params;
     const { diagnosis, medications, tests, notes, followUpDate } = req.body;
 
@@ -22,7 +22,6 @@ export const createPrescription = async (req, res) => {
         },
       });
     }
-
     // Validate appointment exists and belongs to this doctor
     const appointment = await Appointment.findOne({
       _id: appointmentId,
@@ -48,7 +47,6 @@ export const createPrescription = async (req, res) => {
       });
     }
 
-    // Create prescription
     const prescription = new Prescription({
       appointmentId,
       doctorId: profileId,
@@ -66,22 +64,20 @@ export const createPrescription = async (req, res) => {
     appointment.prescriptionId = prescription._id;
     await appointment.save();
 
+    // *** SEND NOTIFICATION ***
+    try {
+      await notificationService.notifyPrescriptionAdded(prescription._id);
+    } catch (notifError) {
+      console.error('Failed to send notification:', notifError);
+      // Don't fail the request if notification fails
+    }
+
     res.status(201).json({
       message: 'Prescription created successfully',
       prescription: prescription.toObject({ getters: true }),
     });
   } catch (error) {
-    console.error('Error creating prescription:', error);
-
-    if (error.name === 'ValidationError') {
-      const errors = Object.values(error.errors).map((err) => err.message);
-      return res.status(400).json({ message: 'Validation error', errors });
-    }
-
-    res.status(500).json({
-      message: 'Failed to create prescription',
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
-    });
+    console.log(error);
   }
 };
 

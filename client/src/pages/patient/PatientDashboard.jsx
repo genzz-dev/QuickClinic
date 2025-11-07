@@ -7,6 +7,7 @@ import HeroSection from '../../components/Patient/PatientDashboard/HeroSection';
 import FeatureCards from '../../components/Patient/PatientDashboard/FeatureCards';
 import QuickActions from '../../components/Patient/PatientDashboard/QuickActions';
 import RecentActivity from '../../components/Patient/PatientDashboard/RecentActivity';
+import NotificationPermission from '../../components/Patient/NotificationPermission';
 
 const PatientDashboard = () => {
   const navigate = useNavigate();
@@ -62,6 +63,7 @@ const PatientDashboard = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
+      <NotificationPermission />
       <HeroSection patientData={patientData} />
       <QuickActions navigate={navigate} />
       <FeatureCards />
