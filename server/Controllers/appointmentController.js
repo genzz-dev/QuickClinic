@@ -358,7 +358,7 @@ export const updateAppointment = async (req, res) => {
   try {
     const { appointmentId } = req.params;
     const { profileId, role } = req.user;
-    const { doctorId, date, startTime, endTime, reason, isTeleconsultation } = req.body;
+    const { doctorId, date, startTime, endTime, reason, isTeleconsultation, status } = req.body;
 
     if (!mongoose.Types.ObjectId.isValid(appointmentId)) {
       return res.status(400).json({ message: 'Invalid appointment ID format' });
@@ -368,21 +368,7 @@ export const updateAppointment = async (req, res) => {
     if (!appointment) {
       return res.status(404).json({ message: 'Appointment not found' });
     }
-    // Send status change email
-    if (appointment.patientId.email) {
-      emailService
-        .sendAppointmentStatusEmail(
-          appointment.patientId.email,
-          {
-            doctorName: `Dr. ${appointment.doctorId.firstName} ${appointment.doctorId.lastName}`,
-            date: appointment.date,
-            startTime: appointment.startTime,
-            endTime: appointment.endTime,
-          },
-          status
-        )
-        .catch((err) => console.error('Failed to send status email:', err));
-    }
+
     // Check if user has permission to update this appointment
     if (role === 'patient' && appointment.patientId.toString() !== profileId.toString()) {
       return res.status(403).json({ message: 'Unauthorized to update this appointment' });
@@ -461,16 +447,41 @@ export const updateAppointment = async (req, res) => {
     if (endTime) updateData.endTime = endTime;
     if (reason !== undefined) updateData.reason = reason;
     if (isTeleconsultation !== undefined) updateData.isTeleconsultation = isTeleconsultation;
+    if (status !== undefined) updateData.status = status;
     updateData.updatedAt = new Date();
 
     const updatedAppointment = await Appointment.findByIdAndUpdate(appointmentId, updateData, {
       new: true,
       runValidators: true,
     })
-      .populate('patientId', 'firstName lastName profilePicture')
+      .populate({
+        path: 'patientId',
+        select: 'firstName lastName profilePicture userId',
+        populate: {
+          path: 'userId',
+          select: 'email'
+        }
+      })
       .populate('doctorId', 'firstName lastName specialization')
       .populate('clinicId', 'name address')
       .lean();
+
+    // Send status change email
+    const patientEmail = updatedAppointment.patientId?.userId?.email;
+    if (patientEmail && status) {
+      emailService
+        .sendAppointmentStatusEmail(
+          patientEmail,
+          {
+            doctorName: `Dr. ${updatedAppointment.doctorId.firstName} ${updatedAppointment.doctorId.lastName}`,
+            date: updatedAppointment.date,
+            startTime: updatedAppointment.startTime,
+            endTime: updatedAppointment.endTime,
+          },
+          status
+        )
+        .catch((err) => console.error('Failed to send status email:', err));
+    }
 
     res.json({
       message: 'Appointment updated successfully',
@@ -490,6 +501,7 @@ export const updateAppointment = async (req, res) => {
     });
   }
 };
+
 
 // Update appointment status (for admin/doctor)
 export const updateAppointmentStatus = async (req, res) => {
