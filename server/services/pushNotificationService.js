@@ -3,6 +3,15 @@ import PushSubscription from '../models/PushSubscription.js';
 
 class PushNotificationService {
   constructor() {
+    if (
+      !process.env.VAPID_SUBJECT ||
+      !process.env.VAPID_PUBLIC_KEY ||
+      !process.env.VAPID_PRIVATE_KEY
+    ) {
+      throw new Error(
+        'VAPID environment variables are required: VAPID_SUBJECT, VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY'
+      );
+    }
     // Initialize web push with VAPID keys
     webpush.setVapidDetails(
       process.env.VAPID_SUBJECT,
