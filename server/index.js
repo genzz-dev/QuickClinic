@@ -17,6 +17,9 @@ import ratingRoutes from './Routes/ratingRoutes.js';
 import notificationRoutes from './Routes/notificationRoutes.js';
 import appointmentScheduler from './services/appointmentScheduler.js';
 import pushNotificationServiceRoutes from './Routes/pushNotificationRoutes.js';
+//QuickMed
+import medicineRoutes from './Routes/QuickMed/medicineRoutes.js';
+
 const app = express();
 
 const PORT = process.env.PORT;
@@ -42,6 +45,9 @@ app.use('/api/public', publicRoutes);
 app.use('/api/ratings', ratingRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/push-notifications', pushNotificationServiceRoutes);
+//QuickMed Routes
+app.use('/api/medicines', medicineRoutes);
+
 appointmentScheduler.start();
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
