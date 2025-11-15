@@ -2,6 +2,7 @@ import mongoose from 'mongoose';
 import Appointment from '../models/Appointment/Appointment.js';
 import Prescription from '../models/Appointment/Prescription.js';
 import notificationService from '../services/notificationService.js';
+import emailService from '../services/emailService.js';
 // Create prescription for an appointment
 export const createPrescription = async (req, res) => {
   try {
@@ -22,6 +23,7 @@ export const createPrescription = async (req, res) => {
         },
       });
     }
+
     // Validate appointment exists and belongs to this doctor
     const appointment = await Appointment.findOne({
       _id: appointmentId,
@@ -64,6 +66,37 @@ export const createPrescription = async (req, res) => {
     appointment.prescriptionId = prescription._id;
     await appointment.save();
 
+    // Populate data for email - get email from User model via patientId
+    const populatedPrescription = await Prescription.findById(prescription._id)
+      .populate({
+        path: 'patientId',
+        select: 'firstName lastName userId',
+        populate: {
+          path: 'userId',
+          select: 'email',
+        },
+      })
+      .populate('doctorId', 'firstName lastName')
+      .populate('appointmentId', 'date')
+      .lean();
+
+    // Send prescription email
+    const patientEmail = populatedPrescription.patientId?.userId?.email;
+    if (patientEmail) {
+      emailService
+        .sendPrescriptionEmail(patientEmail, {
+          patientName: `${populatedPrescription.patientId.firstName} ${populatedPrescription.patientId.lastName}`,
+          doctorName: `${populatedPrescription.doctorId.firstName} ${populatedPrescription.doctorId.lastName}`,
+          diagnosis: populatedPrescription.diagnosis,
+          medications: populatedPrescription.medications,
+          tests: populatedPrescription.tests,
+          notes: populatedPrescription.notes,
+          appointmentDate: populatedPrescription.appointmentId.date,
+          followUpDate: populatedPrescription.followUpDate,
+        })
+        .catch((err) => console.error('Failed to send prescription email:', err));
+    }
+
     // *** SEND NOTIFICATION ***
     try {
       await notificationService.notifyPrescriptionAdded(prescription._id);
@@ -77,7 +110,17 @@ export const createPrescription = async (req, res) => {
       prescription: prescription.toObject({ getters: true }),
     });
   } catch (error) {
-    console.log(error);
+    console.error('Error creating prescription:', error);
+
+    if (error.name === 'ValidationError') {
+      const errors = Object.values(error.errors).map((err) => err.message);
+      return res.status(400).json({ message: 'Validation error', errors });
+    }
+
+    res.status(500).json({
+      message: 'Failed to create prescription',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
+    });
   }
 };
 

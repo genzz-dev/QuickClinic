@@ -101,7 +101,7 @@ const HeroSection = ({ onPillHover }) => {
               <img
                 src={Doctor}
                 alt="Healthcare illustration"
-                className="max-h-full w-auto object-contain drop-shadow-2xl"
+                className="max-h-full w-full object-contain drop-shadow-2xl"
               />
               <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent rounded-2xl blur-3xl -z-10" />
             </div>

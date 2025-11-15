@@ -4,6 +4,8 @@ import Schedule from '../models/Clinic/Schedule.js';
 import Doctor from '../models/Users/Doctor.js';
 import Patient from '../models/Users/Patient.js';
 import notificationService from '../services/notificationService.js';
+import emailService from '../services/emailService.js';
+
 // Book a new appointment
 export const bookAppointment = async (req, res) => {
   try {
@@ -130,6 +132,35 @@ export const bookAppointment = async (req, res) => {
     });
 
     await appointment.save();
+
+    // Populate appointment data for email - get email from User model via patientId
+    const populatedAppointment = await Appointment.findById(appointment._id)
+      .populate({
+        path: 'patientId',
+        select: 'firstName lastName userId',
+        populate: {
+          path: 'userId',
+          select: 'email',
+        },
+      })
+      .populate('doctorId', 'firstName lastName')
+      .populate('clinicId', 'name')
+      .lean();
+
+    // Send appointment booked email
+    const patientEmail = populatedAppointment.patientId?.userId?.email;
+    if (patientEmail) {
+      emailService
+        .sendAppointmentBookedEmail(patientEmail, {
+          doctorName: `Dr. ${populatedAppointment.doctorId.firstName} ${populatedAppointment.doctorId.lastName}`,
+          date: populatedAppointment.date,
+          startTime: populatedAppointment.startTime,
+          endTime: populatedAppointment.endTime,
+          reason: populatedAppointment.reason,
+          clinicName: populatedAppointment.clinicId?.name,
+        })
+        .catch((err) => console.error('Failed to send appointment email:', err));
+    }
 
     res.status(201).json({
       message: 'Appointment booked successfully',
@@ -327,7 +358,7 @@ export const updateAppointment = async (req, res) => {
   try {
     const { appointmentId } = req.params;
     const { profileId, role } = req.user;
-    const { doctorId, date, startTime, endTime, reason, isTeleconsultation } = req.body;
+    const { doctorId, date, startTime, endTime, reason, isTeleconsultation, status } = req.body;
 
     if (!mongoose.Types.ObjectId.isValid(appointmentId)) {
       return res.status(400).json({ message: 'Invalid appointment ID format' });
@@ -416,16 +447,41 @@ export const updateAppointment = async (req, res) => {
     if (endTime) updateData.endTime = endTime;
     if (reason !== undefined) updateData.reason = reason;
     if (isTeleconsultation !== undefined) updateData.isTeleconsultation = isTeleconsultation;
+    if (status !== undefined) updateData.status = status;
     updateData.updatedAt = new Date();
 
     const updatedAppointment = await Appointment.findByIdAndUpdate(appointmentId, updateData, {
       new: true,
       runValidators: true,
     })
-      .populate('patientId', 'firstName lastName profilePicture')
+      .populate({
+        path: 'patientId',
+        select: 'firstName lastName profilePicture userId',
+        populate: {
+          path: 'userId',
+          select: 'email',
+        },
+      })
       .populate('doctorId', 'firstName lastName specialization')
       .populate('clinicId', 'name address')
       .lean();
+
+    // Send status change email
+    const patientEmail = updatedAppointment.patientId?.userId?.email;
+    if (patientEmail && status) {
+      emailService
+        .sendAppointmentStatusEmail(
+          patientEmail,
+          {
+            doctorName: `Dr. ${updatedAppointment.doctorId.firstName} ${updatedAppointment.doctorId.lastName}`,
+            date: updatedAppointment.date,
+            startTime: updatedAppointment.startTime,
+            endTime: updatedAppointment.endTime,
+          },
+          status
+        )
+        .catch((err) => console.error('Failed to send status email:', err));
+    }
 
     res.json({
       message: 'Appointment updated successfully',

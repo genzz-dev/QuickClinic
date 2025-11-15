@@ -147,11 +147,17 @@ export const getPatientProfile = async (req, res) => {
     // Conditionally populate based on data existence
     const populateOptions = [];
 
+    // Always populate userId to get email
+    populateOptions.push({
+      path: 'userId',
+      select: 'email',
+    });
+
     if (patient.healthRecords && patient.healthRecords.length > 0) {
       populateOptions.push({
         path: 'healthRecords',
         select: 'recordType title date description files isShared doctorId clinicId',
-        options: { sort: { date: -1 } }, // Sort by date descending
+        options: { sort: { date: -1 } },
       });
     }
 
@@ -167,18 +173,17 @@ export const getPatientProfile = async (req, res) => {
       });
     }
 
-    // Re-query with population if needed
-    if (populateOptions.length > 0) {
-      patient = await Patient.findById(profileId)
-        .select(selectFields)
-        .populate(populateOptions)
-        .lean();
-    }
+    // Re-query with population
+    patient = await Patient.findById(profileId)
+      .select(selectFields)
+      .populate(populateOptions)
+      .lean();
 
     // Structure the response with explicit field mapping
     const profileResponse = {
       _id: patient._id,
-      userId: patient.userId,
+      userId: patient.userId?._id,
+      email: patient.userId?.email || '', // Extract email from populated userId
       firstName: patient.firstName || '',
       lastName: patient.lastName || '',
       dateOfBirth: patient.dateOfBirth || null,
