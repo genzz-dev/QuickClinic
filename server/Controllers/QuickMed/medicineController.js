@@ -1,218 +1,263 @@
 import axios from 'axios';
 
-// Search for medicine suggestions by name
+/**
+ * MEDICINE BACKEND CONTROLLER
+ * Free APIs Used:
+ * 1. RxNorm API (NIH) - Medicine info, names, properties (No API key required)
+ * 2. OpenFDA API - Side effects, warnings, dosage, usage info (No API key required)
+ */
+
+// ============================================
+// 1. AUTO-SUGGESTION ENDPOINT
+// ============================================
+// GET /api/medicines/suggestions?query=aspir
+export const getMedicineSuggestions = async (req, res) => {
+  try {
+    const { query } = req.query;
+
+    // Validate input
+    if (!query || query.trim() === '' || query.length < 2) {
+      return res.status(400).json({
+        success: false,
+        message: 'Query must be at least 2 characters',
+      });
+    }
+
+    // RxNorm spelling suggestions API
+    const suggestUrl = `https://rxnav.nlm.nih.gov/REST/spellingsuggestions.json?name=${encodeURIComponent(query)}`;
+    const suggestResponse = await axios.get(suggestUrl);
+
+    const suggestions =
+      suggestResponse.data.suggestionGroup?.suggestionGroup?.[0]?.suggestionList?.suggestion || [];
+
+    res.status(200).json({
+      success: true,
+      suggestions: suggestions,
+      count: suggestions.length,
+    });
+  } catch (error) {
+    console.error('Error fetching suggestions:', error.message);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching suggestions',
+      error: error.message,
+    });
+  }
+};
+
+// ============================================
+// 2. SEARCH MEDICINE ENDPOINT
+// ============================================
+// GET /api/medicines/search?medicineName=aspirin
 export const searchMedicine = async (req, res) => {
   try {
     const { medicineName } = req.query;
 
+    // Validate input
     if (!medicineName || medicineName.trim() === '') {
       return res.status(400).json({
         success: false,
-        message: 'Medicine name is required'
+        message: 'Medicine name is required',
       });
     }
 
-    // RxNorm API - Get spelling suggestions and search
-    const rxNormUrl = `https://rxnav.nlm.nih.gov/REST/rxcui.json?name=${encodeURIComponent(medicineName)}&search=1`;
-    
+    // Search RxNorm for medicines
+    const rxNormUrl = `https://rxnav.nlm.nih.gov/REST/drugs.json?name=${encodeURIComponent(medicineName)}`;
     const rxResponse = await axios.get(rxNormUrl);
+
     const medicines = [];
 
-    if (rxResponse.data.idGroup && rxResponse.data.idGroup.rxList) {
-      for (const drug of rxResponse.data.idGroup.rxList) {
-        const rxcui = drug.rxcui;
-        const name = drug.name;
+    // Check if results exist
+    if (rxResponse.data.drugGroup?.conceptGroup) {
+      for (const group of rxResponse.data.drugGroup.conceptGroup) {
+        if (group.conceptProperties) {
+          for (const drug of group.conceptProperties) {
+            const rxcui = drug.rxcui;
+            const name = drug.name;
 
-        // Get detailed properties for each medicine
-        const detailsUrl = `https://rxnav.nlm.nih.gov/REST/rxcui/${rxcui}/properties.json?propCategories=all`;
-        const detailsResponse = await axios.get(detailsUrl);
-        
-        let medicineDetails = {
-          rxcui: rxcui,
-          name: name,
-          genericName: name,
-          brandNames: [],
-          strength: 'N/A',
-          dosageForm: 'N/A'
-        };
+            // Get detailed properties
+            try {
+              const detailsUrl = `https://rxnav.nlm.nih.gov/REST/rxcui/${rxcui}/properties.json`;
+              const detailsResponse = await axios.get(detailsUrl);
 
-        if (detailsResponse.data.propConceptGroup) {
-          for (const group of detailsResponse.data.propConceptGroup) {
-            if (group.propConcept) {
-              for (const prop of group.propConcept) {
-                if (prop.propName === 'DOSE_FORM') {
-                  medicineDetails.dosageForm = prop.propValue;
-                }
-                if (prop.propName === 'STRENGTH') {
-                  medicineDetails.strength = prop.propValue;
-                }
-              }
+              let medicineDetails = {
+                rxcui: rxcui,
+                name: name,
+                genericName: detailsResponse.data.properties?.genericName || name,
+                synonym: detailsResponse.data.properties?.synonym || 'N/A',
+                strength: detailsResponse.data.properties?.strength || 'N/A',
+                doseForm: detailsResponse.data.properties?.doseForm || 'N/A',
+              };
+
+              medicines.push(medicineDetails);
+            } catch (err) {
+              console.log('Error fetching details for:', name);
             }
           }
         }
-
-        // Get brand names
-        const brandUrl = `https://rxnav.nlm.nih.gov/REST/rxcui/${rxcui}/related.json?rela=tradename_of`;
-        try {
-          const brandResponse = await axios.get(brandUrl);
-          if (brandResponse.data.relatedGroup && brandResponse.data.relatedGroup.length > 0) {
-            const conceptGroup = brandResponse.data.relatedGroup[0].conceptGroup;
-            if (conceptGroup) {
-              medicineDetails.brandNames = conceptGroup.map(group => 
-                group.conceptProperties ? group.conceptProperties[0].name : ''
-              ).filter(name => name);
-            }
-          }
-        } catch (err) {
-          console.log('Error fetching brand names');
-        }
-
-        medicines.push(medicineDetails);
       }
     }
 
     res.status(200).json({
       success: true,
       data: medicines,
-      count: medicines.length
+      count: medicines.length,
     });
-
   } catch (error) {
-    console.error('Error searching medicine:', error);
+    console.error('Error searching medicine:', error.message);
     res.status(500).json({
       success: false,
       message: 'Error searching for medicine',
-      error: error.message
+      error: error.message,
     });
   }
 };
 
-// Get detailed medicine information including side effects
+// ============================================
+// 3. GET DETAILED MEDICINE INFO ENDPOINT
+// ============================================
+// GET /api/medicines/details/:medicineName
 export const getMedicineDetails = async (req, res) => {
   try {
     const { medicineName } = req.params;
 
+    // Validate input
     if (!medicineName || medicineName.trim() === '') {
       return res.status(400).json({
         success: false,
-        message: 'Medicine name is required'
+        message: 'Medicine name is required',
       });
     }
 
     // Step 1: Search in RxNorm for the medicine
-    const rxNormUrl = `https://rxnav.nlm.nih.gov/REST/drugs.json?name=${encodeURIComponent(medicineName)}&search=1`;
+    const rxNormUrl = `https://rxnav.nlm.nih.gov/REST/drugs.json?name=${encodeURIComponent(medicineName)}`;
     const rxResponse = await axios.get(rxNormUrl);
 
-    if (!rxResponse.idGroup || !rxResponse.idGroup.rxList || rxResponse.idGroup.rxList.length === 0) {
+    // Check if medicine exists
+    if (!rxResponse.data.drugGroup?.conceptGroup) {
       return res.status(404).json({
         success: false,
-        message: 'Medicine not found'
+        message: 'Medicine not found',
       });
     }
 
-    const drug = rxResponse.idGroup.rxList[0];
+    // Get first match
+    let drug = null;
+    for (const group of rxResponse.data.drugGroup.conceptGroup) {
+      if (group.conceptProperties && group.conceptProperties.length > 0) {
+        drug = group.conceptProperties[0];
+        break;
+      }
+    }
+
+    if (!drug) {
+      return res.status(404).json({
+        success: false,
+        message: 'Medicine not found',
+      });
+    }
+
     const rxcui = drug.rxcui;
     const name = drug.name;
-    
-    // Step 2: Get all RxNorm properties
-    const propertiesUrl = `https://rxnav.nlm.nih.gov/REST/rxcui/${rxcui}/properties.json?propCategories=all`;
+
+    // Step 2: Get RxNorm properties
+    const propertiesUrl = `https://rxnav.nlm.nih.gov/REST/rxcui/${rxcui}/properties.json`;
     const propertiesResponse = await axios.get(propertiesUrl);
 
     let medicineData = {
       name: name,
       rxcui: rxcui,
-      genericName: name,
-      brandNames: [],
-      strength: 'N/A',
-      dosageForm: 'N/A',
-      properties: {}
+      genericName: propertiesResponse.data.properties?.genericName || name,
+      brandName: propertiesResponse.data.properties?.brandName || 'N/A',
+      strength: propertiesResponse.data.properties?.strength || 'N/A',
+      doseForm: propertiesResponse.data.properties?.doseForm || 'N/A',
+      synonym: propertiesResponse.data.properties?.synonym || 'N/A',
     };
 
-    if (propertiesResponse.data.propConceptGroup) {
-      for (const group of propertiesResponse.data.propConceptGroup) {
-        if (group.propConcept) {
-          for (const prop of group.propConcept) {
-            medicineData.properties[prop.propName] = prop.propValue;
-            if (prop.propName === 'DOSE_FORM') {
-              medicineData.dosageForm = prop.propValue;
-            }
-            if (prop.propName === 'STRENGTH') {
-              medicineData.strength = prop.propValue;
-            }
-          }
-        }
-      }
-    }
-
-    // Step 3: Get brand names and related drugs
-    const relatedUrl = `https://rxnav.nlm.nih.gov/REST/rxcui/${rxcui}/related.json`;
+    // Step 3: Get related drugs (brand names)
+    const relatedUrl = `https://rxnav.nlm.nih.gov/REST/rxcui/${rxcui}/related.json?tty=BN+SBD`;
+    let brandNames = [];
     try {
       const relatedResponse = await axios.get(relatedUrl);
-      if (relatedResponse.data.relatedGroup) {
-        for (const group of relatedResponse.data.relatedGroup) {
-          if (group.rela === 'tradename_of' && group.conceptGroup) {
-            medicineData.brandNames = group.conceptGroup.map(cg => 
-              cg.conceptProperties ? cg.conceptProperties[0].name : ''
-            ).filter(n => n);
+      if (relatedResponse.data.relatedGroup?.conceptGroup) {
+        for (const group of relatedResponse.data.relatedGroup.conceptGroup) {
+          if (group.conceptProperties) {
+            brandNames = group.conceptProperties.map((cp) => cp.name);
           }
         }
       }
     } catch (err) {
       console.log('Error fetching related information');
     }
+    medicineData.brandNames = brandNames;
 
-    // Step 4: Get side effects and adverse events from OpenFDA
-    const fdaUrl = `https://api.fda.gov/drug/label.json?search=generic_name:"${encodeURIComponent(name)}"&limit=1`;
+    // Step 4: Get side effects and usage from OpenFDA
     let sideEffects = [];
     let warnings = [];
-    let dosageInfo = {};
+    let dosageInfo = 'N/A';
     let indications = [];
+    let contraindications = [];
+    let interactions = [];
 
+    // Try generic name search
+    const fdaUrl = `https://api.fda.gov/drug/label.json?search=openfda.generic_name:"${encodeURIComponent(name)}"&limit=1`;
     try {
       const fdaResponse = await axios.get(fdaUrl);
+
       if (fdaResponse.data.results && fdaResponse.data.results.length > 0) {
         const label = fdaResponse.data.results[0];
-        
+
+        // Side effects
         sideEffects = label.adverse_reactions || [];
-        warnings = label.warnings || [];
-        dosageInfo = {
-          dosage_and_administration: label.dosage_and_administration ? label.dosage_and_administration[0] : 'N/A',
-          directions_for_use: label.directions_for_use ? label.directions_for_use[0] : 'N/A'
-        };
+
+        // Warnings
+        warnings = label.warnings || label.boxed_warning || label.warnings_and_cautions || [];
+
+        // Dosage information
+        dosageInfo = label.dosage_and_administration ? label.dosage_and_administration[0] : 'N/A';
+
+        // Indications (uses)
         indications = label.indications_and_usage || [];
+
+        // Contraindications
+        contraindications = label.contraindications || [];
+
+        // Drug interactions
+        interactions = label.drug_interactions || [];
       }
     } catch (err) {
-      console.log('FDA data not found for this medicine, attempting alternative search');
-      
-      // Try alternative FDA search using brand name
+      console.log('FDA generic name search failed, trying brand name...');
+
+      // Try brand name search
       try {
-        const altFdaUrl = `https://api.fda.gov/drug/label.json?search=brand_name:"${encodeURIComponent(name)}"&limit=1`;
+        const altFdaUrl = `https://api.fda.gov/drug/label.json?search=openfda.brand_name:"${encodeURIComponent(name)}"&limit=1`;
         const altFdaResponse = await axios.get(altFdaUrl);
+
         if (altFdaResponse.data.results && altFdaResponse.data.results.length > 0) {
           const label = altFdaResponse.data.results[0];
+
           sideEffects = label.adverse_reactions || [];
-          warnings = label.warnings || [];
-          dosageInfo = {
-            dosage_and_administration: label.dosage_and_administration ? label.dosage_and_administration[0] : 'N/A',
-            directions_for_use: label.directions_for_use ? label.directions_for_use[0] : 'N/A'
-          };
+          warnings = label.warnings || label.boxed_warning || label.warnings_and_cautions || [];
+          dosageInfo = label.dosage_and_administration ? label.dosage_and_administration[0] : 'N/A';
           indications = label.indications_and_usage || [];
+          contraindications = label.contraindications || [];
+          interactions = label.drug_interactions || [];
         }
       } catch (altErr) {
         console.log('Alternative FDA search also failed');
       }
     }
 
-    // Step 5: Get adverse event reports
+    // Step 5: Get adverse event reports (common side effects reported by patients)
     let adverseEvents = [];
     const adverseEventsUrl = `https://api.fda.gov/drug/event.json?search=patient.drug.openfda.generic_name:"${encodeURIComponent(name)}"&count=patient.reaction.reactionmeddrapt.exact&limit=10`;
-    
     try {
       const adverseResponse = await axios.get(adverseEventsUrl);
+
       if (adverseResponse.data.results) {
-        adverseEvents = adverseResponse.data.results.map(result => ({
-          event: result.term,
-          count: result.count
+        adverseEvents = adverseResponse.data.results.map((result) => ({
+          reaction: result.term,
+          count: result.count,
         }));
       }
     } catch (err) {
@@ -222,60 +267,83 @@ export const getMedicineDetails = async (req, res) => {
     // Combine all data
     const completeDetails = {
       ...medicineData,
-      sideEffects: sideEffects,
-      commonAdverseReactions: adverseEvents.slice(0, 10),
+      usage: {
+        indications: indications,
+        dosageInfo: dosageInfo,
+      },
+      sideEffects: {
+        adverseReactions: sideEffects,
+        commonReportedReactions: adverseEvents.slice(0, 10),
+      },
       warnings: warnings,
-      indications: indications,
-      dosageInfo: dosageInfo
+      contraindications: contraindications,
+      interactions: interactions,
     };
 
     res.status(200).json({
       success: true,
-      data: completeDetails
+      data: completeDetails,
     });
-
   } catch (error) {
-    console.error('Error fetching medicine details:', error);
+    console.error('Error fetching medicine details:', error.message);
     res.status(500).json({
       success: false,
       message: 'Error fetching medicine details',
-      error: error.message
+      error: error.message,
     });
   }
 };
 
-// Auto-complete suggestions as user types
-export const getMedicineSuggestions = async (req, res) => {
+// ============================================
+// 4. GET DRUG INTERACTIONS ENDPOINT (BONUS)
+// ============================================
+// GET /api/medicines/interactions?rxcui=rxcui1,rxcui2
+export const getDrugInteractions = async (req, res) => {
   try {
-    const { query } = req.query;
+    const { rxcui } = req.query;
 
-    if (!query || query.trim() === '' || query.length < 2) {
+    if (!rxcui || rxcui.trim() === '') {
       return res.status(400).json({
         success: false,
-        message: 'Query must be at least 2 characters'
+        message: 'RxCUI is required',
       });
     }
 
-    // RxNorm spelling suggestions
-    const suggestUrl = `https://rxnav.nlm.nih.gov/REST/spellingsuggestions.json?name=${encodeURIComponent(query)}`;
-    const suggestResponse = await axios.get(suggestUrl);
+    // RxNorm drug interactions API
+    const interactionUrl = `https://rxnav.nlm.nih.gov/REST/interaction/list.json?rxcuis=${encodeURIComponent(rxcui)}`;
+    const interactionResponse = await axios.get(interactionUrl);
 
-    const suggestions = suggestResponse.data.suggestionGroup && suggestResponse.data.suggestionGroup[0]
-      ? suggestResponse.data.suggestionGroup[0].suggestionList.suggestion
-      : [];
+    const interactions = [];
+    if (interactionResponse.data.fullInteractionTypeGroup) {
+      for (const group of interactionResponse.data.fullInteractionTypeGroup) {
+        if (group.fullInteractionType) {
+          for (const interactionType of group.fullInteractionType) {
+            if (interactionType.interactionPair) {
+              for (const pair of interactionType.interactionPair) {
+                interactions.push({
+                  drug1: pair.interactionConcept[0]?.minConceptItem?.name || 'Unknown',
+                  drug2: pair.interactionConcept[1]?.minConceptItem?.name || 'Unknown',
+                  severity: pair.severity || 'N/A',
+                  description: pair.description || 'N/A',
+                });
+              }
+            }
+          }
+        }
+      }
+    }
 
     res.status(200).json({
       success: true,
-      suggestions: suggestions,
-      count: suggestions.length
+      data: interactions,
+      count: interactions.length,
     });
-
   } catch (error) {
-    console.error('Error fetching suggestions:', error);
+    console.error('Error fetching interactions:', error.message);
     res.status(500).json({
       success: false,
-      message: 'Error fetching suggestions',
-      error: error.message
+      message: 'Error fetching drug interactions',
+      error: error.message,
     });
   }
 };

@@ -1,5 +1,9 @@
 import express from 'express';
-import { searchMedicine, getMedicineDetails, getMedicineSuggestions } from '../../Controllers/QuickMed/medicineController.js'
+import {
+  searchMedicine,
+  getMedicineDetails,
+  getMedicineSuggestions,
+} from '../../Controllers/QuickMed/medicineController.js';
 
 const router = express.Router();
 
