@@ -22,45 +22,75 @@ export const getMedicineSuggestions = async (req, res) => {
         message: 'Query must be at least 2 characters',
       });
     }
+    const suggestions = new Set();
 
-    console.log('Fetching suggestions for:', query);
+    // Strategy 1: Wildcard search without quotes (handles partial matches better)
+    const url1 = `https://api.fda.gov/drug/label.json?search=openfda.brand_name:${encodeURIComponent(query)}*+openfda.generic_name:${encodeURIComponent(query)}*&limit=10`;
 
-    // Using OpenFDA drug label API for suggestions
-    const url = `https://api.fda.gov/drug/label.json?search=openfda.brand_name:"${encodeURIComponent(query)}"*+openfda.generic_name:"${encodeURIComponent(query)}"*&limit=10`;
+    // Strategy 2: Substring search (searches anywhere in the name)
+    const url2 = `https://api.fda.gov/drug/label.json?search=openfda.brand_name:*${encodeURIComponent(query)}*+openfda.generic_name:*${encodeURIComponent(query)}*&limit=10`;
+
+    // Strategy 3: For very short queries or common typos, try fuzzy matching
+    // by removing the last character and doing a broader search
+    let url3 = null;
+    if (query.length >= 4) {
+      const fuzzyQuery = query.slice(0, -1); // Remove last char for fuzzy match
+      url3 = `https://api.fda.gov/drug/label.json?search=openfda.brand_name:${encodeURIComponent(fuzzyQuery)}*+openfda.generic_name:${encodeURIComponent(fuzzyQuery)}*&limit=10`;
+    }
+
+    // Try all strategies
+    const urls = [url1, url2, url3].filter(Boolean);
 
     try {
-      const response = await axios.get(url, { timeout: 10000 });
+      const responses = await Promise.allSettled(
+        urls.map((url) => axios.get(url, { timeout: 10000 }))
+      );
 
-      const suggestions = new Set();
+      responses.forEach((result) => {
+        if (result.status === 'fulfilled' && result.value.data?.results) {
+          result.value.data.results.forEach((drug) => {
+            // Add brand names
+            if (drug.openfda?.brand_name) {
+              drug.openfda.brand_name.forEach((name) => {
+                if (name.toLowerCase().includes(query.toLowerCase())) {
+                  suggestions.add(name);
+                }
+              });
+            }
 
-      if (response.data && response.data.results) {
-        response.data.results.forEach((result) => {
-          // Add brand names
-          if (result.openfda && result.openfda.brand_name) {
-            result.openfda.brand_name.forEach((name) => {
-              if (name.toLowerCase().includes(query.toLowerCase())) {
-                suggestions.add(name);
-              }
-            });
-          }
-          // Add generic names
-          if (result.openfda && result.openfda.generic_name) {
-            result.openfda.generic_name.forEach((name) => {
-              if (name.toLowerCase().includes(query.toLowerCase())) {
-                suggestions.add(name);
-              }
-            });
-          }
-        });
-      }
+            // Add generic names
+            if (drug.openfda?.generic_name) {
+              drug.openfda.generic_name.forEach((name) => {
+                if (name.toLowerCase().includes(query.toLowerCase())) {
+                  suggestions.add(name);
+                }
+              });
+            }
+          });
+        }
+      });
+
+      // Sort by relevance (starts with query first, then contains query)
+      const sortedSuggestions = Array.from(suggestions).sort((a, b) => {
+        const aLower = a.toLowerCase();
+        const bLower = b.toLowerCase();
+        const queryLower = query.toLowerCase();
+
+        const aStarts = aLower.startsWith(queryLower);
+        const bStarts = bLower.startsWith(queryLower);
+
+        if (aStarts && !bStarts) return -1;
+        if (!aStarts && bStarts) return 1;
+        return a.localeCompare(b);
+      });
 
       res.status(200).json({
         success: true,
-        suggestions: Array.from(suggestions).slice(0, 10),
-        count: suggestions.size,
+        suggestions: sortedSuggestions.slice(0, 10),
+        count: sortedSuggestions.length,
       });
     } catch (err) {
-      // If no results, return empty
+      // If all strategies fail, return empty
       res.status(200).json({
         success: true,
         suggestions: [],
