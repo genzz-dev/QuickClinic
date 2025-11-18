@@ -1,1 +1,71 @@
 @import 'tailwindcss';
+
+/* Enable dark mode with class selector */
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  /* QuickMed Light Mode Colors */
+  --color-med-green-50: #f0fdf4;
+  --color-med-green-100: #dcfce7;
+  --color-med-green-200: #bbf7d0;
+  --color-med-green-300: #86efac;
+  --color-med-green-400: #4ade80;
+  --color-med-green-500: #22c55e;
+  --color-med-green-600: #16a34a;
+  --color-med-green-700: #15803d;
+  --color-med-green-800: #166534;
+  --color-med-green-900: #14532d;
+
+  /* QuickMed Blue Accent */
+  --color-med-blue-400: #60a5fa;
+  --color-med-blue-500: #3b82f6;
+  --color-med-blue-600: #2563eb;
+
+  /* Light Mode Base Colors */
+  --color-med-background: #ffffff;
+  --color-med-surface: #f9fafb;
+  --color-med-text: #1a1a1a;
+  --color-med-text-muted: #6b7280;
+  --color-med-border: #e5e7eb;
+}
+
+/* Dark Mode Overrides */
+@layer base {
+  .dark {
+    --color-med-green-500: #22c55e;
+    --color-med-green-600: #16a34a;
+    --color-med-green-700: #15803d;
+
+    --color-med-blue-500: #60a5fa;
+    --color-med-blue-600: #3b82f6;
+
+    /* Dark Mode Base Colors */
+    --color-med-background: #0f172a;
+    --color-med-surface: #1e293b;
+    --color-med-text: #f1f5f9;
+    --color-med-text-muted: #94a3b8;
+    --color-med-border: #334155;
+  }
+}
+
+/* Custom Component Classes */
+@layer components {
+  .btn-quickmed-primary {
+    background-color: var(--color-med-green-500);
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.5rem;
+    transition: background-color 0.2s;
+  }
+
+  .btn-quickmed-primary:hover {
+    background-color: var(--color-med-green-600);
+  }
+
+  .card-quickmed {
+    background-color: var(--color-med-surface);
+    border: 1px solid var(--color-med-border);
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+  }
+}
