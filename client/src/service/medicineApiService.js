@@ -11,7 +11,7 @@ import apiService from './apiservice';
  * @returns {Promise} - List of medicine suggestions
  */
 export const getMedicineSuggestions = async (query) => {
-  return await apiService.get('/medicine/suggestions', {
+  return await apiService.get('/medicines/suggestions', {
     params: { query },
   });
 };
@@ -22,7 +22,7 @@ export const getMedicineSuggestions = async (query) => {
  * @returns {Promise} - List of medicines matching the search
  */
 export const searchMedicine = async (medicineName) => {
-  return await apiService.get('/medicine/search', {
+  return await apiService.get('/medicines/search', {
     params: { medicineName },
   });
 };
@@ -33,5 +33,5 @@ export const searchMedicine = async (medicineName) => {
  * @returns {Promise} - Detailed medicine information including dosage, warnings, etc.
  */
 export const getMedicineDetails = async (medicineName) => {
-  return await apiService.get(`/medicine/details/${encodeURIComponent(medicineName)}`);
+  return await apiService.get(`/medicines/details/${encodeURIComponent(medicineName)}`);
 };
