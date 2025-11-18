@@ -1,0 +1,94 @@
+{
+  "info": {
+    "name": "QuickMed - Medicine Information API",
+    "_postman_id": "quickmed-collection-001",
+    "description": "Complete Postman collection for testing QuickMed medicine information API endpoints. Includes auto-suggestions, medicine search, detailed information with side effects, warnings, and drug interactions.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Auto-Suggestions",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/medicines/suggestions?query=aspir",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "medicines", "suggestions"],
+          "query": [
+            {
+              "key": "query",
+              "value": "aspir",
+              "description": "Search query (minimum 2 characters)"
+            }
+          ]
+        },
+        "description": "Get medicine name suggestions as user types (autocomplete feature).\n\n**Query Parameters:**\n- `query` (required): Search query, minimum 2 characters\n\n**Example queries to try:**\n- aspir\n- para\n- ibu\n- metf"
+      },
+      "response": []
+    },
+    {
+      "name": "2. Search Medicine",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/medicines/search?medicineName=aspirin",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "medicines", "search"],
+          "query": [
+            {
+              "key": "medicineName",
+              "value": "aspirin",
+              "description": "Name of the medicine to search"
+            }
+          ]
+        },
+        "description": "Search for medicines by name. Returns a list of matching medicines with basic information.\n\n**Query Parameters:**\n- `medicineName` (required): Full or partial medicine name\n\n**Example searches to try:**\n- aspirin\n- paracetamol\n- ibuprofen\n- metformin\n- lisinopril"
+      },
+      "response": []
+    },
+    {
+      "name": "3. Get Medicine Details",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/medicines/details/aspirin",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "medicines", "details", "aspirin"]
+        },
+        "description": "Get comprehensive medicine information including:\n- Generic and brand names\n- Strength and dosage form\n- Side effects and adverse reactions\n- Usage and indications\n- Warnings and contraindications\n- Drug interactions\n- Dosage information\n- Common patient-reported reactions\n\n**URL Parameters:**\n- `medicineName` (required): Name of the medicine\n\n**Example medicines to try:**\n- aspirin\n- paracetamol\n- ibuprofen\n- metformin\n- atorvastatin\n- amoxicillin"
+      },
+      "response": []
+    },
+    {
+      "name": "4. Get Drug Interactions",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/medicines/interactions?rxcui=1191",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "medicines", "interactions"],
+          "query": [
+            {
+              "key": "rxcui",
+              "value": "1191",
+              "description": "RxCUI code(s) - comma-separated for multiple drugs"
+            }
+          ]
+        },
+        "description": "Get drug interaction information. First use the search endpoint to get the RxCUI, then use it here.\n\n**Query Parameters:**\n- `rxcui` (required): RxCUI code(s), comma-separated for multiple drugs\n\n**Example RxCUIs:**\n- 1191 (aspirin)\n- 161 (acetaminophen)\n- 5640 (ibuprofen)\n- 6809 (metformin)\n\n**Note:** To get the RxCUI of a medicine, first use the Search Medicine endpoint."
+      },
+      "response": []
+    }
+  ]
+}
