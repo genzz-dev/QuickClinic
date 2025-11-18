@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { BrowserRouter, useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -90,7 +90,6 @@ function AppInner() {
 export default function App() {
   return (
     <>
-      {console.log(`${import.meta.env.VITE_API_BASE_URL}/public`)}
       <AppInner />
     </>
   );
