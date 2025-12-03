@@ -11,6 +11,7 @@ import DoctorRoutes from './routes/DoctorRoutes';
 import PatientRoutes from './routes/PatientRoutes';
 import PublicRoutes from './routes/PublicRoutes';
 import getDashboardPath from './utility/getDashboardPath';
+import QuickmedRoutes from './routes/QuickmedRoutes';
 
 // App.jsx - Updated AppInner component
 function AppInner() {
@@ -41,7 +42,10 @@ function AppInner() {
   // Conditional rendering with better route handling
   const renderRoutes = () => {
     console.log('Auth state:', { isAuthenticated, isLoading, user, pathname: location.pathname });
-
+    const quickMedPath = location.pathname.startsWith('/quick-med');
+    if (quickMedPath) {
+      return <QuickmedRoutes />;
+    }
     // For authenticated users
     if (isAuthenticated && user) {
       switch (user.role) {

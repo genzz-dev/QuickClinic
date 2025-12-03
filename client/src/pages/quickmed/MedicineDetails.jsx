@@ -13,7 +13,6 @@ const MedicineDetails = () => {
   const [medicineData, setMedicineData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
   useEffect(() => {
     const fetchMedicineDetails = async () => {
       try {
@@ -48,7 +47,6 @@ const MedicineDetails = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <Navbar />
       <MedicineHeader medicineData={medicineData} navigate={navigate} />
       <MedicineContent medicineData={medicineData} />
     </div>
