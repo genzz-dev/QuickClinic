@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Search, Menu, X } from 'lucide-react';
 import { getMedicineSuggestions } from '../../service/medicineApiService';
 import DarkModeToggle from '../ui/DarkModeToggle';
+import { useNavigate } from 'react-router-dom';
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -9,7 +10,7 @@ const Navbar = () => {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const searchRef = useRef(null);
-
+  const navigate = useNavigate();
   // Handle search input changes
   const handleSearchChange = async (e) => {
     const value = e.target.value;
@@ -37,8 +38,7 @@ const Navbar = () => {
   const handleSuggestionClick = (suggestion) => {
     setSearchQuery(suggestion);
     setShowSuggestions(false);
-    // Placeholder for future implementation
-    console.log('Selected medicine:', suggestion);
+    navigate(`/quick-med/medicine/${suggestion}`);
   };
 
   // Close suggestions when clicking outside
