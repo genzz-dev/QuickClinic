@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getMedicineDetails } from '../../service/medicineApiService';
 import Loading from '../../components/ui/Loading';
-import Navbar from '../../components/quickmed/Navbar';
 import MedicineHeader from '../../components/quickmed/MedicineDetailsPage/MedicineHeader';
 import MedicineContent from '../../components/quickmed/MedicineDetailsPage/MedicineContent';
 import MedicineError from '../../components/quickmed/MedicineDetailsPage/MedicineError';
