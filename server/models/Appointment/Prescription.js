@@ -37,6 +37,7 @@ const prescriptionSchema = new mongoose.Schema({
   followUpDate: { type: Date },
   isDigitalSignature: { type: Boolean, default: false },
   signature: { type: String },
+  quickmed: { type: Boolean, default: false },
 });
 
 export default mongoose.model('Prescription', prescriptionSchema);
