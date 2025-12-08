@@ -689,9 +689,22 @@ const AppointmentDetails = () => {
                                         className="w-full text-left p-3 hover:bg-gray-50 border-b border-gray-100 last:border-b-0"
                                       >
                                         <div className="font-medium">{suggestion}</div>
-                                        <div className="text-sm text-gray-600">
-                                          {suggestion.dosage} - {suggestion.frequency}
-                                        </div>
+
+                                        <button
+                                          type="button"
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            window.open(
+                                              `/quick-med/medicine/${encodeURIComponent(suggestion)}`,
+                                              '_blank',
+                                              'noopener,noreferrer'
+                                            );
+                                          }}
+                                          className="px-2 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 flex items-center space-x-1 whitespace-nowrap"
+                                          title={`View ${suggestion} in QuickMed`}
+                                        >
+                                          <span>See in QuickMed</span>
+                                        </button>
                                         <div className="text-xs text-gray-500">QuickMed ✓</div>
                                       </button>
                                     ))}
