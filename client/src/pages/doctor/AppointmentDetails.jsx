@@ -25,11 +25,13 @@ import {
   getAppointmentPrescription,
   updatePrescription,
 } from '../../service/prescriptionApiSevice';
+import { getMedicineSuggestions } from '../../service/medicineApiService';
 
 const AppointmentDetails = () => {
   const { appointmentId } = useParams();
   const navigate = useNavigate();
-
+  const [medicineSuggestions, setMedicineSuggestions] = useState([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
   const [appointment, setAppointment] = useState(null);
   const [patientInfo, setPatientInfo] = useState(null);
   const [prescription, setPrescription] = useState(null);
@@ -51,7 +53,22 @@ const AppointmentDetails = () => {
       fetchAppointmentData();
     }
   }, [appointmentId]);
-
+  const fetchSuggestions = useCallback(
+    debounce(async (query) => {
+      if (query.length >= 2) {
+        try {
+          const suggestions = await getMedicineSuggestions(query);
+          setMedicineSuggestions(suggestions);
+          setShowSuggestions(true);
+        } catch (err) {
+          console.error('Suggestion fetch failed', err);
+        }
+      } else {
+        setShowSuggestions(false);
+      }
+    }, 300),
+    []
+  );
   const fetchAppointmentData = async () => {
     try {
       setLoading(true);
