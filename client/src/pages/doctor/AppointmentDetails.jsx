@@ -13,7 +13,7 @@ import {
   VideoCameraIcon,
   XMarkIcon,
 } from '@heroicons/react/24/outline';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
   getAppointmentDetails,
@@ -25,11 +25,13 @@ import {
   getAppointmentPrescription,
   updatePrescription,
 } from '../../service/prescriptionApiSevice';
+import { getMedicineSuggestions } from '../../service/medicineApiService';
 
 const AppointmentDetails = () => {
   const { appointmentId } = useParams();
   const navigate = useNavigate();
-
+  const [medicineSuggestions, setMedicineSuggestions] = useState([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
   const [appointment, setAppointment] = useState(null);
   const [patientInfo, setPatientInfo] = useState(null);
   const [prescription, setPrescription] = useState(null);
@@ -45,13 +47,43 @@ const AppointmentDetails = () => {
     followUpDate: '',
   });
   const [savingPrescription, setSavingPrescription] = useState(false);
+  const useDebounce = (callback, delay) => {
+    const timeoutRef = useRef(null);
 
+    return useCallback(
+      (...args) => {
+        if (timeoutRef.current) {
+          clearTimeout(timeoutRef.current);
+        }
+        timeoutRef.current = setTimeout(() => callback(...args), delay);
+      },
+      [callback, delay]
+    );
+  };
   useEffect(() => {
     if (appointmentId) {
       fetchAppointmentData();
     }
   }, [appointmentId]);
-
+  const fetchSuggestions = useDebounce(async (query) => {
+    if (query.length >= 2) {
+      try {
+        const suggestions = await getMedicineSuggestions(query);
+        setMedicineSuggestions(suggestions.suggestions);
+        setShowSuggestions(true);
+      } catch (err) {
+        console.error('Suggestion fetch failed', err);
+      }
+    } else {
+      setShowSuggestions(false);
+      setMedicineSuggestions([]);
+    }
+  }, 300);
+  // Update medicine name input onChange
+  const handleMedicineNameChange = (index, value) => {
+    updateMedication(index, 'name', value);
+    fetchSuggestions(value);
+  };
   const fetchAppointmentData = async () => {
     try {
       setLoading(true);
@@ -639,10 +671,45 @@ const AppointmentDetails = () => {
                                   type="text"
                                   placeholder="Medicine name"
                                   value={medication.name}
-                                  onChange={(e) => updateMedication(index, 'name', e.target.value)}
+                                  onChange={(e) => handleMedicineNameChange(index, e.target.value)}
                                   className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
-                                  required
                                 />
+                                {showSuggestions && medicineSuggestions.length > 0 && (
+                                  <div className="absolute z-10 w-full bg-white border border-gray-200 rounded-md shadow-lg mt-1 max-h-60 overflow-auto">
+                                    {medicineSuggestions.map((suggestion, sugIndex) => (
+                                      <button
+                                        key={sugIndex}
+                                        type="button"
+                                        onClick={() => {
+                                          updateMedication(index, 'name', suggestion);
+                                          updateMedication(index, 'quickmed', true);
+                                          setShowSuggestions(false);
+                                          setMedicineSuggestions([]);
+                                        }}
+                                        className="w-full text-left p-3 hover:bg-gray-50 border-b border-gray-100 last:border-b-0"
+                                      >
+                                        <div className="font-medium">{suggestion}</div>
+
+                                        <button
+                                          type="button"
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            window.open(
+                                              `/quick-med/medicine/${encodeURIComponent(suggestion)}`,
+                                              '_blank',
+                                              'noopener,noreferrer'
+                                            );
+                                          }}
+                                          className="px-2 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 flex items-center space-x-1 whitespace-nowrap"
+                                          title={`View ${suggestion} in QuickMed`}
+                                        >
+                                          <span>See in QuickMed</span>
+                                        </button>
+                                        <div className="text-xs text-gray-500">QuickMed ✓</div>
+                                      </button>
+                                    ))}
+                                  </div>
+                                )}
                               </div>
                               <div>
                                 <input

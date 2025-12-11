@@ -25,6 +25,7 @@ const prescriptionSchema = new mongoose.Schema({
       frequency: { type: String, required: true },
       duration: { type: String, required: true },
       instructions: { type: String },
+      quickmed: { type: Boolean, default: false },
     },
   ],
   tests: [

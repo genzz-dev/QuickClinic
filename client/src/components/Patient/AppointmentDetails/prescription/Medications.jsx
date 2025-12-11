@@ -31,6 +31,18 @@ const Medications = ({ medications }) => {
                 <td className="p-1.5 sm:p-3 text-gray-600 text-[10px] sm:text-sm">
                   {med.instructions || 'As directed'}
                 </td>
+                <td>
+                  {med.quickmed === true && (
+                    <a
+                      href={`/quick-med/medicine/${encodeURIComponent(med.name || med.medicineName)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="quickmed-button"
+                    >
+                      See in QuickMed
+                    </a>
+                  )}
+                </td>
               </tr>
             ))}
           </tbody>
