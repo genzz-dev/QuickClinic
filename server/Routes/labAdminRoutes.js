@@ -10,7 +10,7 @@ import {
   updateTest,
   getLabInfo,
 } from '../Controllers/labAdminController.js';
-import upload from '../middleware/upload.js';
+import upload from '../Middleware/upload.js';
 
 const router = express.Router();
 

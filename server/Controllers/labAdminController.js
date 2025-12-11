@@ -1,8 +1,8 @@
 // controllers/labAdminController.js
 import mongoose from 'mongoose';
 import Lab from '../models/Lab/Lab.js';
-import LabAdmin from '../models/Users/LabAdmin.js';
-import LabStaff from '../models/Users/LabStaff.js';
+import LabAdmin from '../models/Lab/LabAdmin.js';
+import LabStaff from '../models/Lab/LabStaff.js';
 import User from '../models/Users/User.js';
 import { uploadToCloudinary } from '../services/uploadService.js';
 

@@ -19,6 +19,8 @@ import appointmentScheduler from './services/appointmentScheduler.js';
 import pushNotificationServiceRoutes from './Routes/pushNotificationRoutes.js';
 //QuickMed
 import medicineRoutes from './Routes/QuickMed/medicineRoutes.js';
+//QuickLab
+import labAdminRoutes from './Routes/labAdminRoutes.js';
 
 const app = express();
 
@@ -45,6 +47,8 @@ app.use('/api/public', publicRoutes);
 app.use('/api/ratings', ratingRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/push-notifications', pushNotificationServiceRoutes);
+//QuickLabs Route
+app.use('/api/lab-admin', labAdminRoutes);
 //QuickMed Routes
 app.use('/api/medicines', medicineRoutes);
 

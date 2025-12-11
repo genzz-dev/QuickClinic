@@ -17,7 +17,7 @@ export const register = async (req, res) => {
     }
 
     // Validate role if provided
-    if (role && !['patient', 'doctor', 'admin'].includes(role)) {
+    if (role && !['patient', 'doctor', 'admin', 'lab_admin', 'lab_staff'].includes(role)) {
       return res.status(400).json({ message: 'Invalid role specified' });
     }
 
