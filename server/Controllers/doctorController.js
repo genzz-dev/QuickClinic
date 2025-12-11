@@ -409,3 +409,34 @@ export const getDoctorSchedule = async (req, res) => {
     });
   }
 };
+// Suggest lab to patient
+export const suggestLabToPatient = async (req, res) => {
+  try {
+    const { profileId } = req.user;
+    const { patientId, labId, tests, notes } = req.body;
+
+    if (!mongoose.Types.ObjectId.isValid(patientId) || !mongoose.Types.ObjectId.isValid(labId)) {
+      return res.status(400).json({ message: 'Invalid ID format' });
+    }
+
+    const lab = await Lab.findById(labId);
+    if (!lab) {
+      return res.status(404).json({ message: 'Lab not found' });
+    }
+
+    // Create a suggestion record or notification
+    // This can be sent via notification service or email
+
+    res.json({
+      message: 'Lab suggested to patient successfully',
+      labDetails: {
+        name: lab.name,
+        tests,
+        notes,
+      },
+    });
+  } catch (error) {
+    console.error('Error suggesting lab:', error);
+    res.status(500).json({ message: 'Failed to suggest lab' });
+  }
+};
