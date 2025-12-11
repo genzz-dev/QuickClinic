@@ -21,6 +21,9 @@ import pushNotificationServiceRoutes from './Routes/pushNotificationRoutes.js';
 import medicineRoutes from './Routes/QuickMed/medicineRoutes.js';
 //QuickLab
 import labAdminRoutes from './Routes/labAdminRoutes.js';
+import labAppointmentRoutes from './Routes/labAppointmentRoutes.js';
+import labReportRoutes from './Routes/labReportRoutes.js';
+import labRoutes from './Routes/labRoutes.js';
 
 const app = express();
 

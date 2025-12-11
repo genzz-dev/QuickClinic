@@ -256,7 +256,6 @@ export const addTest = async (req, res) => {
       equipmentName,
     } = req.body;
 
-    const LabAdmin = (await import('../models/Users/LabAdmin.js')).default;
     const labAdmin = await LabAdmin.findById(profileId);
     if (!labAdmin || !labAdmin.labId) {
       return res.status(400).json({ message: 'Lab admin not associated with any lab' });
