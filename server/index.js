@@ -24,7 +24,7 @@ import labAdminRoutes from './Routes/labAdminRoutes.js';
 import labAppointmentRoutes from './Routes/labAppointmentRoutes.js';
 import labReportRoutes from './Routes/labReportRoutes.js';
 import labRoutes from './Routes/labRoutes.js';
-
+import LabStaffRoutes from './Routes/labStaffRoutes.js';
 const app = express();
 
 const PORT = process.env.PORT;
@@ -52,6 +52,10 @@ app.use('/api/notifications', notificationRoutes);
 app.use('/api/push-notifications', pushNotificationServiceRoutes);
 //QuickLabs Route
 app.use('/api/lab-admin', labAdminRoutes);
+app.use('/api/lab-appointment', labAppointmentRoutes);
+app.use('/api/lab-report', labReportRoutes);
+app.use('/api/lab-staff', LabStaffRoutes);
+app.use('/api/lab', labRoutes);
 //QuickMed Routes
 app.use('/api/medicines', medicineRoutes);
 

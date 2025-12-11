@@ -107,59 +107,148 @@ export const createLab = async (req, res) => {
   }
 };
 
-// Add staff member to lab
-export const addStaffMember = async (req, res) => {
+export const searchStaff = async (req, res) => {
+  try {
+    const { email, staffId } = req.query;
+
+    if (!email && !staffId) {
+      return res.status(400).json({ message: 'Email or staff ID is required' });
+    }
+
+    let staff;
+
+    if (staffId) {
+      if (!mongoose.Types.ObjectId.isValid(staffId)) {
+        return res.status(400).json({ message: 'Invalid staff ID format' });
+      }
+      staff = await LabStaff.findById(staffId).populate('userId', 'email').lean();
+    } else if (email) {
+      const user = await User.findOne({ email, role: 'lab_staff' });
+      if (user) {
+        staff = await LabStaff.findOne({ userId: user._id }).populate('userId', 'email').lean();
+      }
+    }
+
+    if (!staff) {
+      return res.status(404).json({ message: 'Staff not found' });
+    }
+
+    // Check if staff is already assigned to a lab
+    if (staff.isAssignedToLab && staff.labId) {
+      return res.status(400).json({
+        message: 'Staff is already assigned to another lab',
+        staff: {
+          id: staff._id,
+          firstName: staff.firstName,
+          lastName: staff.lastName,
+          email: staff.userId.email,
+        },
+      });
+    }
+
+    res.json({
+      message: 'Staff found',
+      staff: {
+        id: staff._id,
+        firstName: staff.firstName,
+        lastName: staff.lastName,
+        email: staff.userId.email,
+        phoneNumber: staff.phoneNumber,
+        role: staff.role,
+        qualifications: staff.qualifications,
+        experience: staff.experience,
+        isProfileComplete: staff.isProfileComplete,
+      },
+    });
+  } catch (error) {
+    console.error('Error searching staff:', error);
+    res.status(500).json({ message: 'Failed to search staff' });
+  }
+};
+
+// Add existing staff to lab by staffId
+export const addStaffToLab = async (req, res) => {
   try {
     const { profileId } = req.user;
-    const { email, password, firstName, lastName, phoneNumber, role } = req.body;
+    const { staffId } = req.body;
+
+    if (!mongoose.Types.ObjectId.isValid(staffId)) {
+      return res.status(400).json({ message: 'Invalid staff ID format' });
+    }
 
     const labAdmin = await LabAdmin.findById(profileId);
     if (!labAdmin || !labAdmin.labId) {
       return res.status(400).json({ message: 'Lab admin not associated with any lab' });
     }
 
-    // Create user account for staff
-    const existingUser = await User.findOne({ email });
-    if (existingUser) {
-      return res.status(409).json({ message: 'User with this email already exists' });
+    const staff = await LabStaff.findById(staffId);
+    if (!staff) {
+      return res.status(404).json({ message: 'Staff not found' });
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const user = new User({
-      email,
-      password: hashedPassword,
-      role: 'lab_staff',
-    });
-    await user.save();
+    // Check if staff already assigned to a lab
+    if (staff.isAssignedToLab && staff.labId) {
+      return res.status(400).json({
+        message: 'Staff is already assigned to another lab',
+      });
+    }
 
-    // Create staff profile
-    const staff = new LabStaff({
-      userId: user._id,
-      firstName,
-      lastName,
-      phoneNumber,
-      labId: labAdmin.labId,
-      role: role || 'assistant',
-    });
+    // Assign staff to lab
+    staff.labId = labAdmin.labId;
+    staff.isAssignedToLab = true;
     await staff.save();
 
-    // Add staff to lab
-    await Lab.findByIdAndUpdate(labAdmin.labId, { $push: { staff: staff._id } });
+    // Add staff to lab's staff array
+    await Lab.findByIdAndUpdate(labAdmin.labId, { $push: { staff: staffId } });
 
-    res.status(201).json({
-      message: 'Staff member added successfully',
+    res.json({
+      message: 'Staff added to lab successfully',
       staff: staff.toObject({ getters: true, versionKey: false }),
     });
   } catch (error) {
-    console.error('Error adding staff member:', error);
-    res.status(500).json({
-      message: 'Failed to add staff member',
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
-    });
+    console.error('Error adding staff to lab:', error);
+    res.status(500).json({ message: 'Failed to add staff to lab' });
   }
 };
 
-// Get all staff members
+// Remove staff from lab
+export const removeStaffFromLab = async (req, res) => {
+  try {
+    const { profileId } = req.user;
+    const { staffId } = req.params;
+
+    const labAdmin = await LabAdmin.findById(profileId);
+    if (!labAdmin || !labAdmin.labId) {
+      return res.status(400).json({ message: 'Lab admin not associated with any lab' });
+    }
+
+    const staff = await LabStaff.findById(staffId);
+    if (!staff) {
+      return res.status(404).json({ message: 'Staff not found' });
+    }
+
+    if (staff.labId.toString() !== labAdmin.labId.toString()) {
+      return res.status(403).json({ message: 'Staff does not belong to your lab' });
+    }
+
+    // Remove lab association
+    staff.labId = null;
+    staff.isAssignedToLab = false;
+    await staff.save();
+
+    // Remove from lab's staff array
+    await Lab.findByIdAndUpdate(labAdmin.labId, { $pull: { staff: staffId } });
+
+    res.json({
+      message: 'Staff removed from lab successfully',
+    });
+  } catch (error) {
+    console.error('Error removing staff from lab:', error);
+    res.status(500).json({ message: 'Failed to remove staff from lab' });
+  }
+};
+
+// Get all staff members (existing method - keep as is)
 export const getLabStaff = async (req, res) => {
   try {
     const { profileId } = req.user;

@@ -1,4 +1,4 @@
-// models/Users/LabStaff.js
+// models/Lab/LabStaff.js
 import mongoose from 'mongoose';
 
 const labStaffSchema = new mongoose.Schema(
@@ -13,10 +13,11 @@ const labStaffSchema = new mongoose.Schema(
     lastName: { type: String, required: true },
     phoneNumber: { type: String, required: true },
 
+    // Lab association (initially null until admin adds them)
     labId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Lab',
-      required: true,
+      default: null,
     },
 
     role: {
@@ -25,14 +26,33 @@ const labStaffSchema = new mongoose.Schema(
       default: 'assistant',
     },
 
+    // Profile completion status
+    isProfileComplete: { type: Boolean, default: false },
+
+    // Whether staff is associated with a lab
+    isAssignedToLab: { type: Boolean, default: false },
+
     // For home sample collection assignments
     isAvailableForHomeCollection: { type: Boolean, default: true },
+
     currentAssignments: [
       {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'LabAppointment',
       },
     ],
+
+    completedAssignments: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'LabAppointment',
+      },
+    ],
+
+    // Professional details
+    qualifications: [String],
+    experience: { type: Number }, // years
+    profilePicture: { type: String },
   },
   { timestamps: true }
 );

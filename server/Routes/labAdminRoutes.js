@@ -4,7 +4,9 @@ import { authenticate, authorize } from '../Middleware/authMiddleware.js';
 import {
   createLabAdminProfile,
   createLab,
-  addStaffMember,
+  searchStaff,
+  addStaffToLab,
+  removeStaffFromLab,
   getLabStaff,
   addTest,
   updateTest,
@@ -25,10 +27,18 @@ router.post(
   ]),
   createLab
 );
-router.post('/staff', authenticate, authorize('lab_admin'), addStaffMember);
+
+// Staff management
+router.get('/staff/search', authenticate, authorize('lab_admin'), searchStaff);
+router.post('/staff/add', authenticate, authorize('lab_admin'), addStaffToLab);
+router.delete('/staff/:staffId', authenticate, authorize('lab_admin'), removeStaffFromLab);
 router.get('/staff', authenticate, authorize('lab_admin'), getLabStaff);
+
+// Test management
 router.post('/tests', authenticate, authorize('lab_admin'), addTest);
 router.put('/tests/:testId', authenticate, authorize('lab_admin'), updateTest);
+
+// Lab info
 router.get('/lab/info', authenticate, authorize('lab_admin'), getLabInfo);
 
 export default router;
