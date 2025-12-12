@@ -1,6 +1,6 @@
 // routes/labStaffRoutes.js
 import express from 'express';
-import { authenticate, authorize } from '../Middleware/authMiddleware.js';
+import { authenticate, authorize } from '../../Middleware/authMiddleware.js';
 import {
   createStaffProfile,
   updateStaffProfile,
@@ -10,8 +10,8 @@ import {
   getAssignmentDetails,
   updateMyAssignmentStatus,
   completeAssignment,
-} from '../Controllers/labStaffController.js';
-import upload from '../Middleware/upload.js';
+} from '../../Controllers/QuickLab/labStaffController.js';
+import upload from '../../Middleware/upload.js';
 
 const router = express.Router();
 

@@ -20,11 +20,11 @@ import pushNotificationServiceRoutes from './Routes/pushNotificationRoutes.js';
 //QuickMed
 import medicineRoutes from './Routes/QuickMed/medicineRoutes.js';
 //QuickLab
-import labAdminRoutes from './Routes/labAdminRoutes.js';
-import labAppointmentRoutes from './Routes/labAppointmentRoutes.js';
-import labReportRoutes from './Routes/labReportRoutes.js';
-import labRoutes from './Routes/labRoutes.js';
-import LabStaffRoutes from './Routes/labStaffRoutes.js';
+import labAdminRoutes from './Routes/QuickLab/labAdminRoutes.js';
+import labAppointmentRoutes from './Routes/QuickLab/labAppointmentRoutes.js';
+import labReportRoutes from './Routes/QuickLab/labReportRoutes.js';
+import labRoutes from './Routes/QuickLab/labRoutes.js';
+import LabStaffRoutes from './Routes/QuickLab/labStaffRoutes.js';
 const app = express();
 
 const PORT = process.env.PORT;

@@ -1,7 +1,11 @@
 // routes/labRoutes.js
 import express from 'express';
-import { authenticate, authorize } from '../Middleware/authMiddleware.js';
-import { searchLabs, getLabDetails, getLabTests } from '../Controllers/labController.js';
+import { authenticate, authorize } from '../../Middleware/authMiddleware.js';
+import {
+  searchLabs,
+  getLabDetails,
+  getLabTests,
+} from '../../Controllers/QuickLab/labController.js';
 
 const router = express.Router();
 

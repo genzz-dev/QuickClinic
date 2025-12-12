@@ -1,10 +1,10 @@
 // controllers/labAdminController.js
 import mongoose from 'mongoose';
-import Lab from '../models/Lab/Lab.js';
-import LabAdmin from '../models/Lab/LabAdmin.js';
-import LabStaff from '../models/Lab/LabStaff.js';
-import User from '../models/Users/User.js';
-import { uploadToCloudinary } from '../services/uploadService.js';
+import Lab from '../../models/Lab/Lab.js';
+import LabAdmin from '../../models/Lab/LabAdmin.js';
+import LabStaff from '../../models/Lab/LabStaff.js';
+import User from '../../models/Users/User.js';
+import { uploadToCloudinary } from '../../services/uploadService.js';
 
 // Create lab admin profile
 export const createLabAdminProfile = async (req, res) => {

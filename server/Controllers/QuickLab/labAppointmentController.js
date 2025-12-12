@@ -1,10 +1,10 @@
 // controllers/labAppointmentController.js
 import mongoose from 'mongoose';
-import LabAppointment from '../models/Lab/LabAppointment.js';
-import Lab from '../models/Lab/Lab.js';
-import Patient from '../models/Users/Patient.js';
-import LabStaff from '../models/Lab/LabStaff.js';
-import LabReport from '../models/Lab/LabReport.js';
+import LabAppointment from '../../models/Lab/LabAppointment.js';
+import Lab from '../../models/Lab/Lab.js';
+import Patient from '../../models/Users/Patient.js';
+import LabStaff from '../../models/Lab/LabStaff.js';
+import LabReport from '../../models/Lab/LabReport.js';
 
 // Book lab appointment (by patient)
 export const bookLabAppointment = async (req, res) => {

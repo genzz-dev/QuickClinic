@@ -1,5 +1,5 @@
 // controllers/labController.js (for patient/doctor to search labs)
-import Lab from '../models/Lab/Lab.js';
+import Lab from '../../models/Lab/Lab.js';
 
 // Search labs
 export const searchLabs = async (req, res) => {

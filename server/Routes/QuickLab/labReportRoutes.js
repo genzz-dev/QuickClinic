@@ -1,14 +1,14 @@
 // routes/labReportRoutes.js
 import express from 'express';
-import { authenticate, authorize } from '../Middleware/authMiddleware.js';
+import { authenticate, authorize } from '../../Middleware/authMiddleware.js';
 import {
   uploadLabReport,
   getPatientLabReports,
   getDoctorPatientReports,
   addDoctorRemarks,
   getReportDetails,
-} from '../Controllers/labReportController.js';
-import upload from '../middleware/upload.js';
+} from '../../Controllers/QuickLab/labReportController.js';
+import upload from '../../Middleware/upload.js';
 
 const router = express.Router();
 

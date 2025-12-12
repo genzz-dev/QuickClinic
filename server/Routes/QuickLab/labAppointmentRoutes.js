@@ -1,13 +1,13 @@
 // routes/labAppointmentRoutes.js
 import express from 'express';
-import { authenticate, authorize } from '../Middleware/authMiddleware.js';
+import { authenticate, authorize } from '../../Middleware/authMiddleware.js';
 import {
   bookLabAppointment,
   getPatientLabAppointments,
   getLabAppointments,
   assignStaffForCollection,
   updateLabAppointmentStatus,
-} from '../Controllers/labAppointmentController.js';
+} from '../../Controllers/QuickLab/labAppointmentController.js';
 
 const router = express.Router();
 

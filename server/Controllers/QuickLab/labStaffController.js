@@ -1,9 +1,9 @@
 // controllers/labStaffController.js
 import mongoose from 'mongoose';
-import LabStaff from '../models/Lab/LabStaff.js';
-import LabAppointment from '../models/Lab/LabAppointment.js';
-import Lab from '../models/Lab/Lab.js';
-import { uploadToCloudinary } from '../services/uploadService.js';
+import LabStaff from '../../models/Lab/LabStaff.js';
+import LabAppointment from '../../models/Lab/LabAppointment.js';
+import Lab from '../../models/Lab/Lab.js';
+import { uploadToCloudinary } from '../../services/uploadService.js';
 
 // Create staff profile (after user registration)
 export const createStaffProfile = async (req, res) => {

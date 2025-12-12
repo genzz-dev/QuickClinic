@@ -1,6 +1,6 @@
 // routes/labAdminRoutes.js
 import express from 'express';
-import { authenticate, authorize } from '../Middleware/authMiddleware.js';
+import { authenticate, authorize } from '../../Middleware/authMiddleware.js';
 import {
   createLabAdminProfile,
   createLab,
@@ -11,8 +11,8 @@ import {
   addTest,
   updateTest,
   getLabInfo,
-} from '../Controllers/labAdminController.js';
-import upload from '../Middleware/upload.js';
+} from '../../Controllers/QuickLab/labAdminController.js';
+import upload from '../../Middleware/upload.js';
 
 const router = express.Router();
 
