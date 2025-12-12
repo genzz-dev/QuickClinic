@@ -1,0 +1,159 @@
+@import 'tailwindcss';
+
+/* Enable dark mode with class selector */
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  /* QuickLab Light Mode Colors - Yellow/Gold Spectrum */
+  --color-lab-yellow-50: #fefce8;
+  --color-lab-yellow-100: #fef9c3;
+  --color-lab-yellow-200: #fef08a;
+  --color-lab-yellow-300: #fde047;
+  --color-lab-yellow-400: #facc15;
+  --color-lab-yellow-500: #eab308;
+  --color-lab-yellow-600: #ca8a04;
+  --color-lab-yellow-700: #a16207;
+  --color-lab-yellow-800: #854d0e;
+  --color-lab-yellow-900: #713f12;
+
+  /* QuickLab Black/Gray Spectrum */
+  --color-lab-black-50: #f8fafc;
+  --color-lab-black-100: #f1f5f9;
+  --color-lab-black-200: #e2e8f0;
+  --color-lab-black-300: #cbd5e1;
+  --color-lab-black-400: #94a3b8;
+  --color-lab-black-500: #64748b;
+  --color-lab-black-600: #475569;
+  --color-lab-black-700: #334155;
+  --color-lab-black-800: #1e293b;
+  --color-lab-black-900: #0f172a;
+
+  /* QuickLab Blue Accent */
+  --color-lab-blue-400: #60a5fa;
+  --color-lab-blue-500: #3b82f6;
+  --color-lab-blue-600: #2563eb;
+  --color-lab-blue-700: #1d4ed8;
+
+  /* Light Mode Base Colors */
+  --color-lab-background: #ffffff;
+  --color-lab-surface: #f8fafc;
+  --color-lab-text: #0f172a;
+  --color-lab-text-muted: #64748b;
+  --color-lab-border: #e2e8f0;
+  --color-lab-primary: #eab308;
+  --color-lab-primary-dark: #ca8a04;
+  --color-lab-secondary: #1e293b;
+  --color-lab-accent: #3b82f6;
+}
+
+/* Dark Mode Overrides */
+@layer base {
+  .dark {
+    --color-lab-yellow-500: #facc15;
+    --color-lab-yellow-600: #eab308;
+    --color-lab-yellow-700: #ca8a04;
+    --color-lab-blue-500: #60a5fa;
+    --color-lab-blue-600: #3b82f6;
+
+    /* Dark Mode Base Colors */
+    --color-lab-background: #000000;
+    --color-lab-surface: #0f172a;
+    --color-lab-text: #f8fafc;
+    --color-lab-text-muted: #94a3b8;
+    --color-lab-border: #1e293b;
+    --color-lab-primary: #facc15;
+    --color-lab-primary-dark: #eab308;
+    --color-lab-secondary: #f8fafc;
+    --color-lab-accent: #60a5fa;
+  }
+}
+
+/* Custom Component Classes */
+@layer components {
+  /* Primary Button */
+  .btn-quicklab-primary {
+    background-color: var(--color-lab-primary);
+    color: var(--color-lab-black-900);
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.5rem;
+    transition: background-color 0.2s;
+    font-weight: 600;
+  }
+
+  .btn-quicklab-primary:hover {
+    background-color: var(--color-lab-primary-dark);
+  }
+
+  /* Secondary Button (Black) */
+  .btn-quicklab-secondary {
+    background-color: var(--color-lab-secondary);
+    color: var(--color-lab-yellow-400);
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.5rem;
+    transition: all 0.2s;
+    font-weight: 600;
+    border: 2px solid var(--color-lab-primary);
+  }
+
+  .btn-quicklab-secondary:hover {
+    background-color: var(--color-lab-black-800);
+    border-color: var(--color-lab-yellow-500);
+  }
+
+  /* Blue Accent Button */
+  .btn-quicklab-accent {
+    background-color: var(--color-lab-accent);
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.5rem;
+    transition: background-color 0.2s;
+    font-weight: 600;
+  }
+
+  .btn-quicklab-accent:hover {
+    background-color: var(--color-lab-blue-600);
+  }
+
+  /* Card Component */
+  .card-quicklab {
+    background-color: var(--color-lab-surface);
+    border: 1px solid var(--color-lab-border);
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+    transition: all 0.2s;
+  }
+
+  .card-quicklab:hover {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    border-color: var(--color-lab-primary);
+  }
+
+  /* Badge Component */
+  .badge-quicklab {
+    background-color: var(--color-lab-yellow-100);
+    color: var(--color-lab-yellow-800);
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.875rem;
+    font-weight: 600;
+  }
+
+  .dark .badge-quicklab {
+    background-color: var(--color-lab-yellow-900);
+    color: var(--color-lab-yellow-300);
+  }
+
+  /* Alert Component */
+  .alert-quicklab {
+    background-color: var(--color-lab-blue-50);
+    border-left: 4px solid var(--color-lab-accent);
+    padding: 1rem;
+    border-radius: 0.5rem;
+  }
+
+  .dark .alert-quicklab {
+    background-color: var(--color-lab-blue-900);
+    border-left-color: var(--color-lab-blue-500);
+  }
+}
