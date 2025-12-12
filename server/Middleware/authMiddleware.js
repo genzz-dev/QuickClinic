@@ -3,6 +3,8 @@ import Doctor from '../models/Users/Doctor.js';
 import Patient from '../models/Users/Patient.js';
 import User from '../models/Users/User.js';
 import { verifyAccessToken } from '../services/tokenService.js';
+import LabAdmin from '../models/Lab/LabAdmin.js';
+import LabStaff from '../models/Lab/LabStaff.js';
 export const authenticate = async (req, res, next) => {
   try {
     const authHeader = req.headers['authorization'];
@@ -30,6 +32,12 @@ export const authenticate = async (req, res, next) => {
         break;
       case 'patient':
         profile = await Patient.findOne({ userId: user._id });
+        break;
+      case 'lab_admin':
+        profile = await LabAdmin.findOne({ userId: user._id });
+        break;
+      case 'lab_staff':
+        profile = await LabStaff.findOne({ userId: user._id });
         break;
     }
 

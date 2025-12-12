@@ -34,6 +34,7 @@ const doctorSchema = new mongoose.Schema({
     count: { type: Number, default: 0 },
     totalStars: { type: Number, default: 0 },
   },
+  suggestedLabAppointments: [{ type: mongoose.Schema.Types.ObjectId, ref: 'LabAppointment' }],
 });
 
 export default mongoose.model('Doctor', doctorSchema);

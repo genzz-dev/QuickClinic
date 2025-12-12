@@ -28,6 +28,7 @@ const patientSchema = new mongoose.Schema({
   profilePicture: { type: String },
   healthRecords: [{ type: mongoose.Schema.Types.ObjectId, ref: 'HealthRecord' }],
   appointments: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Appointment' }],
+  labAppointments: [{ type: mongoose.Schema.Types.ObjectId, ref: 'LabAppointment' }],
 });
 
 export default mongoose.model('Patient', patientSchema);
