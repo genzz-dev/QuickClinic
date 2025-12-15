@@ -1,0 +1,135 @@
+@import 'tailwindcss';
+
+/* Enable dark mode with class selector */
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  /* QuickLab Light Mode Colors - Yellow/Gold Spectrum */
+  --color-lab-yellow-50: #fefce8;
+  --color-lab-yellow-100: #fef9c3;
+  --color-lab-yellow-200: #fef08a;
+  --color-lab-yellow-300: #fde047;
+  --color-lab-yellow-400: #facc15;
+  --color-lab-yellow-500: #eab308;
+  --color-lab-yellow-600: #ca8a04;
+  --color-lab-yellow-700: #a16207;
+  --color-lab-yellow-800: #854d0e;
+  --color-lab-yellow-900: #713f12;
+
+  /* QuickLab Black/Gray Spectrum */
+  --color-lab-black-50: #f8fafc;
+  --color-lab-black-100: #f1f5f9;
+  --color-lab-black-200: #e2e8f0;
+  --color-lab-black-300: #cbd5e1;
+  --color-lab-black-400: #94a3b8;
+  --color-lab-black-500: #64748b;
+  --color-lab-black-600: #475569;
+  --color-lab-black-700: #334155;
+  --color-lab-black-800: #1e293b;
+  --color-lab-black-900: #0f172a;
+
+  /* QuickLab Blue Accent */
+  --color-lab-blue-400: #60a5fa;
+  --color-lab-blue-500: #3b82f6;
+  --color-lab-blue-600: #2563eb;
+  --color-lab-blue-700: #1d4ed8;
+}
+
+/* Dark Mode Overrides */
+@layer base {
+  .dark {
+    --color-lab-yellow-400: #facc15;
+    --color-lab-yellow-500: #facc15;
+    --color-lab-yellow-600: #eab308;
+    --color-lab-yellow-700: #ca8a04;
+    --color-lab-blue-500: #60a5fa;
+    --color-lab-blue-600: #3b82f6;
+  }
+}
+
+/* Custom Component Classes */
+@layer components {
+  /* Primary Button */
+  .btn-quicklab-primary {
+    background-color: rgb(234 179 8); /* yellow-500 */
+    color: rgb(15 23 42); /* black-900 */
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.5rem;
+    transition: background-color 0.2s;
+    font-weight: 600;
+  }
+
+  .dark .btn-quicklab-primary {
+    background-color: rgb(250 204 21); /* yellow-400 */
+    color: rgb(15 23 42); /* black-900 - stays dark */
+  }
+
+  .btn-quicklab-primary:hover {
+    background-color: rgb(202 138 4); /* yellow-600 */
+  }
+
+  .dark .btn-quicklab-primary:hover {
+    background-color: rgb(234 179 8); /* yellow-500 */
+  }
+
+  /* Secondary Button (Black) */
+  .btn-quicklab-secondary {
+    background-color: rgb(30 41 59); /* black-800 */
+    color: rgb(250 204 21); /* yellow-400 */
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.5rem;
+    transition: all 0.2s;
+    font-weight: 600;
+    border: 2px solid rgb(234 179 8); /* yellow-500 */
+  }
+
+  .dark .btn-quicklab-secondary {
+    background-color: rgb(248 250 252); /* light in dark mode */
+    color: rgb(30 41 59); /* dark text */
+    border-color: rgb(250 204 21); /* yellow-400 */
+  }
+
+  .btn-quicklab-secondary:hover {
+    background-color: rgb(15 23 42); /* black-900 */
+    border-color: rgb(234 179 8); /* yellow-500 */
+  }
+
+  /* Card Component */
+  .card-quicklab {
+    background-color: rgb(248 250 252); /* surface light */
+    border: 1px solid rgb(226 232 240); /* border light */
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+    transition: all 0.2s;
+  }
+
+  .dark .card-quicklab {
+    background-color: rgb(15 23 42); /* surface dark */
+    border-color: rgb(30 41 59); /* border dark */
+  }
+
+  .card-quicklab:hover {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    border-color: rgb(234 179 8); /* yellow-500 */
+  }
+
+  .dark .card-quicklab:hover {
+    border-color: rgb(250 204 21); /* yellow-400 */
+  }
+
+  /* Badge Component */
+  .badge-quicklab {
+    background-color: rgb(254 249 195); /* yellow-100 */
+    color: rgb(133 77 14); /* yellow-800 */
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.875rem;
+    font-weight: 600;
+  }
+
+  .dark .badge-quicklab {
+    background-color: rgb(113 63 18); /* yellow-900 */
+    color: rgb(253 224 71); /* yellow-300 */
+  }
+}

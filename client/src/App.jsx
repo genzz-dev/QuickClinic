@@ -12,6 +12,7 @@ import PatientRoutes from './routes/PatientRoutes';
 import PublicRoutes from './routes/PublicRoutes';
 import getDashboardPath from './utility/getDashboardPath';
 import QuickmedRoutes from './routes/QuickmedRoutes';
+import QuickLabRoutes from './routes/QuickLabRoutes';
 
 // App.jsx - Updated AppInner component
 function AppInner() {
@@ -43,8 +44,12 @@ function AppInner() {
   const renderRoutes = () => {
     console.log('Auth state:', { isAuthenticated, isLoading, user, pathname: location.pathname });
     const quickMedPath = location.pathname.startsWith('/quick-med');
+    const quickLabPath = location.pathname.startsWith('/quick-lab');
     if (quickMedPath) {
       return <QuickmedRoutes />;
+    }
+    if (quickLabPath) {
+      return <QuickLabRoutes />;
     }
     // For authenticated users
     if (isAuthenticated && user) {

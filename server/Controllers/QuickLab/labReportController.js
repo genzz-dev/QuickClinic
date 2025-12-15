@@ -1,5 +1,3 @@
-// controllers/labReportController.js
-import mongoose from 'mongoose';
 import LabReport from '../../models/Lab/LabReport.js';
 import LabAppointment from '../../models/Lab/LabAppointment.js';
 import { uploadToCloudinary } from '../../services/uploadService.js';
