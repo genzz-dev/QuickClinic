@@ -1,7 +1,7 @@
 // DesktopNavbar.jsx
 import { Search } from 'lucide-react';
 import DarkModeToggle from '../ui/DarkModeToggle';
-
+import DesktopFooter from './DesktopFooter';
 export default function DesktopNavbar({ searchQuery, setSearchQuery }) {
   return (
     <nav className="hidden lg:block fixed top-0 left-0 right-0 z-50 bg-white dark:bg-black border-b border-slate-200 dark:border-slate-800 shadow-sm">
