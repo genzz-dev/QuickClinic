@@ -21,6 +21,20 @@ export const updateLabTest = (testId, updates) =>
   apiService.put(`/lab-admin/tests/${testId}`, updates);
 export const getLabInfo = () => apiService.get('/lab-admin/lab/info');
 
+/**
+ * Check if Lab Exists for current lab admin
+ */
+export const checkLabExists = async () => {
+  return await apiService.get('/lab-admin/lab/status');
+};
+
+/**
+ * Check if Lab Admin Profile Exists
+ */
+export const checkLabAdminProfileExists = async () => {
+  return await apiService.get('/lab-admin/profile/status');
+};
+
 export default {
   createLabAdminProfile,
   createLab,
@@ -31,4 +45,6 @@ export default {
   addLabTest,
   updateLabTest,
   getLabInfo,
+  checkLabExists,
+  checkLabAdminProfileExists,
 };

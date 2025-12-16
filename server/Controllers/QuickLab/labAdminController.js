@@ -55,6 +55,36 @@ export const createLab = async (req, res) => {
     const { userId, profileId } = req.user;
     const labData = req.body;
 
+    // Rebuild nested fields from multipart form-data (dot-notation fallbacks)
+    const contact = {
+      phone:
+        labData.contact?.phone || labData['contact.phone'] || labData.contactPhone || labData.phone,
+      email:
+        labData.contact?.email || labData['contact.email'] || labData.contactEmail || labData.email,
+      website:
+        labData.contact?.website ||
+        labData['contact.website'] ||
+        labData.contactWebsite ||
+        labData.website,
+    };
+
+    const address = {
+      formattedAddress:
+        labData.address?.formattedAddress ||
+        labData['address.formattedAddress'] ||
+        labData.formattedAddress,
+      city: labData.address?.city || labData['address.city'] || labData.city,
+      state: labData.address?.state || labData['address.state'] || labData.state,
+      zipCode: labData.address?.zipCode || labData['address.zipCode'] || labData.zipCode,
+      country: labData.address?.country || labData['address.country'] || labData.country,
+    };
+
+    // Normalize numeric fee
+    const generalHomeCollectionFee =
+      labData.generalHomeCollectionFee !== undefined && labData.generalHomeCollectionFee !== ''
+        ? Number(labData.generalHomeCollectionFee)
+        : undefined;
+
     const labAdmin = await LabAdmin.findById(profileId);
     if (!labAdmin) {
       return res.status(404).json({ message: 'Lab admin profile not found' });
@@ -64,7 +94,7 @@ export const createLab = async (req, res) => {
       return res.status(400).json({ message: 'Lab admin can only manage one lab' });
     }
 
-    if (!labData.name || !labData.contact?.phone) {
+    if (!labData.name || !contact.phone) {
       return res.status(400).json({ message: 'Lab name and contact phone are required' });
     }
 
@@ -86,6 +116,9 @@ export const createLab = async (req, res) => {
 
     const lab = new Lab({
       ...labData,
+      contact,
+      address,
+      generalHomeCollectionFee,
       labAdminId: profileId,
     });
 
@@ -413,6 +446,69 @@ export const addTest = async (req, res) => {
     console.error('Error adding test:', error);
     res.status(500).json({
       message: 'Failed to add test',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
+    });
+  }
+};
+
+// Check if Lab Admin Profile Exists
+export const checkLabAdminProfileExists = async (req, res) => {
+  try {
+    const { userId } = req.user;
+
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({ message: 'Invalid user ID format' });
+    }
+
+    const existingAdmin = await LabAdmin.findOne({ userId });
+
+    if (existingAdmin) {
+      return res.status(200).json({
+        exists: true,
+        message: 'Lab admin profile exists',
+      });
+    } else {
+      return res.status(200).json({
+        exists: false,
+        message: 'Lab admin profile does not exist',
+      });
+    }
+  } catch (error) {
+    console.error('Error checking lab admin profile:', error);
+    res.status(500).json({
+      message: 'Failed to check lab admin profile',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
+    });
+  }
+};
+
+// Check if Lab Exists for the Lab Admin
+export const checkLabExists = async (req, res) => {
+  try {
+    const { profileId } = req.user;
+
+    if (!mongoose.Types.ObjectId.isValid(profileId)) {
+      return res.status(400).json({ message: 'Invalid profile ID format' });
+    }
+
+    const labAdmin = await LabAdmin.findById(profileId);
+
+    if (labAdmin?.labId) {
+      return res.status(200).json({
+        exists: true,
+        labId: labAdmin.labId,
+        message: 'Lab already exists for this admin',
+      });
+    }
+
+    return res.status(200).json({
+      exists: false,
+      message: 'No lab found for this admin',
+    });
+  } catch (error) {
+    console.error('Error checking lab status:', error);
+    res.status(500).json({
+      message: 'Failed to check lab status',
       error: process.env.NODE_ENV === 'development' ? error.message : undefined,
     });
   }

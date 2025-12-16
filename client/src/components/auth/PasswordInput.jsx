@@ -1,4 +1,4 @@
-import { Eye, EyeOff, Lock } from 'lucide-react';
+import { Eye, EyeOff } from 'lucide-react';
 
 export const PasswordInput = ({
   id,
@@ -13,38 +13,38 @@ export const PasswordInput = ({
   error = null,
 }) => {
   return (
-    <div className="space-y-2">
-      {label && (
-        <label htmlFor={id} className="block text-sm font-medium text-gray-700">
-          {label} {required && <span className="text-red-500">*</span>}
-        </label>
-      )}
+    <div>
       <div className="relative">
-        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-          <Lock className="h-5 w-5 text-gray-400" />
-        </div>
         <input
           id={id}
           name={name}
           type={showPassword ? 'text' : 'password'}
+          autoComplete={name === 'password' ? 'current-password' : 'new-password'}
+          required={required}
           value={value}
           onChange={onChange}
+          className={`
+            block w-full px-4 py-3 pr-11 border rounded-lg
+            focus:ring-2 focus:ring-blue-500 focus:border-transparent
+            transition-colors
+            ${
+              error
+                ? 'border-red-300 bg-red-50 dark:bg-red-900/10'
+                : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900'
+            }
+            text-gray-900 dark:text-white placeholder:text-gray-400
+          `}
           placeholder={placeholder}
-          required={required}
-          className={`w-full pl-12 pr-12 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 ${
-            error ? 'border-red-500 focus:ring-red-500' : ''
-          }`}
         />
         <button
           type="button"
           onClick={() => setShowPassword(!showPassword)}
-          className="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-gray-600 transition-colors"
-          aria-label={showPassword ? 'Hide password' : 'Show password'}
+          className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
         >
           {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
         </button>
       </div>
-      {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
+      {error && <p className="text-sm text-red-600 dark:text-red-400 mt-1">{error}</p>}
     </div>
   );
 };

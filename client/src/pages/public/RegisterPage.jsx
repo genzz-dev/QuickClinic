@@ -1,8 +1,7 @@
-import { Check, Mail, Shield, Stethoscope, User } from 'lucide-react';
+import { Check, Mail, Shield, Stethoscope, User, Microscope, FlaskConical } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { AuthButton } from '../../components/auth/AuthButton.jsx';
-import { AuthLayout } from '../../components/auth/AuthLayout.jsx';
 import { ErrorMessage } from '../../components/auth/ErrorMessage.jsx';
 import { PasswordInput } from '../../components/auth/PasswordInput.jsx';
 import { useAuth } from '../../context/authContext.jsx';
@@ -17,6 +16,7 @@ const RegisterPage = ({ error, setError }) => {
     confirmPassword: '',
     role: 'patient',
   });
+
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -31,19 +31,26 @@ const RegisterPage = ({ error, setError }) => {
         case 'admin':
           navigate('/admin/complete-profile');
           break;
+        case 'lab_admin':
+          navigate('/quick-lab/lab-admin/dashboard');
+          break;
+        case 'lab_staff':
+          navigate('/quick-lab/lab-staff/dashboard');
+          break;
         default:
           navigate('/patient-dashboard');
       }
     }
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated, navigate, user]);
 
   const validateForm = () => {
     const errors = {};
     if (!formData.email) errors.email = 'Email is required';
-    else if (!/\S+@\S+\.\S+/.test(formData.email)) errors.email = 'Email is invalid';
+    else if (!/\S+@\S+\.\S+/.test(formData.email)) errors.email = 'Invalid email address';
+
     if (!formData.password) errors.password = 'Password is required';
-    else if (formData.password.length < 8)
-      errors.password = 'Password must be at least 8 characters';
+    else if (formData.password.length < 8) errors.password = 'Must be at least 8 characters';
+
     if (formData.password !== formData.confirmPassword)
       errors.confirmPassword = 'Passwords do not match';
 
@@ -70,116 +77,251 @@ const RegisterPage = ({ error, setError }) => {
       password: formData.password,
       role: formData.role,
     });
+
     if (!result.success) {
-      console.log(result);
       setError(result.error || 'Registration failed. Please try again.');
     }
     setIsLoading(false);
   };
 
   const roleOptions = [
-    { value: 'patient', label: 'Patient', icon: User, color: 'blue' },
-    { value: 'doctor', label: 'Doctor', icon: Stethoscope, color: 'green' },
-    { value: 'admin', label: 'Admin', icon: Shield, color: 'purple' },
+    {
+      value: 'patient',
+      label: 'Patient',
+      icon: User,
+      description: 'Book appointments & manage health records',
+    },
+    {
+      value: 'doctor',
+      label: 'Doctor',
+      icon: Stethoscope,
+      description: 'Manage consultations & patient care',
+    },
+    {
+      value: 'admin',
+      label: 'Administrator',
+      icon: Shield,
+      description: 'Oversee clinic operations',
+    },
+    {
+      value: 'lab_admin',
+      label: 'Lab Administrator',
+      icon: Microscope,
+      description: 'Manage laboratory operations',
+    },
+    {
+      value: 'lab_staff',
+      label: 'Lab Staff',
+      icon: FlaskConical,
+      description: 'Process tests & upload results',
+    },
   ];
 
   return (
-    <AuthLayout
-      title="Create Your Account"
-      subtitle="Join Quick Clinic to manage your health with ease."
-    >
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <ErrorMessage error={error} />
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex overflow-hidden">
+      {/* Left Side - Branding */}
+      <div className="hidden lg:flex flex-1 bg-gradient-to-br from-blue-600 to-blue-800 items-center justify-center p-8">
+        <div className="max-w-md text-white space-y-4">
+          <h2 className="text-3xl font-bold">Join Quick Clinic</h2>
+          <p className="text-base text-blue-100">
+            One unified platform for patients, doctors, administrators, and laboratory staff.
+          </p>
+          <div className="space-y-3 pt-2">
+            <div className="flex items-center gap-3">
+              <div className="w-1.5 h-1.5 rounded-full bg-white"></div>
+              <span className="text-sm text-blue-50">Role-based access control</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="w-1.5 h-1.5 rounded-full bg-white"></div>
+              <span className="text-sm text-blue-50">Enterprise-grade security</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="w-1.5 h-1.5 rounded-full bg-white"></div>
+              <span className="text-sm text-blue-50">Seamless healthcare management</span>
+            </div>
+          </div>
+        </div>
+      </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">I am a:</label>
-          <div className="grid grid-cols-3 gap-3">
-            {roleOptions.map((option) => (
-              <label
-                key={option.value}
-                htmlFor={option.value}
-                className={`relative flex flex-col items-center justify-center p-3 rounded-xl border-2 cursor-pointer transition-all ${formData.role === option.value ? `border-${option.color}-500 bg-${option.color}-50` : 'border-gray-200 hover:border-gray-300'}`}
-              >
-                <input
-                  type="radio"
-                  id={option.value}
-                  name="role"
-                  value={option.value}
-                  checked={formData.role === option.value}
-                  onChange={handleInputChange}
-                  className="sr-only"
-                />
-                <option.icon
-                  className={`w-6 h-6 mb-1 ${formData.role === option.value ? `text-${option.color}-600` : 'text-gray-500'}`}
-                />
-                <span className="text-sm font-medium text-gray-800">{option.label}</span>
-                {formData.role === option.value && (
-                  <Check
-                    className={`w-5 h-5 text-white bg-${option.color}-500 rounded-full p-1 absolute top-1 right-1`}
+      {/* Right Side - Form */}
+      <div className="flex-1 flex items-center justify-center px-4 sm:px-6 lg:px-8 py-6">
+        <div className="w-full max-w-2xl">
+          {/* Header - Compact */}
+          <div className="text-center mb-6">
+            <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-blue-600 mb-4">
+              <Shield className="w-6 h-6 text-white" />
+            </div>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">
+              Create your account
+            </h1>
+            <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+              Get started with Quick Clinic today
+            </p>
+          </div>
+
+          {/* Form - Compact */}
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <ErrorMessage error={error} />
+
+              {/* Role Selection - Compact Grid */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Select your role
+                </label>
+                <div className="grid grid-cols-5 gap-2">
+                  {roleOptions.map((role) => {
+                    const Icon = role.icon;
+                    const isSelected = formData.role === role.value;
+
+                    return (
+                      <button
+                        key={role.value}
+                        type="button"
+                        onClick={() => setFormData((prev) => ({ ...prev, role: role.value }))}
+                        className={`
+                          relative p-3 rounded-lg border-2 text-center transition-all group
+                          ${
+                            isSelected
+                              ? 'border-blue-600 bg-blue-50 dark:bg-blue-900/20'
+                              : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
+                          }
+                        `}
+                        title={role.description}
+                      >
+                        {isSelected && (
+                          <div className="absolute -top-1 -right-1">
+                            <Check className="w-4 h-4 text-white bg-blue-600 rounded-full p-0.5" />
+                          </div>
+                        )}
+                        <Icon
+                          className={`w-5 h-5 mx-auto mb-1 ${isSelected ? 'text-blue-600' : 'text-gray-400'}`}
+                        />
+                        <div className="text-xs font-medium text-gray-900 dark:text-white">
+                          {role.label}
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Email & Passwords in 2 Columns */}
+              <div className="grid grid-cols-2 gap-4">
+                {/* Email */}
+                <div className="col-span-2">
+                  <label
+                    htmlFor="email"
+                    className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5"
+                  >
+                    Email
+                  </label>
+                  <input
+                    id="email"
+                    name="email"
+                    type="email"
+                    autoComplete="email"
+                    required
+                    value={formData.email}
+                    onChange={handleInputChange}
+                    className={`
+                      block w-full px-3 py-2.5 border rounded-lg text-sm
+                      focus:ring-2 focus:ring-blue-500 focus:border-transparent
+                      transition-colors
+                      ${
+                        fieldErrors.email
+                          ? 'border-red-300 bg-red-50 dark:bg-red-900/10'
+                          : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900'
+                      }
+                      text-gray-900 dark:text-white placeholder:text-gray-400
+                    `}
+                    placeholder="name@company.com"
                   />
-                )}
-              </label>
-            ))}
+                  {fieldErrors.email && (
+                    <p className="text-xs text-red-600 dark:text-red-400 mt-1">
+                      {fieldErrors.email}
+                    </p>
+                  )}
+                </div>
+
+                {/* Password */}
+                <div>
+                  <label
+                    htmlFor="password"
+                    className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5"
+                  >
+                    Password
+                  </label>
+                  <PasswordInput
+                    id="password"
+                    name="password"
+                    value={formData.password}
+                    onChange={handleInputChange}
+                    showPassword={showPassword}
+                    setShowPassword={setShowPassword}
+                    required
+                    error={fieldErrors.password}
+                    placeholder="Min. 8 characters"
+                    compact
+                  />
+                </div>
+
+                {/* Confirm Password */}
+                <div>
+                  <label
+                    htmlFor="confirmPassword"
+                    className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5"
+                  >
+                    Confirm password
+                  </label>
+                  <PasswordInput
+                    id="confirmPassword"
+                    name="confirmPassword"
+                    value={formData.confirmPassword}
+                    onChange={handleInputChange}
+                    showPassword={showConfirmPassword}
+                    setShowPassword={setShowConfirmPassword}
+                    required
+                    error={fieldErrors.confirmPassword}
+                    placeholder="Re-enter password"
+                    compact
+                  />
+                </div>
+              </div>
+
+              {/* Terms - Compact */}
+              <p className="text-xs text-gray-500 dark:text-gray-400">
+                By creating an account, you agree to our{' '}
+                <Link to="/terms" className="text-blue-600 hover:text-blue-500">
+                  Terms
+                </Link>{' '}
+                and{' '}
+                <Link to="/privacy" className="text-blue-600 hover:text-blue-500">
+                  Privacy Policy
+                </Link>
+                .
+              </p>
+
+              {/* Submit - Compact */}
+              <AuthButton type="submit" isLoading={isLoading} disabled={isLoading}>
+                Create account
+              </AuthButton>
+            </form>
           </div>
+
+          {/* Sign In Link - Compact */}
+          <p className="text-center text-sm text-gray-600 dark:text-gray-400 mt-4">
+            Already have an account?{' '}
+            <Link
+              to="/login"
+              className="font-semibold text-blue-600 hover:text-blue-500 dark:text-blue-500 dark:hover:text-blue-400"
+            >
+              Sign in
+            </Link>
+          </p>
         </div>
-
-        <div className="relative">
-          <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-            <Mail className="h-5 w-5 text-gray-400" />
-          </div>
-          <input
-            id="email"
-            name="email"
-            type="email"
-            value={formData.email}
-            onChange={handleInputChange}
-            placeholder="Email Address"
-            required
-            className={`w-full pl-12 pr-4 py-3 border rounded-xl focus:ring-2 focus:border-transparent transition-all ${fieldErrors.email ? 'border-red-500 ring-red-500' : 'border-gray-300 focus:ring-blue-500'}`}
-          />
-        </div>
-        {fieldErrors.email && (
-          <p className="text-sm text-red-600 -mt-4 ml-2">{fieldErrors.email}</p>
-        )}
-
-        <PasswordInput
-          id="password"
-          name="password"
-          value={formData.password}
-          onChange={handleInputChange}
-          placeholder="Create Password"
-          showPassword={showPassword}
-          setShowPassword={setShowPassword}
-          error={fieldErrors.password}
-          required
-        />
-
-        <PasswordInput
-          id="confirmPassword"
-          name="confirmPassword"
-          value={formData.confirmPassword}
-          onChange={handleInputChange}
-          placeholder="Confirm Password"
-          showPassword={showConfirmPassword}
-          setShowPassword={setShowConfirmPassword}
-          error={fieldErrors.confirmPassword}
-          required
-        />
-
-        <div className="pt-2">
-          <AuthButton type="submit" isLoading={isLoading} disabled={isLoading}>
-            Create Account
-          </AuthButton>
-        </div>
-
-        <p className="text-center text-sm text-gray-600">
-          Already have an account?{' '}
-          <Link to="/login" className="font-semibold text-blue-600 hover:text-blue-500">
-            Sign In
-          </Link>
-        </p>
-      </form>
-    </AuthLayout>
+      </div>
+    </div>
   );
 };
 
