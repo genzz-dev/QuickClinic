@@ -1,7 +1,9 @@
 import { BarChart3, Users, TestTube, Calendar, Settings } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import '../../quicklab.css';
 
 export default function LabAdminDashboard() {
+  const navigate = useNavigate();
   const stats = [
     { label: 'Total Tests', value: '0', icon: TestTube, color: 'lab-yellow' },
     { label: 'Staff Members', value: '0', icon: Users, color: 'lab-blue' },
@@ -51,7 +53,10 @@ export default function LabAdminDashboard() {
               </div>
               <TestTube className="w-6 h-6 text-lab-yellow-600" />
             </div>
-            <button className="btn-quicklab-primary w-full py-2 rounded-lg font-medium transition-all hover:shadow-lg">
+            <button
+              onClick={() => navigate('/quick-lab/tests')}
+              className="btn-quicklab-primary w-full py-2 rounded-lg font-medium transition-all hover:shadow-lg"
+            >
               View Tests
             </button>
           </div>
@@ -65,7 +70,10 @@ export default function LabAdminDashboard() {
               </div>
               <Users className="w-6 h-6 text-lab-yellow-600" />
             </div>
-            <button className="btn-quicklab-primary w-full py-2 rounded-lg font-medium transition-all hover:shadow-lg">
+            <button
+              onClick={() => navigate('/quick-lab/staff')}
+              className="btn-quicklab-primary w-full py-2 rounded-lg font-medium transition-all hover:shadow-lg"
+            >
               View Staff
             </button>
           </div>
@@ -79,7 +87,10 @@ export default function LabAdminDashboard() {
               </div>
               <Calendar className="w-6 h-6 text-lab-yellow-600" />
             </div>
-            <button className="btn-quicklab-primary w-full py-2 rounded-lg font-medium transition-all hover:shadow-lg">
+            <button
+              onClick={() => navigate('/quick-lab/appointments')}
+              className="btn-quicklab-primary w-full py-2 rounded-lg font-medium transition-all hover:shadow-lg"
+            >
               View Appointments
             </button>
           </div>
@@ -93,7 +104,10 @@ export default function LabAdminDashboard() {
               </div>
               <Settings className="w-6 h-6 text-lab-yellow-600" />
             </div>
-            <button className="btn-quicklab-primary w-full py-2 rounded-lg font-medium transition-all hover:shadow-lg">
+            <button
+              onClick={() => navigate('/quick-lab/settings')}
+              className="btn-quicklab-primary w-full py-2 rounded-lg font-medium transition-all hover:shadow-lg"
+            >
               Edit Settings
             </button>
           </div>
