@@ -3,8 +3,14 @@ import Navbar from '../components/quicklab/Navbar';
 import QuickLabHomepage from '../pages/quicklab/Homepage';
 import LabAdminProfileComplete from '../pages/quicklab/LabAdminProfileComplete';
 import LabAdminAddLab from '../pages/quicklab/LabAdminAddLab';
+import LabAdminDashboard from '../pages/quicklab/LabAdminDashboard';
+import LabStaffProfileComplete from '../pages/quicklab/LabStaffProfileComplete';
+import LabStaffWaitingForAssignment from '../pages/quicklab/LabStaffWaitingForAssignment';
+import LabStaffDashboard from '../pages/quicklab/LabStaffDashboard';
 import LabAdminPreventGuard from './guards/LabAdminPreventGuard';
 import LabAdminSetupGuard from './guards/LabAdminSetupGuard';
+import LabStaffPreventGuard from './guards/LabStaffPreventGuard';
+import LabStaffSetupGuard from './guards/LabStaffSetupGuard';
 import ProtectedRoute from './guards/protectedRoutes';
 
 export default function QuickLabRoutes() {
@@ -12,31 +18,16 @@ export default function QuickLabRoutes() {
     <>
       <Navbar />
       <Routes>
-        {/* Complete Profile - Prevent if profile already exists */}
+        {/* ============ LAB ADMIN ROUTES ============ */}
+
+        {/* Lab Admin Profile Completion */}
         <Route
           path="/quick-lab/complete-profile"
           element={
-            <ProtectedRoute allowedRoles={['lab_admin', 'lab_staff']}>
+            <ProtectedRoute allowedRoles={['lab_admin']}>
               <LabAdminPreventGuard preventProfile={true}>
                 <LabAdminProfileComplete />
               </LabAdminPreventGuard>
-            </ProtectedRoute>
-          }
-        />
-
-        {/* Lab Admin Dashboard - Requires profile */}
-        <Route
-          path="/quick-lab/dashboard"
-          element={
-            <ProtectedRoute allowedRoles={['lab_admin', 'lab_staff']}>
-              <LabAdminSetupGuard requireProfile={true} requireLab={true}>
-                <div className="min-h-screen bg-gradient-to-br from-lab-yellow-50 via-lab-black-50 to-white p-4 md:p-8">
-                  <div className="max-w-6xl mx-auto">
-                    <h1 className="text-4xl font-bold text-lab-black-900 mb-2">Lab Dashboard</h1>
-                    <p className="text-lab-black-600">Coming soon...</p>
-                  </div>
-                </div>
-              </LabAdminSetupGuard>
             </ProtectedRoute>
           }
         />
@@ -54,6 +45,60 @@ export default function QuickLabRoutes() {
             </ProtectedRoute>
           }
         />
+
+        {/* Lab Admin Dashboard - Requires profile AND lab */}
+        <Route
+          path="/quick-lab/dashboard"
+          element={
+            <ProtectedRoute allowedRoles={['lab_admin']}>
+              <LabAdminSetupGuard requireProfile={true} requireLab={true}>
+                <LabAdminDashboard />
+              </LabAdminSetupGuard>
+            </ProtectedRoute>
+          }
+        />
+
+        {/* ============ LAB STAFF ROUTES ============ */}
+
+        {/* Lab Staff Profile Completion */}
+        <Route
+          path="/quick-lab/staff-profile"
+          element={
+            <ProtectedRoute allowedRoles={['lab_staff']}>
+              <LabStaffPreventGuard preventProfile={true}>
+                <LabStaffProfileComplete />
+              </LabStaffPreventGuard>
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Lab Staff Waiting for Assignment */}
+        <Route
+          path="/quick-lab/staff-waiting"
+          element={
+            <ProtectedRoute allowedRoles={['lab_staff']}>
+              <LabStaffSetupGuard requireProfile={true} requireLabAssignment={false}>
+                <LabStaffPreventGuard preventWaiting={true}>
+                  <LabStaffWaitingForAssignment />
+                </LabStaffPreventGuard>
+              </LabStaffSetupGuard>
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Lab Staff Dashboard - Requires profile AND lab assignment */}
+        <Route
+          path="/quick-lab/staff-dashboard"
+          element={
+            <ProtectedRoute allowedRoles={['lab_staff']}>
+              <LabStaffSetupGuard requireProfile={true} requireLabAssignment={true}>
+                <LabStaffDashboard />
+              </LabStaffSetupGuard>
+            </ProtectedRoute>
+          }
+        />
+
+        {/* ============ PUBLIC ROUTES ============ */}
 
         {/* Public homepage */}
         <Route path="/" element={<QuickLabHomepage />} />
