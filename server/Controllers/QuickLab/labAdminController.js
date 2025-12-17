@@ -260,6 +260,11 @@ export const removeStaffFromLab = async (req, res) => {
       return res.status(404).json({ message: 'Staff not found' });
     }
 
+    // If staff is not assigned to any lab, respond gracefully
+    if (!staff.labId) {
+      return res.status(400).json({ message: 'Staff is not assigned to any lab' });
+    }
+
     if (staff.labId.toString() !== labAdmin.labId.toString()) {
       return res.status(403).json({ message: 'Staff does not belong to your lab' });
     }
