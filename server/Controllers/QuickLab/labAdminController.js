@@ -487,6 +487,14 @@ export const checkLabExists = async (req, res) => {
   try {
     const { profileId } = req.user;
 
+    // If no profile exists yet, return exists: false
+    if (!profileId) {
+      return res.status(200).json({
+        exists: false,
+        message: 'No lab admin profile found yet',
+      });
+    }
+
     if (!mongoose.Types.ObjectId.isValid(profileId)) {
       return res.status(400).json({ message: 'Invalid profile ID format' });
     }
