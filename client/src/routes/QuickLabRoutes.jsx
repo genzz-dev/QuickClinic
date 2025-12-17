@@ -4,6 +4,7 @@ import QuickLabHomepage from '../pages/quicklab/Homepage';
 import LabAdminProfileComplete from '../pages/quicklab/LabAdminProfileComplete';
 import LabAdminAddLab from '../pages/quicklab/LabAdminAddLab';
 import LabAdminDashboard from '../pages/quicklab/LabAdminDashboard';
+import LabAdminManageStaff from '../pages/quicklab/LabAdminManageStaff';
 import LabStaffProfileComplete from '../pages/quicklab/LabStaffProfileComplete';
 import LabStaffWaitingForAssignment from '../pages/quicklab/LabStaffWaitingForAssignment';
 import LabStaffDashboard from '../pages/quicklab/LabStaffDashboard';
@@ -53,6 +54,18 @@ export default function QuickLabRoutes() {
             <ProtectedRoute allowedRoles={['lab_admin']}>
               <LabAdminSetupGuard requireProfile={true} requireLab={true}>
                 <LabAdminDashboard />
+              </LabAdminSetupGuard>
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Lab Admin - Manage Staff */}
+        <Route
+          path="/quick-lab/staff"
+          element={
+            <ProtectedRoute allowedRoles={['lab_admin']}>
+              <LabAdminSetupGuard requireProfile={true} requireLab={true}>
+                <LabAdminManageStaff />
               </LabAdminSetupGuard>
             </ProtectedRoute>
           }
