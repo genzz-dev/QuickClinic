@@ -1,8 +1,17 @@
 // MobileNavbar.jsx
-import { Search, Home, BookOpen, User } from 'lucide-react';
+import { Search, Home, BookOpen, User, LogOut } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/authContext';
 import DarkModeToggle from '../ui/DarkModeToggle';
 
 export default function MobileNavbar({ searchQuery, setSearchQuery }) {
+  const navigate = useNavigate();
+  const { isAuthenticated, logout } = useAuth();
+
+  const handleLogout = async () => {
+    await logout();
+    navigate('/', { replace: true });
+  };
   return (
     <>
       {/* Top Bar - Search Only */}
@@ -54,11 +63,24 @@ export default function MobileNavbar({ searchQuery, setSearchQuery }) {
             </span>
           </div>
 
-          {/* Login/Account */}
-          <button className="flex flex-col items-center justify-center w-full h-full space-y-1 text-slate-500 dark:text-slate-400 hover:text-yellow-600 dark:hover:text-yellow-400 transition-colors active:scale-95">
-            <User className="h-6 w-6" />
-            <span className="text-xs font-medium">Account</span>
-          </button>
+          {/* Conditional: Login/Account OR Logout */}
+          {isAuthenticated ? (
+            <button
+              onClick={handleLogout}
+              className="flex flex-col items-center justify-center w-full h-full space-y-1 text-slate-500 dark:text-slate-400 hover:text-red-600 dark:hover:text-red-400 transition-colors active:scale-95"
+            >
+              <LogOut className="h-6 w-6" />
+              <span className="text-xs font-medium">Logout</span>
+            </button>
+          ) : (
+            <button
+              onClick={() => navigate('/login')}
+              className="flex flex-col items-center justify-center w-full h-full space-y-1 text-slate-500 dark:text-slate-400 hover:text-yellow-600 dark:hover:text-yellow-400 transition-colors active:scale-95"
+            >
+              <User className="h-6 w-6" />
+              <span className="text-xs font-medium">Account</span>
+            </button>
+          )}
         </div>
       </div>
 

@@ -1,8 +1,17 @@
 // DesktopNavbar.jsx
-import { Search } from 'lucide-react';
+import { Search, LogOut } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/authContext';
 import DarkModeToggle from '../ui/DarkModeToggle';
 import DesktopFooter from './DesktopFooter';
 export default function DesktopNavbar({ searchQuery, setSearchQuery }) {
+  const navigate = useNavigate();
+  const { isAuthenticated, logout } = useAuth();
+
+  const handleLogout = async () => {
+    await logout();
+    navigate('/', { replace: true });
+  };
   return (
     <nav className="hidden lg:block fixed top-0 left-0 right-0 z-50 bg-white dark:bg-black border-b border-slate-200 dark:border-slate-800 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -36,13 +45,31 @@ export default function DesktopNavbar({ searchQuery, setSearchQuery }) {
             {/* Dark Mode Toggle */}
             <DarkModeToggle />
 
-            {/* Login/Register Buttons */}
-            <button className="px-4 py-2 text-slate-700 dark:text-slate-300 hover:text-yellow-600 dark:hover:text-yellow-400 font-medium transition-colors">
-              Login
-            </button>
-            <button className="px-4 py-2 text-slate-700 dark:text-slate-300 hover:text-yellow-600 dark:hover:text-yellow-400 font-medium transition-colors">
-              Register
-            </button>
+            {/* Conditional: Login/Register OR Logout */}
+            {isAuthenticated ? (
+              <button
+                onClick={handleLogout}
+                className="flex items-center gap-2 px-4 py-2 text-slate-700 dark:text-slate-300 hover:text-red-600 dark:hover:text-red-400 font-medium transition-colors"
+              >
+                <LogOut className="h-5 w-5" />
+                Logout
+              </button>
+            ) : (
+              <>
+                <button
+                  onClick={() => navigate('/login')}
+                  className="px-4 py-2 text-slate-700 dark:text-slate-300 hover:text-yellow-600 dark:hover:text-yellow-400 font-medium transition-colors"
+                >
+                  Login
+                </button>
+                <button
+                  onClick={() => navigate('/register')}
+                  className="px-4 py-2 text-slate-700 dark:text-slate-300 hover:text-yellow-600 dark:hover:text-yellow-400 font-medium transition-colors"
+                >
+                  Register
+                </button>
+              </>
+            )}
           </div>
         </div>
       </div>
