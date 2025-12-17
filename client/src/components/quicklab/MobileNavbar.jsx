@@ -1,12 +1,12 @@
 // MobileNavbar.jsx
-import { Search, Home, BookOpen, User, LogOut } from 'lucide-react';
+import { Search, Home, BookOpen, User, LogOut, Users } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/authContext';
 import DarkModeToggle from '../ui/DarkModeToggle';
 
 export default function MobileNavbar({ searchQuery, setSearchQuery }) {
   const navigate = useNavigate();
-  const { isAuthenticated, logout } = useAuth();
+  const { isAuthenticated, logout, user } = useAuth();
 
   const handleLogout = async () => {
     await logout();
@@ -62,6 +62,17 @@ export default function MobileNavbar({ searchQuery, setSearchQuery }) {
               Theme
             </span>
           </div>
+
+          {/* Lab Admin: Manage Staff */}
+          {isAuthenticated && user?.role === 'lab_admin' && (
+            <button
+              onClick={() => navigate('/quick-lab/staff')}
+              className="flex flex-col items-center justify-center w-full h-full space-y-1 text-slate-500 dark:text-slate-400 hover:text-yellow-600 dark:hover:text-yellow-400 transition-colors active:scale-95"
+            >
+              <Users className="h-6 w-6" />
+              <span className="text-xs font-medium">Staff</span>
+            </button>
+          )}
 
           {/* Conditional: Login/Account OR Logout */}
           {isAuthenticated ? (
