@@ -24,6 +24,7 @@ import {
   createPrescription,
   getAppointmentPrescription,
   updatePrescription,
+  getNearbyLabs,
 } from '../../service/prescriptionApiSevice';
 import { getMedicineSuggestions } from '../../service/medicineApiService';
 
@@ -42,11 +43,13 @@ const AppointmentDetails = () => {
   const [prescriptionData, setPrescriptionData] = useState({
     diagnosis: '',
     medications: [{ name: '', dosage: '', frequency: '', duration: '', instructions: '' }],
-    tests: [{ name: '', instructions: '' }],
+    tests: [{ name: '', instructions: '', labId: '' }],
     notes: '',
     followUpDate: '',
   });
   const [savingPrescription, setSavingPrescription] = useState(false);
+  const [nearbyLabs, setNearbyLabs] = useState([]);
+  const [loadingLabs, setLoadingLabs] = useState(false);
   const useDebounce = (callback, delay) => {
     const timeoutRef = useRef(null);
 
@@ -105,12 +108,30 @@ const AppointmentDetails = () => {
         console.log(err);
       }
 
+      // Fetch nearby labs based on patient city
+      if (patientRes.patient?.address?.city) {
+        fetchNearbyLabs(patientRes.patient.address.city);
+      }
+
       setError(null);
     } catch (err) {
       setError('Failed to fetch appointment details');
       console.error('Error:', err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchNearbyLabs = async (city) => {
+    try {
+      setLoadingLabs(true);
+      const response = await getNearbyLabs(city);
+      setNearbyLabs(response.data || []);
+    } catch (err) {
+      console.error('Error fetching nearby labs:', err);
+      setNearbyLabs([]);
+    } finally {
+      setLoadingLabs(false);
     }
   };
 
@@ -203,7 +224,7 @@ const AppointmentDetails = () => {
   const addTest = () => {
     setPrescriptionData((prev) => ({
       ...prev,
-      tests: [...prev.tests, { name: '', instructions: '' }],
+      tests: [...prev.tests, { name: '', instructions: '', labId: '' }],
     }));
   };
 
@@ -790,9 +811,12 @@ const AppointmentDetails = () => {
                           {prescriptionData.tests.map((test, index) => (
                             <div
                               key={index}
-                              className="flex space-x-4 mb-4 p-4 border border-gray-200 rounded-lg bg-gray-50"
+                              className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4 p-4 border border-gray-200 rounded-lg bg-gray-50"
                             >
-                              <div className="flex-1">
+                              <div>
+                                <label className="block text-xs font-medium text-gray-600 mb-1">
+                                  Test Name
+                                </label>
                                 <input
                                   type="text"
                                   placeholder="Test name"
@@ -801,7 +825,36 @@ const AppointmentDetails = () => {
                                   className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
                                 />
                               </div>
-                              <div className="flex-1">
+                              <div>
+                                <label className="block text-xs font-medium text-gray-600 mb-1">
+                                  Select Lab (Same City)
+                                </label>
+                                <select
+                                  value={test.labId}
+                                  onChange={(e) => updateTest(index, 'labId', e.target.value)}
+                                  className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 bg-white"
+                                  disabled={loadingLabs}
+                                >
+                                  <option value="">Select a lab (optional)</option>
+                                  {nearbyLabs.map((lab) => (
+                                    <option key={lab._id} value={lab._id}>
+                                      {lab.name} - {lab.address?.city}
+                                    </option>
+                                  ))}
+                                </select>
+                                {loadingLabs && (
+                                  <p className="text-xs text-gray-500 mt-1">Loading labs...</p>
+                                )}
+                                {!loadingLabs && nearbyLabs.length === 0 && (
+                                  <p className="text-xs text-gray-500 mt-1">
+                                    No labs found in patient's city
+                                  </p>
+                                )}
+                              </div>
+                              <div>
+                                <label className="block text-xs font-medium text-gray-600 mb-1">
+                                  Instructions
+                                </label>
                                 <input
                                   type="text"
                                   placeholder="Instructions (optional)"
@@ -813,13 +866,16 @@ const AppointmentDetails = () => {
                                 />
                               </div>
                               {prescriptionData.tests.length > 1 && (
-                                <button
-                                  type="button"
-                                  onClick={() => removeTest(index)}
-                                  className="p-2 text-red-600 hover:bg-red-50 rounded-md"
-                                >
-                                  <XMarkIcon className="w-4 h-4" />
-                                </button>
+                                <div className="md:col-span-3 flex justify-end">
+                                  <button
+                                    type="button"
+                                    onClick={() => removeTest(index)}
+                                    className="px-3 py-1 text-red-600 hover:bg-red-50 rounded-md flex items-center space-x-1"
+                                  >
+                                    <XMarkIcon className="w-4 h-4" />
+                                    <span>Remove Test</span>
+                                  </button>
+                                </div>
                               )}
                             </div>
                           ))}
