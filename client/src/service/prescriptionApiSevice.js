@@ -50,6 +50,15 @@ export const updatePrescription = async (prescriptionId, updateData) => {
 export const getPatientAppointmentPrescription = async (appointmentId) => {
   return await apiService.get(`/prescriptions/patient/appointments/${appointmentId}`);
 };
+
+/**
+ * Get nearby labs by city
+ */
+export const getNearbyLabs = async (city) => {
+  return await apiService.get('/public/labs/nearby', {
+    params: { city },
+  });
+};
 export default {
   createPrescription,
   getPatientPrescriptions,
