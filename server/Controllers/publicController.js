@@ -3,6 +3,7 @@
 import Clinic from '../models/Clinic/Clinic.js';
 import Schedule from '../models/Clinic/Schedule.js';
 import Doctor from '../models/Users/Doctor.js';
+import Lab from '../models/Lab/Lab.js';
 
 // Helper functions
 const getDayName = (date) =>
@@ -491,6 +492,34 @@ export const getSearchSuggestions = async (req, res) => {
 
     res.json({ success: true, data: suggestions });
   } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+};
+
+// Get nearby labs by city
+export const getNearbyLabs = async (req, res) => {
+  try {
+    const { city } = req.query;
+
+    if (!city) {
+      return res.status(400).json({ success: false, message: 'City parameter is required' });
+    }
+
+    // Find labs in the same city
+    const labs = await Lab.find({
+      'address.city': { $regex: city, $options: 'i' },
+      isActive: { $ne: false }, // Exclude inactive labs if the field exists
+    })
+      .select('name address contact tests generalHomeCollectionFee')
+      .lean();
+
+    res.json({
+      success: true,
+      count: labs.length,
+      data: labs,
+    });
+  } catch (error) {
+    console.error('Error fetching nearby labs:', error);
     res.status(500).json({ success: false, error: error.message });
   }
 };

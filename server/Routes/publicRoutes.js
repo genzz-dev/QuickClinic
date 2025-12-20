@@ -10,6 +10,7 @@ import {
   getSearchSuggestions,
   searchClinics,
   searchDoctors,
+  getNearbyLabs,
 } from '../Controllers/publicController.js';
 
 const router = express.Router();
@@ -26,5 +27,8 @@ router.get('/search/suggestions', getSearchSuggestions);
 router.get('/clinics/search', searchClinics);
 router.get('/clinics/:id', getClinicById);
 router.get('/clinics/:clinicId/doctors', getClinicDoctors);
+
+// Lab routes
+router.get('/labs/nearby', getNearbyLabs);
 
 export default router;
