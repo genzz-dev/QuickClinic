@@ -1,6 +1,8 @@
 import { Routes, Route } from 'react-router-dom';
 import Navbar from '../components/quicklab/Navbar';
 import QuickLabHomepage from '../pages/quicklab/Homepage';
+import LabSearchResults from '../pages/quicklab/LabSearchResults';
+import LabDetails from '../pages/quicklab/LabDetails';
 import LabAdminProfileComplete from '../pages/quicklab/LabAdminProfileComplete';
 import LabAdminAddLab from '../pages/quicklab/LabAdminAddLab';
 import LabAdminDashboard from '../pages/quicklab/LabAdminDashboard';
@@ -114,8 +116,13 @@ export default function QuickLabRoutes() {
         {/* ============ PUBLIC ROUTES ============ */}
 
         {/* Public homepage */}
-        <Route path="/" element={<QuickLabHomepage />} />
-        <Route path="*" element={<QuickLabHomepage />} />
+        <Route path="/quick-lab" element={<QuickLabHomepage />} />
+
+        {/* Lab Search Results */}
+        <Route path="/quick-lab/search" element={<LabSearchResults />} />
+
+        {/* Lab Details */}
+        <Route path="/quick-lab/lab/:labId" element={<LabDetails />} />
       </Routes>
     </>
   );
