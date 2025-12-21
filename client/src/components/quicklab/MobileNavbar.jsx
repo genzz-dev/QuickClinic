@@ -1,5 +1,16 @@
 // MobileNavbar.jsx
-import { Search, Home, BookOpen, User, LogOut, Users, Building2, FlaskConical } from 'lucide-react';
+import {
+  Search,
+  Home,
+  BookOpen,
+  User,
+  LogOut,
+  Users,
+  Building2,
+  FlaskConical,
+  Calendar,
+  TestTube,
+} from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/authContext';
 import DarkModeToggle from '../ui/DarkModeToggle';
@@ -234,6 +245,28 @@ export default function MobileNavbar({ searchQuery, setSearchQuery }) {
               Theme
             </span>
           </div>
+
+          {/* Lab Admin: Manage Appointments */}
+          {isAuthenticated && user?.role === 'lab_admin' && (
+            <button
+              onClick={() => navigate('/quick-lab/appointments')}
+              className="flex flex-col items-center justify-center w-full h-full space-y-1 text-slate-500 dark:text-slate-400 hover:text-yellow-600 dark:hover:text-yellow-400 transition-colors active:scale-95"
+            >
+              <Calendar className="h-6 w-6" />
+              <span className="text-xs font-medium">Appts</span>
+            </button>
+          )}
+
+          {/* Lab Admin: Manage Tests */}
+          {isAuthenticated && user?.role === 'lab_admin' && (
+            <button
+              onClick={() => navigate('/quick-lab/tests')}
+              className="flex flex-col items-center justify-center w-full h-full space-y-1 text-slate-500 dark:text-slate-400 hover:text-yellow-600 dark:hover:text-yellow-400 transition-colors active:scale-95"
+            >
+              <TestTube className="h-6 w-6" />
+              <span className="text-xs font-medium">Tests</span>
+            </button>
+          )}
 
           {/* Lab Admin: Manage Staff */}
           {isAuthenticated && user?.role === 'lab_admin' && (
