@@ -34,7 +34,13 @@ export default function LabDetails() {
     appointmentDate: '',
     appointmentTime: '',
     collectionType: 'lab_visit',
-    collectionAddress: '',
+    collectionAddress: {
+      street: '',
+      city: '',
+      state: '',
+      zipCode: '',
+      country: 'India',
+    },
     notes: '',
   });
   const [booking, setBooking] = useState(false);
@@ -148,7 +154,13 @@ export default function LabDetails() {
         appointmentDate: '',
         appointmentTime: '',
         collectionType: 'lab_visit',
-        collectionAddress: '',
+        collectionAddress: {
+          street: '',
+          city: '',
+          state: '',
+          zipCode: '',
+          country: 'India',
+        },
         notes: '',
       });
     } catch (err) {
@@ -547,20 +559,90 @@ export default function LabDetails() {
                 </div>
 
                 {bookingData.collectionType === 'home_collection' && (
-                  <div>
-                    <label className="block text-sm font-semibold text-lab-black-900 mb-2">
-                      Collection Address
-                    </label>
-                    <textarea
-                      value={bookingData.collectionAddress}
-                      onChange={(e) =>
-                        setBookingData((prev) => ({ ...prev, collectionAddress: e.target.value }))
-                      }
-                      rows="2"
-                      required
-                      className="w-full p-2 border border-lab-black-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-lab-yellow-500"
-                      placeholder="Enter your complete address..."
-                    />
+                  <div className="space-y-3">
+                    <h4 className="text-sm font-semibold text-lab-black-900">Collection Address</h4>
+
+                    <div>
+                      <input
+                        type="text"
+                        value={bookingData.collectionAddress.street}
+                        onChange={(e) =>
+                          setBookingData((prev) => ({
+                            ...prev,
+                            collectionAddress: {
+                              ...prev.collectionAddress,
+                              street: e.target.value,
+                            },
+                          }))
+                        }
+                        required
+                        className="w-full p-2 border border-lab-black-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-lab-yellow-500"
+                        placeholder="Street Address *"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <input
+                        type="text"
+                        value={bookingData.collectionAddress.city}
+                        onChange={(e) =>
+                          setBookingData((prev) => ({
+                            ...prev,
+                            collectionAddress: { ...prev.collectionAddress, city: e.target.value },
+                          }))
+                        }
+                        required
+                        className="w-full p-2 border border-lab-black-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-lab-yellow-500"
+                        placeholder="City *"
+                      />
+                      <input
+                        type="text"
+                        value={bookingData.collectionAddress.state}
+                        onChange={(e) =>
+                          setBookingData((prev) => ({
+                            ...prev,
+                            collectionAddress: { ...prev.collectionAddress, state: e.target.value },
+                          }))
+                        }
+                        required
+                        className="w-full p-2 border border-lab-black-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-lab-yellow-500"
+                        placeholder="State *"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <input
+                        type="text"
+                        value={bookingData.collectionAddress.zipCode}
+                        onChange={(e) =>
+                          setBookingData((prev) => ({
+                            ...prev,
+                            collectionAddress: {
+                              ...prev.collectionAddress,
+                              zipCode: e.target.value,
+                            },
+                          }))
+                        }
+                        required
+                        className="w-full p-2 border border-lab-black-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-lab-yellow-500"
+                        placeholder="Zip Code *"
+                      />
+                      <input
+                        type="text"
+                        value={bookingData.collectionAddress.country}
+                        onChange={(e) =>
+                          setBookingData((prev) => ({
+                            ...prev,
+                            collectionAddress: {
+                              ...prev.collectionAddress,
+                              country: e.target.value,
+                            },
+                          }))
+                        }
+                        className="w-full p-2 border border-lab-black-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-lab-yellow-500"
+                        placeholder="Country"
+                      />
+                    </div>
                   </div>
                 )}
 
