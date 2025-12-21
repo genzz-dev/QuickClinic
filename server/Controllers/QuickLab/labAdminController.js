@@ -315,6 +315,11 @@ export const updateTest = async (req, res) => {
     const { testId } = req.params;
     const updates = req.body;
 
+    // Convert sampleType to lowercase if provided
+    if (updates.sampleType) {
+      updates.sampleType = updates.sampleType.toLowerCase();
+    }
+
     const labAdmin = await LabAdmin.findById(profileId);
     if (!labAdmin || !labAdmin.labId) {
       return res.status(400).json({ message: 'Lab admin not associated with any lab' });
@@ -427,7 +432,7 @@ export const addTest = async (req, res) => {
       description,
       price,
       preparationInstructions,
-      sampleType,
+      sampleType: sampleType ? sampleType.toLowerCase() : undefined,
       homeCollectionAvailable: canBeHomeCollected,
       homeCollectionFee: homeCollectionFee || 0,
       reportDeliveryTime,
@@ -436,7 +441,6 @@ export const addTest = async (req, res) => {
       isActive: true,
     };
 
-    const Lab = (await import('../models/Lab/Lab.js')).default;
     const lab = await Lab.findByIdAndUpdate(
       labAdmin.labId,
       { $push: { tests: testData } },
