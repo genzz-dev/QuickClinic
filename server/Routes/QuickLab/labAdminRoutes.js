@@ -11,6 +11,7 @@ import {
   addTest,
   updateTest,
   getLabInfo,
+  updateLabInfo,
   checkLabExists,
   checkLabAdminProfileExists,
 } from '../../Controllers/QuickLab/labAdminController.js';
@@ -49,5 +50,15 @@ router.put('/tests/:testId', authenticate, authorize('lab_admin'), updateTest);
 
 // Lab info
 router.get('/lab/info', authenticate, authorize('lab_admin'), getLabInfo);
+router.put(
+  '/lab/info',
+  authenticate,
+  authorize('lab_admin'),
+  upload.fields([
+    { name: 'logo', maxCount: 1 },
+    { name: 'photos', maxCount: 10 },
+  ]),
+  updateLabInfo
+);
 
 export default router;

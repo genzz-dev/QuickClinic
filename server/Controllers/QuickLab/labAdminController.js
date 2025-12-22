@@ -370,6 +370,114 @@ export const getLabInfo = async (req, res) => {
   }
 };
 
+// Update lab info (basic details, contact, address, charges, logo/photos)
+export const updateLabInfo = async (req, res) => {
+  try {
+    const { profileId } = req.user;
+
+    const labAdmin = await LabAdmin.findById(profileId);
+    if (!labAdmin || !labAdmin.labId) {
+      return res.status(400).json({ message: 'Lab admin not associated with any lab' });
+    }
+
+    const lab = await Lab.findById(labAdmin.labId);
+    if (!lab) {
+      return res.status(404).json({ message: 'Lab not found' });
+    }
+
+    const body = req.body;
+
+    // Rebuild nested contact/address fields (form-data friendly)
+    const contact = {
+      phone: body.contact?.phone || body['contact.phone'] || body.contactPhone || body.phone,
+      email: body.contact?.email || body['contact.email'] || body.contactEmail || body.email,
+      website:
+        body.contact?.website || body['contact.website'] || body.contactWebsite || body.website,
+    };
+
+    const address = {
+      formattedAddress:
+        body.address?.formattedAddress ||
+        body['address.formattedAddress'] ||
+        body.formattedAddress ||
+        lab.address?.formattedAddress,
+      street: body.address?.street || body['address.street'] || body.street || lab.address?.street,
+      city: body.address?.city || body['address.city'] || body.city || lab.address?.city,
+      state: body.address?.state || body['address.state'] || body.state || lab.address?.state,
+      zipCode:
+        body.address?.zipCode || body['address.zipCode'] || body.zipCode || lab.address?.zipCode,
+      country:
+        body.address?.country || body['address.country'] || body.country || lab.address?.country,
+    };
+
+    let generalHomeCollectionFee = lab.generalHomeCollectionFee;
+    if (body.generalHomeCollectionFee !== undefined && body.generalHomeCollectionFee !== '') {
+      generalHomeCollectionFee = Number(body.generalHomeCollectionFee);
+    }
+
+    // Opening hours can come as JSON string from form-data
+    let openingHours = lab.openingHours;
+    if (body.openingHours) {
+      try {
+        openingHours =
+          typeof body.openingHours === 'string' ? JSON.parse(body.openingHours) : body.openingHours;
+      } catch (err) {
+        return res.status(400).json({ message: 'Invalid openingHours format' });
+      }
+    }
+
+    const updates = {
+      name: body.name || lab.name,
+      description: body.description !== undefined ? body.description : lab.description,
+      contact,
+      address,
+      generalHomeCollectionFee,
+      openingHours,
+    };
+
+    // Optional logo upload
+    if (req.files?.logo) {
+      const result = await uploadToCloudinary(req.files.logo[0].path);
+      updates.logo = result.url;
+    }
+
+    // Photos: keep existing ones (sent from client) + newly uploaded
+    let existingPhotos = lab.photos || [];
+    if (body.existingPhotos) {
+      if (Array.isArray(body.existingPhotos)) {
+        existingPhotos = body.existingPhotos.filter(Boolean);
+      } else if (typeof body.existingPhotos === 'string') {
+        existingPhotos = body.existingPhotos
+          .split(',')
+          .map((p) => p.trim())
+          .filter(Boolean);
+      }
+    }
+
+    if (req.files?.photos) {
+      const newPhotoUrls = await Promise.all(
+        req.files.photos.map(async (file) => {
+          const result = await uploadToCloudinary(file.path);
+          return result.url;
+        })
+      );
+      updates.photos = [...existingPhotos, ...newPhotoUrls];
+    } else {
+      updates.photos = existingPhotos;
+    }
+
+    const updatedLab = await Lab.findByIdAndUpdate(labAdmin.labId, updates, {
+      new: true,
+      runValidators: true,
+    });
+
+    res.json({ message: 'Lab info updated successfully', lab: updatedLab });
+  } catch (error) {
+    console.error('Error updating lab info:', error);
+    res.status(500).json({ message: 'Failed to update lab info' });
+  }
+};
+
 export const addTest = async (req, res) => {
   try {
     const { profileId } = req.user;
