@@ -20,6 +20,12 @@ export const addLabTest = (testData) => apiService.post('/lab-admin/tests', test
 export const updateLabTest = (testId, updates) =>
   apiService.put(`/lab-admin/tests/${testId}`, updates);
 export const getLabInfo = () => apiService.get('/lab-admin/lab/info');
+export const updateLabInfo = (labData, logoFile, photoFiles = []) => {
+  const formData = createFormDataFromObject(labData, { logo: logoFile, photos: photoFiles });
+  return apiService.put('/lab-admin/lab/info', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+};
 
 /**
  * Check if Lab Exists for current lab admin
@@ -45,6 +51,7 @@ export default {
   addLabTest,
   updateLabTest,
   getLabInfo,
+  updateLabInfo,
   checkLabExists,
   checkLabAdminProfileExists,
 };

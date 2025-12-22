@@ -1,5 +1,14 @@
 // DesktopNavbar.jsx
-import { Search, LogOut, Users, Building2, FlaskConical, Calendar, TestTube } from 'lucide-react';
+import {
+  Search,
+  LogOut,
+  Users,
+  Building2,
+  FlaskConical,
+  Calendar,
+  TestTube,
+  Settings,
+} from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/authContext';
 import DarkModeToggle from '../ui/DarkModeToggle';
@@ -252,6 +261,18 @@ export default function DesktopNavbar({ searchQuery, setSearchQuery }) {
               >
                 <TestTube className="h-5 w-5" />
                 Tests
+              </button>
+            )}
+
+            {/* Lab Admin: Lab Settings */}
+            {isAuthenticated && user?.role === 'lab_admin' && (
+              <button
+                onClick={() => navigate('/quick-lab/lab-settings')}
+                className="hidden md:inline-flex items-center gap-2 px-3 py-2 text-slate-700 dark:text-slate-300 hover:text-yellow-600 dark:hover:text-yellow-400 font-medium transition-colors"
+                title="Lab Settings"
+              >
+                <Settings className="h-5 w-5" />
+                Settings
               </button>
             )}
 

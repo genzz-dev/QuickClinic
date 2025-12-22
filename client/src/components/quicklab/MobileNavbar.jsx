@@ -10,6 +10,7 @@ import {
   FlaskConical,
   Calendar,
   TestTube,
+  Settings,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/authContext';
@@ -276,6 +277,17 @@ export default function MobileNavbar({ searchQuery, setSearchQuery }) {
             >
               <Users className="h-6 w-6" />
               <span className="text-xs font-medium">Staff</span>
+            </button>
+          )}
+
+          {/* Lab Admin: Lab Settings */}
+          {isAuthenticated && user?.role === 'lab_admin' && (
+            <button
+              onClick={() => navigate('/quick-lab/lab-settings')}
+              className="flex flex-col items-center justify-center w-full h-full space-y-1 text-slate-500 dark:text-slate-400 hover:text-yellow-600 dark:hover:text-yellow-400 transition-colors active:scale-95"
+            >
+              <Settings className="h-6 w-6" />
+              <span className="text-xs font-medium">Settings</span>
             </button>
           )}
 

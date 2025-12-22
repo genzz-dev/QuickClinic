@@ -45,6 +45,16 @@
     --color-lab-blue-500: #60a5fa;
     --color-lab-blue-600: #3b82f6;
   }
+
+  body {
+    background-color: var(--color-lab-black-50);
+    color: var(--color-lab-black-900);
+  }
+
+  .dark body {
+    background-color: var(--color-lab-black-900);
+    color: var(--color-lab-black-50);
+  }
 }
 
 /* Custom Component Classes */
