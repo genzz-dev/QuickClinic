@@ -118,6 +118,20 @@ export default function DesktopNavbar({ searchQuery, setSearchQuery }) {
     navigate(`/quick-lab/lab/${test.labId}`);
   };
 
+  // Explore dropdown state
+  const [isExploreOpen, setIsExploreOpen] = useState(false);
+  const exploreRef = useRef(null);
+
+  useEffect(() => {
+    const onDocClick = (e) => {
+      if (exploreRef.current && !exploreRef.current.contains(e.target)) {
+        setIsExploreOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', onDocClick);
+    return () => document.removeEventListener('mousedown', onDocClick);
+  }, []);
+
   return (
     <nav className="hidden lg:block sticky top-0 z-50 bg-white dark:bg-black border-b border-slate-200 dark:border-slate-800 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -227,6 +241,41 @@ export default function DesktopNavbar({ searchQuery, setSearchQuery }) {
           <div className="flex items-center space-x-4">
             {/* Dark Mode Toggle */}
             <DarkModeToggle />
+
+            {/* Explore Dropdown (Quick Clinic / Quick Med) for patients & public */}
+            {(!isAuthenticated || user?.role === 'patient') && (
+              <div className="relative" ref={exploreRef}>
+                <button
+                  onClick={() => setIsExploreOpen((v) => !v)}
+                  className="hidden md:inline-flex items-center gap-2 px-3 py-2 text-slate-700 dark:text-slate-300 hover:text-yellow-600 dark:hover:text-yellow-400 font-medium transition-colors"
+                  title="Explore"
+                >
+                  Explore
+                </button>
+                {isExploreOpen && (
+                  <div className="absolute right-0 mt-2 w-40 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg shadow-lg py-2">
+                    <button
+                      onClick={() => {
+                        setIsExploreOpen(false);
+                        navigate('/');
+                      }}
+                      className="block w-full text-left px-4 py-2 text-slate-700 dark:text-slate-300 hover:bg-yellow-50 dark:hover:bg-slate-800"
+                    >
+                      Quick Clinic
+                    </button>
+                    <button
+                      onClick={() => {
+                        setIsExploreOpen(false);
+                        navigate('/quick-med');
+                      }}
+                      className="block w-full text-left px-4 py-2 text-slate-700 dark:text-slate-300 hover:bg-yellow-50 dark:hover:bg-slate-800"
+                    >
+                      Quick Med
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Lab Admin: Manage Appointments */}
             {isAuthenticated && user?.role === 'lab_admin' && (

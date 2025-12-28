@@ -24,6 +24,7 @@ export default function MobileNavbar({ searchQuery, setSearchQuery }) {
   const [suggestions, setSuggestions] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [isExploreOpen, setIsExploreOpen] = useState(false);
   const searchRef = useRef(null);
   const debounceTimeout = useRef(null);
 
@@ -226,7 +227,7 @@ export default function MobileNavbar({ searchQuery, setSearchQuery }) {
 
       {/* Bottom Navigation Bar */}
       <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-white dark:bg-black border-t border-slate-200 dark:border-slate-800 shadow-lg">
-        <div className="flex items-center justify-around h-16 px-2">
+        <div className="flex items-center justify-around h-16 px-2 relative">
           {/* Home/Labs */}
           <button className="flex flex-col items-center justify-center w-full h-full space-y-1 text-slate-500 dark:text-slate-400 hover:text-yellow-600 dark:hover:text-yellow-400 transition-colors active:scale-95">
             <Home className="h-6 w-6" />
@@ -246,6 +247,41 @@ export default function MobileNavbar({ searchQuery, setSearchQuery }) {
               Theme
             </span>
           </div>
+
+          {/* Explore toggle for patients & public */}
+          {(!isAuthenticated || user?.role === 'patient') && (
+            <>
+              <button
+                onClick={() => setIsExploreOpen((v) => !v)}
+                className="flex flex-col items-center justify-center w-full h-full space-y-1 text-slate-500 dark:text-slate-400 hover:text-yellow-600 dark:hover:text-yellow-400 transition-colors active:scale-95"
+              >
+                <BookOpen className="h-6 w-6" />
+                <span className="text-xs font-medium">Explore</span>
+              </button>
+              {isExploreOpen && (
+                <div className="absolute bottom-16 right-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg shadow-lg py-2 w-40">
+                  <button
+                    onClick={() => {
+                      setIsExploreOpen(false);
+                      navigate('/');
+                    }}
+                    className="block w-full text-left px-4 py-2 text-slate-700 dark:text-slate-300 hover:bg-yellow-50 dark:hover:bg-slate-800"
+                  >
+                    Quick Clinic
+                  </button>
+                  <button
+                    onClick={() => {
+                      setIsExploreOpen(false);
+                      navigate('/quick-med');
+                    }}
+                    className="block w-full text-left px-4 py-2 text-slate-700 dark:text-slate-300 hover:bg-yellow-50 dark:hover:bg-slate-800"
+                  >
+                    Quick Med
+                  </button>
+                </div>
+              )}
+            </>
+          )}
 
           {/* Lab Admin: Manage Appointments */}
           {isAuthenticated && user?.role === 'lab_admin' && (
