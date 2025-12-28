@@ -18,6 +18,7 @@ const PatientMobileNavigation = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isExploreOpen, setIsExploreOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const { logout } = useAuth();
 
@@ -59,7 +60,7 @@ const PatientMobileNavigation = () => {
       {/* Rest of the component remains the same */}
       {/* Mobile Bottom Navigation */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50">
-        <div className="flex justify-around items-center h-16">
+        <div className="flex justify-around items-center h-16 relative">
           {bottomNavItems.map((item) => {
             const Icon = item.icon;
             const isActive = isActivePath(item.path);
@@ -76,6 +77,35 @@ const PatientMobileNavigation = () => {
               </button>
             );
           })}
+          {/* Explore toggle */}
+          <button
+            onClick={() => setIsExploreOpen((v) => !v)}
+            className="flex flex-col items-center justify-center flex-1 h-full text-gray-600"
+          >
+            <span className="text-xs mt-1">Explore</span>
+          </button>
+          {isExploreOpen && (
+            <div className="absolute bottom-16 right-4 bg-white border border-gray-200 rounded-lg shadow-lg py-2 w-40">
+              <button
+                onClick={() => {
+                  setIsExploreOpen(false);
+                  navigate('/quick-med');
+                }}
+                className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-50"
+              >
+                Quick Med
+              </button>
+              <button
+                onClick={() => {
+                  setIsExploreOpen(false);
+                  navigate('/quick-lab');
+                }}
+                className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-50"
+              >
+                Quick Lab
+              </button>
+            </div>
+          )}
         </div>
       </nav>
       {/* Rest of the hamburger menu and other components */}

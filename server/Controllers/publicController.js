@@ -3,6 +3,7 @@
 import Clinic from '../models/Clinic/Clinic.js';
 import Schedule from '../models/Clinic/Schedule.js';
 import Doctor from '../models/Users/Doctor.js';
+import Lab from '../models/Lab/Lab.js';
 
 // Helper functions
 const getDayName = (date) =>
@@ -491,6 +492,165 @@ export const getSearchSuggestions = async (req, res) => {
 
     res.json({ success: true, data: suggestions });
   } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+};
+
+// Get nearby labs by city
+export const getNearbyLabs = async (req, res) => {
+  try {
+    const { city } = req.query;
+
+    if (!city) {
+      return res.status(400).json({ success: false, message: 'City parameter is required' });
+    }
+
+    // Find labs in the same city
+    const labs = await Lab.find({
+      'address.city': { $regex: city, $options: 'i' },
+      isActive: { $ne: false }, // Exclude inactive labs if the field exists
+    })
+      .select('name address contact tests generalHomeCollectionFee')
+      .lean();
+
+    res.json({
+      success: true,
+      count: labs.length,
+      data: labs,
+    });
+  } catch (error) {
+    console.error('Error fetching nearby labs:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+};
+
+// Search labs with comprehensive filters
+export const searchLabs = async (req, res) => {
+  try {
+    const {
+      query, // search term for lab name or test name
+      city,
+      testCategory,
+      minPrice,
+      maxPrice,
+      homeCollection,
+      sort = 'rating_desc',
+      page = 1,
+      limit = 20,
+    } = req.query;
+
+    const skip = (page - 1) * limit;
+    const searchQuery = {};
+
+    // City filter (required for location-based search)
+    if (city) {
+      searchQuery['address.city'] = { $regex: city, $options: 'i' };
+    }
+
+    // Active labs only
+    searchQuery.isActive = { $ne: false };
+
+    // Search by lab name or test name
+    if (query && query.trim()) {
+      searchQuery.$or = [
+        { name: { $regex: query, $options: 'i' } },
+        { description: { $regex: query, $options: 'i' } },
+        { 'tests.testName': { $regex: query, $options: 'i' } },
+      ];
+    }
+
+    // Test category filter
+    if (testCategory) {
+      searchQuery['tests.category'] = testCategory;
+    }
+
+    // Home collection filter
+    if (homeCollection === 'true') {
+      searchQuery['tests.homeCollectionAvailable'] = true;
+    }
+
+    // Price range filter (on tests)
+    if (minPrice || maxPrice) {
+      const priceQuery = {};
+      if (minPrice) priceQuery.$gte = parseFloat(minPrice);
+      if (maxPrice) priceQuery.$lte = parseFloat(maxPrice);
+      searchQuery['tests.price'] = priceQuery;
+    }
+
+    // Sort options
+    let sortOption = {};
+    switch (sort) {
+      case 'rating_desc':
+        sortOption = { 'ratings.average': -1 };
+        break;
+      case 'rating_asc':
+        sortOption = { 'ratings.average': 1 };
+        break;
+      case 'name_asc':
+        sortOption = { name: 1 };
+        break;
+      case 'name_desc':
+        sortOption = { name: -1 };
+        break;
+      default:
+        sortOption = { 'ratings.average': -1 };
+    }
+
+    const [labs, total] = await Promise.all([
+      Lab.find(searchQuery)
+        .sort(sortOption)
+        .skip(skip)
+        .limit(parseInt(limit))
+        .select(
+          'name description address contact logo photos tests ratings openingHours generalHomeCollectionFee'
+        )
+        .lean(),
+      Lab.countDocuments(searchQuery),
+    ]);
+
+    res.json({
+      success: true,
+      data: labs,
+      pagination: {
+        page: parseInt(page),
+        limit: parseInt(limit),
+        total,
+        pages: Math.ceil(total / limit),
+      },
+      filters: {
+        city,
+        query,
+        testCategory,
+        minPrice,
+        maxPrice,
+        homeCollection,
+      },
+    });
+  } catch (error) {
+    console.error('Error searching labs:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+};
+
+// Get single lab details by ID
+export const getLabById = async (req, res) => {
+  try {
+    const { labId } = req.params;
+
+    const lab = await Lab.findById(labId)
+      .populate('staff', 'firstName lastName role phoneNumber')
+      .lean();
+
+    if (!lab) {
+      return res.status(404).json({ success: false, message: 'Lab not found' });
+    }
+
+    res.json({
+      success: true,
+      data: lab,
+    });
+  } catch (error) {
+    console.error('Error fetching lab details:', error);
     res.status(500).json({ success: false, error: error.message });
   }
 };

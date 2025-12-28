@@ -5,10 +5,23 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/authContext';
 
 import SearchBar from './SearchBar';
+import { useState, useRef, useEffect } from 'react';
 
 const PatientDesktopNavbar = () => {
   const navigate = useNavigate();
   const { logout } = useAuth();
+  const [isExploreOpen, setIsExploreOpen] = useState(false);
+  const exploreRef = useRef(null);
+
+  useEffect(() => {
+    const onDocClick = (e) => {
+      if (exploreRef.current && !exploreRef.current.contains(e.target)) {
+        setIsExploreOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', onDocClick);
+    return () => document.removeEventListener('mousedown', onDocClick);
+  }, []);
 
   const handleLogout = async () => {
     try {
@@ -71,6 +84,38 @@ const PatientDesktopNavbar = () => {
             <FiUser className="w-5 h-5" />
             <span>Profile</span>
           </button>
+
+          {/* Explore Dropdown */}
+          <div className="relative" ref={exploreRef}>
+            <button
+              onClick={() => setIsExploreOpen((v) => !v)}
+              className="flex items-center text-gray-700 hover:text-blue-600 transition-colors px-3 py-2 rounded-md hover:bg-gray-50"
+            >
+              <span>Explore</span>
+            </button>
+            {isExploreOpen && (
+              <div className="absolute right-0 mt-2 w-40 bg-white border border-gray-200 rounded-lg shadow-lg py-2">
+                <button
+                  onClick={() => {
+                    setIsExploreOpen(false);
+                    navigate('/quick-med');
+                  }}
+                  className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-50"
+                >
+                  Quick Med
+                </button>
+                <button
+                  onClick={() => {
+                    setIsExploreOpen(false);
+                    navigate('/quick-lab');
+                  }}
+                  className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-50"
+                >
+                  Quick Lab
+                </button>
+              </div>
+            )}
+          </div>
 
           {/* Notification Bell Icon */}
           <button

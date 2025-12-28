@@ -6,6 +6,10 @@ function getDashboardPath(role) {
       return '/doctor/dashboard';
     case 'admin':
       return '/admin/dashboard';
+    case 'lab_admin':
+      return '/quick-lab/dashboard';
+    case 'lab_staff':
+      return '/quick-lab/staff-dashboard';
     default:
       return '/';
   }

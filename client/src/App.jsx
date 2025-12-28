@@ -60,6 +60,9 @@ function AppInner() {
           return <PatientRoutes />;
         case 'doctor':
           return <DoctorRoutes />;
+        case 'lab_admin':
+        case 'lab_staff':
+          return <QuickLabRoutes />;
         default:
           // Fallback for unknown roles
           navigate('/', { replace: true });

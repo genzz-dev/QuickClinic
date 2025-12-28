@@ -55,6 +55,36 @@ export const createLab = async (req, res) => {
     const { userId, profileId } = req.user;
     const labData = req.body;
 
+    // Rebuild nested fields from multipart form-data (dot-notation fallbacks)
+    const contact = {
+      phone:
+        labData.contact?.phone || labData['contact.phone'] || labData.contactPhone || labData.phone,
+      email:
+        labData.contact?.email || labData['contact.email'] || labData.contactEmail || labData.email,
+      website:
+        labData.contact?.website ||
+        labData['contact.website'] ||
+        labData.contactWebsite ||
+        labData.website,
+    };
+
+    const address = {
+      formattedAddress:
+        labData.address?.formattedAddress ||
+        labData['address.formattedAddress'] ||
+        labData.formattedAddress,
+      city: labData.address?.city || labData['address.city'] || labData.city,
+      state: labData.address?.state || labData['address.state'] || labData.state,
+      zipCode: labData.address?.zipCode || labData['address.zipCode'] || labData.zipCode,
+      country: labData.address?.country || labData['address.country'] || labData.country,
+    };
+
+    // Normalize numeric fee
+    const generalHomeCollectionFee =
+      labData.generalHomeCollectionFee !== undefined && labData.generalHomeCollectionFee !== ''
+        ? Number(labData.generalHomeCollectionFee)
+        : undefined;
+
     const labAdmin = await LabAdmin.findById(profileId);
     if (!labAdmin) {
       return res.status(404).json({ message: 'Lab admin profile not found' });
@@ -64,7 +94,7 @@ export const createLab = async (req, res) => {
       return res.status(400).json({ message: 'Lab admin can only manage one lab' });
     }
 
-    if (!labData.name || !labData.contact?.phone) {
+    if (!labData.name || !contact.phone) {
       return res.status(400).json({ message: 'Lab name and contact phone are required' });
     }
 
@@ -86,6 +116,9 @@ export const createLab = async (req, res) => {
 
     const lab = new Lab({
       ...labData,
+      contact,
+      address,
+      generalHomeCollectionFee,
       labAdminId: profileId,
     });
 
@@ -227,6 +260,11 @@ export const removeStaffFromLab = async (req, res) => {
       return res.status(404).json({ message: 'Staff not found' });
     }
 
+    // If staff is not assigned to any lab, respond gracefully
+    if (!staff.labId) {
+      return res.status(400).json({ message: 'Staff is not assigned to any lab' });
+    }
+
     if (staff.labId.toString() !== labAdmin.labId.toString()) {
       return res.status(403).json({ message: 'Staff does not belong to your lab' });
     }
@@ -277,6 +315,11 @@ export const updateTest = async (req, res) => {
     const { testId } = req.params;
     const updates = req.body;
 
+    // Convert sampleType to lowercase if provided
+    if (updates.sampleType) {
+      updates.sampleType = updates.sampleType.toLowerCase();
+    }
+
     const labAdmin = await LabAdmin.findById(profileId);
     if (!labAdmin || !labAdmin.labId) {
       return res.status(400).json({ message: 'Lab admin not associated with any lab' });
@@ -324,6 +367,114 @@ export const getLabInfo = async (req, res) => {
   } catch (error) {
     console.error('Error fetching lab info:', error);
     res.status(500).json({ message: 'Failed to fetch lab info' });
+  }
+};
+
+// Update lab info (basic details, contact, address, charges, logo/photos)
+export const updateLabInfo = async (req, res) => {
+  try {
+    const { profileId } = req.user;
+
+    const labAdmin = await LabAdmin.findById(profileId);
+    if (!labAdmin || !labAdmin.labId) {
+      return res.status(400).json({ message: 'Lab admin not associated with any lab' });
+    }
+
+    const lab = await Lab.findById(labAdmin.labId);
+    if (!lab) {
+      return res.status(404).json({ message: 'Lab not found' });
+    }
+
+    const body = req.body;
+
+    // Rebuild nested contact/address fields (form-data friendly)
+    const contact = {
+      phone: body.contact?.phone || body['contact.phone'] || body.contactPhone || body.phone,
+      email: body.contact?.email || body['contact.email'] || body.contactEmail || body.email,
+      website:
+        body.contact?.website || body['contact.website'] || body.contactWebsite || body.website,
+    };
+
+    const address = {
+      formattedAddress:
+        body.address?.formattedAddress ||
+        body['address.formattedAddress'] ||
+        body.formattedAddress ||
+        lab.address?.formattedAddress,
+      street: body.address?.street || body['address.street'] || body.street || lab.address?.street,
+      city: body.address?.city || body['address.city'] || body.city || lab.address?.city,
+      state: body.address?.state || body['address.state'] || body.state || lab.address?.state,
+      zipCode:
+        body.address?.zipCode || body['address.zipCode'] || body.zipCode || lab.address?.zipCode,
+      country:
+        body.address?.country || body['address.country'] || body.country || lab.address?.country,
+    };
+
+    let generalHomeCollectionFee = lab.generalHomeCollectionFee;
+    if (body.generalHomeCollectionFee !== undefined && body.generalHomeCollectionFee !== '') {
+      generalHomeCollectionFee = Number(body.generalHomeCollectionFee);
+    }
+
+    // Opening hours can come as JSON string from form-data
+    let openingHours = lab.openingHours;
+    if (body.openingHours) {
+      try {
+        openingHours =
+          typeof body.openingHours === 'string' ? JSON.parse(body.openingHours) : body.openingHours;
+      } catch (err) {
+        return res.status(400).json({ message: 'Invalid openingHours format' });
+      }
+    }
+
+    const updates = {
+      name: body.name || lab.name,
+      description: body.description !== undefined ? body.description : lab.description,
+      contact,
+      address,
+      generalHomeCollectionFee,
+      openingHours,
+    };
+
+    // Optional logo upload
+    if (req.files?.logo) {
+      const result = await uploadToCloudinary(req.files.logo[0].path);
+      updates.logo = result.url;
+    }
+
+    // Photos: keep existing ones (sent from client) + newly uploaded
+    let existingPhotos = lab.photos || [];
+    if (body.existingPhotos) {
+      if (Array.isArray(body.existingPhotos)) {
+        existingPhotos = body.existingPhotos.filter(Boolean);
+      } else if (typeof body.existingPhotos === 'string') {
+        existingPhotos = body.existingPhotos
+          .split(',')
+          .map((p) => p.trim())
+          .filter(Boolean);
+      }
+    }
+
+    if (req.files?.photos) {
+      const newPhotoUrls = await Promise.all(
+        req.files.photos.map(async (file) => {
+          const result = await uploadToCloudinary(file.path);
+          return result.url;
+        })
+      );
+      updates.photos = [...existingPhotos, ...newPhotoUrls];
+    } else {
+      updates.photos = existingPhotos;
+    }
+
+    const updatedLab = await Lab.findByIdAndUpdate(labAdmin.labId, updates, {
+      new: true,
+      runValidators: true,
+    });
+
+    res.json({ message: 'Lab info updated successfully', lab: updatedLab });
+  } catch (error) {
+    console.error('Error updating lab info:', error);
+    res.status(500).json({ message: 'Failed to update lab info' });
   }
 };
 
@@ -389,7 +540,7 @@ export const addTest = async (req, res) => {
       description,
       price,
       preparationInstructions,
-      sampleType,
+      sampleType: sampleType ? sampleType.toLowerCase() : undefined,
       homeCollectionAvailable: canBeHomeCollected,
       homeCollectionFee: homeCollectionFee || 0,
       reportDeliveryTime,
@@ -398,7 +549,6 @@ export const addTest = async (req, res) => {
       isActive: true,
     };
 
-    const Lab = (await import('../models/Lab/Lab.js')).default;
     const lab = await Lab.findByIdAndUpdate(
       labAdmin.labId,
       { $push: { tests: testData } },
@@ -413,6 +563,77 @@ export const addTest = async (req, res) => {
     console.error('Error adding test:', error);
     res.status(500).json({
       message: 'Failed to add test',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
+    });
+  }
+};
+
+// Check if Lab Admin Profile Exists
+export const checkLabAdminProfileExists = async (req, res) => {
+  try {
+    const { userId } = req.user;
+
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({ message: 'Invalid user ID format' });
+    }
+
+    const existingAdmin = await LabAdmin.findOne({ userId });
+
+    if (existingAdmin) {
+      return res.status(200).json({
+        exists: true,
+        message: 'Lab admin profile exists',
+      });
+    } else {
+      return res.status(200).json({
+        exists: false,
+        message: 'Lab admin profile does not exist',
+      });
+    }
+  } catch (error) {
+    console.error('Error checking lab admin profile:', error);
+    res.status(500).json({
+      message: 'Failed to check lab admin profile',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
+    });
+  }
+};
+
+// Check if Lab Exists for the Lab Admin
+export const checkLabExists = async (req, res) => {
+  try {
+    const { profileId } = req.user;
+
+    // If no profile exists yet, return exists: false
+    if (!profileId) {
+      return res.status(200).json({
+        exists: false,
+        message: 'No lab admin profile found yet',
+      });
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(profileId)) {
+      return res.status(400).json({ message: 'Invalid profile ID format' });
+    }
+
+    const labAdmin = await LabAdmin.findById(profileId);
+
+    if (labAdmin?.labId) {
+      return res.status(200).json({
+        exists: true,
+        labId: labAdmin.labId,
+        message: 'Lab already exists for this admin',
+      });
+    }
+
+    return res.status(200).json({
+      exists: false,
+      message: 'No lab found for this admin',
+    });
+  } catch (error) {
+    console.error('Error checking lab status:', error);
+    res.status(500).json({
+      message: 'Failed to check lab status',
       error: process.env.NODE_ENV === 'development' ? error.message : undefined,
     });
   }

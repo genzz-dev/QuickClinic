@@ -11,12 +11,22 @@ import {
   addTest,
   updateTest,
   getLabInfo,
+  updateLabInfo,
+  checkLabExists,
+  checkLabAdminProfileExists,
 } from '../../Controllers/QuickLab/labAdminController.js';
 import upload from '../../Middleware/upload.js';
 
 const router = express.Router();
 
 router.post('/profile', authenticate, authorize('lab_admin'), createLabAdminProfile);
+router.get(
+  '/profile/status',
+  authenticate,
+  authorize('lab_admin', 'lab_staff'),
+  checkLabAdminProfileExists
+);
+router.get('/lab/status', authenticate, authorize('lab_admin'), checkLabExists);
 router.post(
   '/lab',
   authenticate,
@@ -40,5 +50,15 @@ router.put('/tests/:testId', authenticate, authorize('lab_admin'), updateTest);
 
 // Lab info
 router.get('/lab/info', authenticate, authorize('lab_admin'), getLabInfo);
+router.put(
+  '/lab/info',
+  authenticate,
+  authorize('lab_admin'),
+  upload.fields([
+    { name: 'logo', maxCount: 1 },
+    { name: 'photos', maxCount: 10 },
+  ]),
+  updateLabInfo
+);
 
 export default router;

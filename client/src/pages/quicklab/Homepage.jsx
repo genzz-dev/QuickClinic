@@ -1,5 +1,8 @@
 // QuickLabHomepage.jsx
-import React from 'react';
+import React, { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/authContext';
+import getDashboardPath from '../../utility/getDashboardPath';
 import '../../quicklab.css';
 import HeroSection from '../../components/quicklab/HomePage/HeroSection';
 import FeaturesSection from '../../components/quicklab/HomePage/FeaturesSection';
@@ -9,6 +12,20 @@ import PromiseSection from '../../components/quicklab/HomePage/PromiseSection';
 import DesktopFooter from '../../components/quicklab/DesktopFooter';
 
 const QuickLabHomepage = () => {
+  const { isAuthenticated, user } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      // Redirect lab_admin and lab_staff to their dashboards
+      if (user.role === 'lab_admin' || user.role === 'lab_staff') {
+        const dashboardPath = getDashboardPath(user.role);
+        navigate(dashboardPath, { replace: true });
+      }
+      // For other roles (patient, doctor, admin), stay on homepage
+    }
+  }, [isAuthenticated, user, navigate]);
+
   return (
     <div className="min-h-screen bg-white dark:bg-lab-black-900 text-lab-black-900 dark:text-lab-black-50 transition-colors duration-300">
       <HeroSection />

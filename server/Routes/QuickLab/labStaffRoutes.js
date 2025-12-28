@@ -10,6 +10,7 @@ import {
   getAssignmentDetails,
   updateMyAssignmentStatus,
   completeAssignment,
+  uploadReportAndComplete,
 } from '../../Controllers/QuickLab/labStaffController.js';
 import upload from '../../Middleware/upload.js';
 
@@ -52,6 +53,13 @@ router.post(
   authenticate,
   authorize('lab_staff'),
   completeAssignment
+);
+router.post(
+  '/assignments/:appointmentId/upload-report',
+  authenticate,
+  authorize('lab_staff'),
+  upload.single('reportFile'),
+  uploadReportAndComplete
 );
 
 export default router;

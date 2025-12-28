@@ -265,14 +265,14 @@ export const getLabAppointments = async (req, res) => {
     let labId;
 
     if (role === 'lab_admin') {
-      const LabAdmin = (await import('../models/Users/LabAdmin.js')).default;
+      const LabAdmin = (await import('../../models/Lab/LabAdmin.js')).default;
       const labAdmin = await LabAdmin.findById(profileId);
       if (!labAdmin || !labAdmin.labId) {
         return res.status(400).json({ message: 'Lab admin not associated with any lab' });
       }
       labId = labAdmin.labId;
     } else if (role === 'lab_staff') {
-      const LabStaff = (await import('../models/Users/LabStaff.js')).default;
+      const LabStaff = (await import('../../models/Lab/LabStaff.js')).default;
       const staff = await LabStaff.findById(profileId);
       if (!staff) {
         return res.status(404).json({ message: 'Staff not found' });
@@ -344,7 +344,7 @@ export const assignStaffForCollection = async (req, res) => {
       });
     }
 
-    const LabStaff = (await import('../models/Users/LabStaff.js')).default;
+    const LabStaff = (await import('../../models/Lab/LabStaff.js')).default;
     const staff = await LabStaff.findById(staffId);
     if (!staff) {
       return res.status(404).json({ message: 'Staff not found' });

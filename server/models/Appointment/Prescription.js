@@ -32,6 +32,10 @@ const prescriptionSchema = new mongoose.Schema({
     {
       name: { type: String },
       instructions: { type: String },
+      labId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Lab',
+      },
     },
   ],
   notes: { type: String },
