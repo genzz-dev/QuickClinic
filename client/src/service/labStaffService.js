@@ -31,6 +31,16 @@ export const updateMyAssignmentStatus = (appointmentId, status, notes) =>
   apiService.put(`/lab-staff/assignments/${appointmentId}/status`, { status, notes });
 export const completeAssignment = (appointmentId, notes) =>
   apiService.post(`/lab-staff/assignments/${appointmentId}/complete`, { notes });
+export const uploadReportAndComplete = (appointmentId, reportFile, notes) => {
+  const formData = new FormData();
+  formData.append('reportFile', reportFile);
+  if (notes) {
+    formData.append('notes', notes);
+  }
+  return apiService.post(`/lab-staff/assignments/${appointmentId}/upload-report`, formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+};
 
 export default {
   createStaffProfile,
@@ -41,4 +51,5 @@ export default {
   getAssignmentDetails,
   updateMyAssignmentStatus,
   completeAssignment,
+  uploadReportAndComplete,
 };

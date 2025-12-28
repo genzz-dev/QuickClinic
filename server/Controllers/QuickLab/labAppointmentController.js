@@ -344,7 +344,7 @@ export const assignStaffForCollection = async (req, res) => {
       });
     }
 
-    const LabStaff = (await import('../models/Users/LabStaff.js')).default;
+    const LabStaff = (await import('../../models/Lab/LabStaff.js')).default;
     const staff = await LabStaff.findById(staffId);
     if (!staff) {
       return res.status(404).json({ message: 'Staff not found' });

@@ -276,6 +276,18 @@ export default function DesktopNavbar({ searchQuery, setSearchQuery }) {
               </button>
             )}
 
+            {/* Lab Staff: My Appointments */}
+            {isAuthenticated && user?.role === 'lab_staff' && (
+              <button
+                onClick={() => navigate('/quick-lab/staff-appointments')}
+                className="hidden md:inline-flex items-center gap-2 px-3 py-2 text-slate-700 dark:text-slate-300 hover:text-yellow-600 dark:hover:text-yellow-400 font-medium transition-colors"
+                title="My Appointments"
+              >
+                <Calendar className="h-5 w-5" />
+                My Appointments
+              </button>
+            )}
+
             {/* Conditional: Login/Register OR Logout */}
             {isAuthenticated ? (
               <button

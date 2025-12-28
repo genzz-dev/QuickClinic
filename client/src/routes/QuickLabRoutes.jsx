@@ -13,6 +13,7 @@ import LabAdminLabSettings from '../pages/quicklab/LabAdminLabSettings';
 import LabStaffProfileComplete from '../pages/quicklab/LabStaffProfileComplete';
 import LabStaffWaitingForAssignment from '../pages/quicklab/LabStaffWaitingForAssignment';
 import LabStaffDashboard from '../pages/quicklab/LabStaffDashboard';
+import LabStaffMyAppointments from '../pages/quicklab/LabStaffMyAppointments';
 import LabAdminPreventGuard from './guards/LabAdminPreventGuard';
 import LabAdminSetupGuard from './guards/LabAdminSetupGuard';
 import LabStaffPreventGuard from './guards/LabStaffPreventGuard';
@@ -147,6 +148,18 @@ export default function QuickLabRoutes() {
             <ProtectedRoute allowedRoles={['lab_staff']}>
               <LabStaffSetupGuard requireProfile={true} requireLabAssignment={true}>
                 <LabStaffDashboard />
+              </LabStaffSetupGuard>
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Lab Staff - My Appointments */}
+        <Route
+          path="/quick-lab/staff-appointments"
+          element={
+            <ProtectedRoute allowedRoles={['lab_staff']}>
+              <LabStaffSetupGuard requireProfile={true} requireLabAssignment={true}>
+                <LabStaffMyAppointments />
               </LabStaffSetupGuard>
             </ProtectedRoute>
           }

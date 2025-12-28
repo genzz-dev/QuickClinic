@@ -1,7 +1,7 @@
-// controllers/labStaffController.js
 import mongoose from 'mongoose';
 import LabStaff from '../../models/Lab/LabStaff.js';
 import LabAppointment from '../../models/Lab/LabAppointment.js';
+import LabReport from '../../models/Lab/LabReport.js';
 import Lab from '../../models/Lab/Lab.js';
 import { uploadToCloudinary } from '../../services/uploadService.js';
 
@@ -246,6 +246,34 @@ export const updateMyAssignmentStatus = async (req, res) => {
       return res.status(403).json({ message: 'Unauthorized to update this assignment' });
     }
 
+    // Status progression rules - prevent going backwards
+    const statusOrder = ['pending', 'confirmed', 'sample_collected', 'processing', 'completed'];
+    const currentStatusIndex = statusOrder.indexOf(assignment.status);
+    const newStatusIndex = statusOrder.indexOf(status);
+
+    if (newStatusIndex < currentStatusIndex) {
+      return res.status(400).json({
+        message: 'Cannot move appointment to a previous status',
+      });
+    }
+
+    // Cancelled appointments cannot be changed
+    if (assignment.status === 'cancelled') {
+      return res.status(400).json({
+        message: 'Cannot update cancelled appointments',
+      });
+    }
+
+    // Once sample is collected or processing, cannot cancel
+    if (
+      status === 'cancelled' &&
+      ['sample_collected', 'processing', 'completed'].includes(assignment.status)
+    ) {
+      return res.status(400).json({
+        message: 'Cannot cancel appointments after sample collection',
+      });
+    }
+
     assignment.status = status;
     if (notes) {
       assignment.notes = notes;
@@ -302,5 +330,77 @@ export const completeAssignment = async (req, res) => {
   } catch (error) {
     console.error('Error completing assignment:', error);
     res.status(500).json({ message: 'Failed to complete assignment' });
+  }
+};
+
+// Upload report and mark appointment as completed
+export const uploadReportAndComplete = async (req, res) => {
+  try {
+    const { profileId } = req.user;
+    const { appointmentId } = req.params;
+    const { notes } = req.body;
+
+    if (!req.file) {
+      return res.status(400).json({ message: 'Report PDF file is required' });
+    }
+
+    const staff = await LabStaff.findById(profileId);
+    if (!staff) {
+      return res.status(404).json({ message: 'Staff profile not found' });
+    }
+
+    const assignment = await LabAppointment.findById(appointmentId).populate('patientId labId');
+    if (!assignment) {
+      return res.status(404).json({ message: 'Assignment not found' });
+    }
+
+    if (assignment.assignedStaffId?.toString() !== profileId.toString()) {
+      return res.status(403).json({ message: 'Unauthorized to upload report for this assignment' });
+    }
+
+    // Upload PDF to Cloudinary
+    const uploadResult = await uploadToCloudinary(req.file.path, {
+      resource_type: 'raw',
+      folder: 'lab-reports',
+    });
+
+    // Create lab report
+    const labReport = new LabReport({
+      appointmentId: assignment._id,
+      patientId: assignment.patientId._id,
+      labId: assignment.labId._id,
+      reportFile: {
+        url: uploadResult.url,
+        fileName: req.file.originalname,
+        uploadedAt: new Date(),
+      },
+      reportDate: new Date(),
+    });
+
+    await labReport.save();
+
+    // Update appointment with report and mark as completed
+    assignment.reportId = labReport._id;
+    assignment.status = 'completed';
+    if (notes) {
+      assignment.notes = notes;
+    }
+    await assignment.save();
+
+    res.json({
+      message: 'Report uploaded and appointment marked as completed',
+      assignment: await assignment.populate([
+        { path: 'patientId', select: 'firstName lastName' },
+        { path: 'labId', select: 'name' },
+        { path: 'reportId' },
+      ]),
+      report: labReport,
+    });
+  } catch (error) {
+    console.error('Error uploading report:', error);
+    res.status(500).json({
+      message: 'Failed to upload report',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
+    });
   }
 };
