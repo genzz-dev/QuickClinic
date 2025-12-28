@@ -2,6 +2,7 @@
 
 - [ ] QuickClinic
 - [ ] QuickMed
+- [ ] QuickLab
 
 ## Change Type
 
