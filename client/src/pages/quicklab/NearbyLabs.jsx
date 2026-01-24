@@ -153,12 +153,11 @@ export default function NearbyLabs() {
         ) : labs.length === 0 ? (
           <div className="text-center py-16">
             <MapPin className="w-16 h-16 mx-auto text-lab-black-300 mb-4" />
-            <p className="text-xl text-lab-black-600 font-semibold">No labs found in {detectedCity}</p>
+            <p className="text-xl text-lab-black-600 font-semibold">
+              No labs found in {detectedCity}
+            </p>
             <p className="text-lab-black-500 mt-2">Try searching in a different location</p>
-            <button
-              onClick={handleChangeLocation}
-              className="mt-4 btn-quicklab-primary px-6 py-2"
-            >
+            <button onClick={handleChangeLocation} className="mt-4 btn-quicklab-primary px-6 py-2">
               Change Location
             </button>
           </div>
@@ -179,11 +178,7 @@ export default function NearbyLabs() {
                 >
                   {/* Lab Logo */}
                   {lab.logo ? (
-                    <img
-                      src={lab.logo}
-                      alt={lab.name}
-                      className="w-full h-48 object-cover"
-                    />
+                    <img src={lab.logo} alt={lab.name} className="w-full h-48 object-cover" />
                   ) : (
                     <div className="w-full h-48 bg-gradient-to-br from-lab-yellow-100 to-lab-yellow-50 flex items-center justify-center">
                       <div className="text-center">

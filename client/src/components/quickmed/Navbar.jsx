@@ -123,38 +123,38 @@ const Navbar = () => {
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-4">
             {/* Explore Dropdown (patients & public) */}
-           
-              <div className="relative" ref={exploreRef}>
-                <button
-                  onClick={() => setIsExploreOpen((v) => !v)}
-                  className="px-3 py-2 text-[var(--color-med-text)] hover:text-[var(--color-med-green-600)] font-medium"
-                >
-                  Explore
-                </button>
-                {isExploreOpen && (
-                  <div className="absolute right-0 mt-2 w-40 bg-[var(--color-med-surface)] border border-[var(--color-med-border)] rounded-lg shadow-lg py-2">
-                    <button
-                      onClick={() => {
-                        setIsExploreOpen(false);
-                        navigate('/');
-                      }}
-                      className="block w-full text-left px-4 py-2 text-[var(--color-med-text)] hover:bg-[var(--color-med-green-50)] dark:hover:bg-[var(--color-med-green-900)]"
-                    >
-                      Quick Clinic
-                    </button>
-                    <button
-                      onClick={() => {
-                        setIsExploreOpen(false);
-                        navigate('/quick-lab');
-                      }}
-                      className="block w-full text-left px-4 py-2 text-[var(--color-med-text)] hover:bg-[var(--color-med-green-50)] dark:hover:bg-[var(--color-med-green-900)]"
-                    >
-                      Quick Lab
-                    </button>
-                  </div>
-                )}
-              </div>
-            
+
+            <div className="relative" ref={exploreRef}>
+              <button
+                onClick={() => setIsExploreOpen((v) => !v)}
+                className="px-3 py-2 text-[var(--color-med-text)] hover:text-[var(--color-med-green-600)] font-medium"
+              >
+                Explore
+              </button>
+              {isExploreOpen && (
+                <div className="absolute right-0 mt-2 w-40 bg-[var(--color-med-surface)] border border-[var(--color-med-border)] rounded-lg shadow-lg py-2">
+                  <button
+                    onClick={() => {
+                      setIsExploreOpen(false);
+                      navigate('/');
+                    }}
+                    className="block w-full text-left px-4 py-2 text-[var(--color-med-text)] hover:bg-[var(--color-med-green-50)] dark:hover:bg-[var(--color-med-green-900)]"
+                  >
+                    Quick Clinic
+                  </button>
+                  <button
+                    onClick={() => {
+                      setIsExploreOpen(false);
+                      navigate('/quick-lab');
+                    }}
+                    className="block w-full text-left px-4 py-2 text-[var(--color-med-text)] hover:bg-[var(--color-med-green-50)] dark:hover:bg-[var(--color-med-green-900)]"
+                  >
+                    Quick Lab
+                  </button>
+                </div>
+              )}
+            </div>
+
             <DarkModeToggle />
           </div>
 

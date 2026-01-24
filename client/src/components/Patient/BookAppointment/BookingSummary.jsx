@@ -75,12 +75,16 @@ const BookingSummary = ({
 
           <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-3">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-xs lg:text-sm font-semibold text-blue-900">QuickClinic Commission</span>
+              <span className="text-xs lg:text-sm font-semibold text-blue-900">
+                QuickClinic Commission
+              </span>
               <span className="text-xs lg:text-sm text-blue-700 font-semibold">1%</span>
             </div>
             <div className="flex items-center justify-between">
               <span className="text-xs text-blue-800">Our platform fee</span>
-              <span className="text-sm lg:text-base font-bold text-blue-900">₹{Math.round(consultationFee * 0.01)}</span>
+              <span className="text-sm lg:text-base font-bold text-blue-900">
+                ₹{Math.round(consultationFee * 0.01)}
+              </span>
             </div>
           </div>
         </div>

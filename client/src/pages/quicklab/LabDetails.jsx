@@ -468,7 +468,7 @@ export default function LabDetails() {
                         <span className="text-lab-black-900">Total</span>
                         <span className="text-lab-yellow-600">₹{calculateTotal()}</span>
                       </div>
-                      
+
                       <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
                         <div className="flex items-center justify-between text-sm mb-2">
                           <span className="text-blue-900 font-medium">QuickClinic Commission</span>
@@ -476,7 +476,9 @@ export default function LabDetails() {
                         </div>
                         <div className="flex items-center justify-between text-sm">
                           <span className="text-blue-900 text-xs">Our platform fee</span>
-                          <span className="text-blue-900 font-bold">₹{Math.round(calculateTotal() * 0.01)}</span>
+                          <span className="text-blue-900 font-bold">
+                            ₹{Math.round(calculateTotal() * 0.01)}
+                          </span>
                         </div>
                       </div>
                     </div>
