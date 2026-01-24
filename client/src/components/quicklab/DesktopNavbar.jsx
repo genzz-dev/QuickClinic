@@ -8,6 +8,7 @@ import {
   Calendar,
   TestTube,
   Settings,
+  MapPin,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/authContext';
@@ -241,6 +242,18 @@ export default function DesktopNavbar({ searchQuery, setSearchQuery }) {
           <div className="flex items-center space-x-4">
             {/* Dark Mode Toggle */}
             <DarkModeToggle />
+
+            {/* Nearby Labs Button - Always visible for public and patients */}
+            {(!isAuthenticated || user?.role === 'patient') && (
+              <button
+                onClick={() => navigate('/quick-lab/nearby')}
+                className="hidden md:inline-flex items-center gap-2 px-4 py-2 text-slate-700 dark:text-slate-300 hover:text-yellow-600 dark:hover:text-yellow-400 font-medium transition-colors bg-yellow-50 dark:bg-slate-800 rounded-lg hover:bg-yellow-100 dark:hover:bg-slate-700"
+                title="Find Nearby Labs"
+              >
+                <MapPin className="h-5 w-5" />
+                Nearby Labs
+              </button>
+            )}
 
             {/* Explore Dropdown (Quick Clinic / Quick Med) for patients & public */}
             {(!isAuthenticated || user?.role === 'patient') && (

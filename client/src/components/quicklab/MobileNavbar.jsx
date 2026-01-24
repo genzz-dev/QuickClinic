@@ -11,6 +11,7 @@ import {
   Calendar,
   TestTube,
   Settings,
+  MapPin,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/authContext';
@@ -247,6 +248,17 @@ export default function MobileNavbar({ searchQuery, setSearchQuery }) {
               Theme
             </span>
           </div>
+
+          {/* Nearby Labs Button - Always visible for public and patients */}
+          {(!isAuthenticated || user?.role === 'patient') && (
+            <button
+              onClick={() => navigate('/quick-lab/nearby')}
+              className="flex flex-col items-center justify-center w-full h-full space-y-1 text-slate-500 dark:text-slate-400 hover:text-yellow-600 dark:hover:text-yellow-400 transition-colors active:scale-95"
+            >
+              <MapPin className="h-6 w-6" />
+              <span className="text-xs font-medium">Nearby</span>
+            </button>
+          )}
 
           {/* Explore toggle for patients & public */}
           {(!isAuthenticated || user?.role === 'patient') && (

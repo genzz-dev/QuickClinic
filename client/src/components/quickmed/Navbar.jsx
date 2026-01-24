@@ -123,7 +123,7 @@ const Navbar = () => {
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-4">
             {/* Explore Dropdown (patients & public) */}
-            {(!isAuthenticated || user?.role === 'patient') && (
+           
               <div className="relative" ref={exploreRef}>
                 <button
                   onClick={() => setIsExploreOpen((v) => !v)}
@@ -154,7 +154,7 @@ const Navbar = () => {
                   </div>
                 )}
               </div>
-            )}
+            
             <DarkModeToggle />
           </div>
 
