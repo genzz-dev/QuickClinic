@@ -464,9 +464,20 @@ export default function LabDetails() {
                     </div>
 
                     <div className="border-t border-lab-black-100 pt-3 mb-4">
-                      <div className="flex justify-between text-lg font-bold">
+                      <div className="flex justify-between text-lg font-bold mb-3">
                         <span className="text-lab-black-900">Total</span>
                         <span className="text-lab-yellow-600">₹{calculateTotal()}</span>
+                      </div>
+                      
+                      <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                        <div className="flex items-center justify-between text-sm mb-2">
+                          <span className="text-blue-900 font-medium">QuickClinic Commission</span>
+                          <span className="text-blue-700 font-semibold">1%</span>
+                        </div>
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-blue-900 text-xs">Our platform fee</span>
+                          <span className="text-blue-900 font-bold">₹{Math.round(calculateTotal() * 0.01)}</span>
+                        </div>
                       </div>
                     </div>
 

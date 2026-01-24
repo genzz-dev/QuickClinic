@@ -2,6 +2,7 @@ import { Routes, Route } from 'react-router-dom';
 import Navbar from '../components/quicklab/Navbar';
 import QuickLabHomepage from '../pages/quicklab/Homepage';
 import LabSearchResults from '../pages/quicklab/LabSearchResults';
+import NearbyLabs from '../pages/quicklab/NearbyLabs';
 import LabDetails from '../pages/quicklab/LabDetails';
 import LabAdminProfileComplete from '../pages/quicklab/LabAdminProfileComplete';
 import LabAdminAddLab from '../pages/quicklab/LabAdminAddLab';
@@ -169,6 +170,9 @@ export default function QuickLabRoutes() {
 
         {/* Public homepage */}
         <Route path="/quick-lab" element={<QuickLabHomepage />} />
+
+        {/* Nearby Labs */}
+        <Route path="/quick-lab/nearby" element={<NearbyLabs />} />
 
         {/* Lab Search Results */}
         <Route path="/quick-lab/search" element={<LabSearchResults />} />
